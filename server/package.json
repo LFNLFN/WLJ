@@ -1,5 +1,5 @@
 {
-  "name": "little-potato-chips-server",
+  "name": "wlj-server",
   "private": true,
   "scripts": {
     "start": "node index.js"

@@ -33,3 +33,9 @@ next-env.d.ts
 # 数据库文件
 *.db
 server/data.db
+
+# 数据库文件
+*.db
+server/data.db
+server/data.db-shm
+server/data.db-wal
