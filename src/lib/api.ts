@@ -4,7 +4,7 @@
 const API_BASE = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) 
   || (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:3001/api' 
-    : 'https://wjl-production.up.railway.app/api');
+    : 'https://wlj-production.up.railway.app/api');
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;
