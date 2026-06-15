@@ -12,7 +12,7 @@ app.use(express.json());
 
 // ==================== SQLite 数据库初始化 ====================
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'data.db');
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'db', 'data.db');
 const db = new Database(dbPath);
 
 // 启用 WAL 模式（提高并发性能）
