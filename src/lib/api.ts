@@ -1,5 +1,11 @@
 // API 基础地址
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// 生产环境: 通过环境变量设置后端地址
+// 开发环境: 默认 localhost:3001
+const API_BASE = typeof window !== 'undefined' 
+  ? (window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001/api' 
+    : (process.env.NEXT_PUBLIC_API_URL || '/api'))
+  : '/api';
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;
@@ -25,8 +31,8 @@ export async function getTeacher(id: string) {
 }
 
 export async function saveTeacher(teacher: any) {
-  if (teacher._id) {
-    return request(`/teachers/${teacher._id}`, {
+  if (teacher.id || teacher._id) {
+    return request(`/teachers/${teacher.id || teacher._id}`, {
       method: 'PUT',
       body: JSON.stringify(teacher),
     });
@@ -52,8 +58,8 @@ export async function getStudent(id: string) {
 }
 
 export async function saveStudent(student: any) {
-  if (student._id) {
-    return request(`/students/${student._id}`, {
+  if (student.id || student._id) {
+    return request(`/students/${student.id || student._id}`, {
       method: 'PUT',
       body: JSON.stringify(student),
     });
@@ -79,8 +85,8 @@ export async function getCourse(id: string) {
 }
 
 export async function saveCourse(course: any) {
-  if (course._id) {
-    return request(`/courses/${course._id}`, {
+  if (course.id || course._id) {
+    return request(`/courses/${course.id || course._id}`, {
       method: 'PUT',
       body: JSON.stringify(course),
     });
@@ -106,8 +112,8 @@ export async function getClassRecord(id: string) {
 }
 
 export async function saveClassRecord(record: any) {
-  if (record._id) {
-    return request(`/class-records/${record._id}`, {
+  if (record.id || record._id) {
+    return request(`/class-records/${record.id || record._id}`, {
       method: 'PUT',
       body: JSON.stringify(record),
     });

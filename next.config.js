@@ -1,14 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // API 路由代理到 server 目录
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-    ];
-  },
+  // 纯前端应用，API 由独立后端提供
 };
 
 module.exports = nextConfig;
