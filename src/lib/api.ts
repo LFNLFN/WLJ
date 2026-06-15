@@ -1,11 +1,10 @@
 // API 基础地址
-// 生产环境: 通过环境变量设置后端地址
-// 开发环境: 默认 localhost:3001
-const API_BASE = typeof window !== 'undefined' 
-  ? (window.location.hostname === 'localhost' 
+// 优先使用环境变量（Vercel 上设置）
+// 开发环境默认 localhost:3001
+const API_BASE = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) 
+  || (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
     ? 'http://localhost:3001/api' 
-    : (process.env.NEXT_PUBLIC_API_URL || '/api'))
-  : '/api';
+    : 'https://wjl-production.up.railway.app/api');
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;
