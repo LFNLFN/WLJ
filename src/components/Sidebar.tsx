@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
+// use native <img> for public assets to avoid next/image loader issues in some deployments
 import { useState } from 'react';
 
 const navItems = [
@@ -48,7 +48,7 @@ export default function Sidebar() {
       <div className="p-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border border-gray-100">
-            <Image
+            <img
               src="/logo.jpg"
               alt="未来家儿童能力发展中心"
               width={40}
@@ -66,17 +66,16 @@ export default function Sidebar() {
       <nav className="p-4">
         <ul className="space-y-2">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== '/' && pathname.startsWith(item.href));
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
                       ? 'bg-[#FFF0E0] text-[#F08020] font-medium border-r-4 border-[#F08020]'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-lg">{item.icon}</span>
                   <span>{item.label}</span>
@@ -97,18 +96,16 @@ export default function Sidebar() {
               <li key={group.label}>
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isGroupActive
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isGroupActive
                       ? 'bg-[#FFF0E0] text-[#F08020] font-medium'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-lg">{group.icon}</span>
                   <span className="flex-1 text-left">{group.label}</span>
                   <svg
-                    className={`w-4 h-4 transition-transform ${
-                      expandedGroup === group.label ? 'rotate-90' : ''
-                    }`}
+                    className={`w-4 h-4 transition-transform ${expandedGroup === group.label ? 'rotate-90' : ''
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -131,11 +128,10 @@ export default function Sidebar() {
                         <li key={item.href}>
                           <Link
                             href={item.href}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
-                              isActive
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${isActive
                                 ? 'bg-[#FFF0E0] text-[#F08020] font-medium'
                                 : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                            }`}
+                              }`}
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
                             <span>{item.label}</span>
