@@ -83,32 +83,6 @@ db.exec(`
     status TEXT DEFAULT 'completed',
     createdAt TEXT DEFAULT (datetime('now'))
   );
-
-  CREATE TABLE IF NOT EXISTS scale_templates (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    category TEXT DEFAULT "",
-    description TEXT DEFAULT "",
-    fields TEXT DEFAULT "[]",
-    createdAt TEXT DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS student_scale_records (
-    id TEXT PRIMARY KEY,
-    studentId TEXT DEFAULT "",
-    studentName TEXT DEFAULT "",
-    scaleTemplateId TEXT DEFAULT "",
-    scaleName TEXT DEFAULT "",
-    category TEXT DEFAULT "",
-    evaluator TEXT DEFAULT "",
-    evaluationDate TEXT DEFAULT "",
-    scores TEXT DEFAULT "[]",
-    summary TEXT DEFAULT "",
-    recommendations TEXT DEFAULT "",
-    status TEXT DEFAULT "draft",
-    createdAt TEXT DEFAULT (datetime('now')),
-    updatedAt TEXT DEFAULT (datetime('now'))
-  );
 `);
 
 console.log('✅ SQLite 数据库已初始化');
@@ -128,12 +102,6 @@ function parseRow(row) {
   }
   if (typeof result.studentIds === 'string') {
     try { result.studentIds = JSON.parse(result.studentIds); } catch(e) { result.studentIds = []; }
-  }
-  if (typeof result.fields === "string") {
-    try { result.fields = JSON.parse(result.fields); } catch(e) { result.fields = []; }
-  }
-  if (typeof result.scores === "string") {
-    try { result.scores = JSON.parse(result.scores); } catch(e) { result.scores = []; }
   }
   if (typeof result.studentNames === 'string') {
     try { result.studentNames = JSON.parse(result.studentNames); } catch(e) { result.studentNames = []; }
@@ -155,8 +123,6 @@ function prepareSaveData(body) {
   if (data.subjects && Array.isArray(data.subjects)) data.subjects = JSON.stringify(data.subjects);
   if (data.studentIds && Array.isArray(data.studentIds)) data.studentIds = JSON.stringify(data.studentIds);
   if (data.studentNames && Array.isArray(data.studentNames)) data.studentNames = JSON.stringify(data.studentNames);
-  if (data.fields && Array.isArray(data.fields)) data.fields = JSON.stringify(data.fields);
-  if (data.scores && Array.isArray(data.scores)) data.scores = JSON.stringify(data.scores);
   return data;
 }
 
@@ -243,8 +209,6 @@ createCRUD('teachers', 'teachers');
 createCRUD('students', 'students');
 createCRUD('courses', 'courses');
 createCRUD('class-records', 'class_records');
-createCRUD("scale-templates", "scale_templates");
-createCRUD("student-scale-records", "student_scale_records");
 
 // 批量创建上课记录
 app.post('/api/class-records/batch', (req, res) => {

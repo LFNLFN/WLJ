@@ -109,3 +109,57 @@ export function deleteClassRecord(id: string): void {
   const records = getClassRecords().filter(r => r.id !== id);
   localStorage.setItem('records', JSON.stringify(records));
 }
+
+// --- 量表模板 APIs ---
+export function getScaleTemplates(): any[] {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem('scaleTemplates');
+  return data ? JSON.parse(data) : [];
+}
+
+export function getScaleTemplate(id: string): any | undefined {
+  return getScaleTemplates().find(t => t.id === id);
+}
+
+export function saveScaleTemplate(template: any): void {
+  const templates = getScaleTemplates();
+  const idx = templates.findIndex(t => t.id === template.id);
+  if (idx >= 0) {
+    templates[idx] = template;
+  } else {
+    templates.push(template);
+  }
+  localStorage.setItem('scaleTemplates', JSON.stringify(templates));
+}
+
+export function deleteScaleTemplate(id: string): void {
+  const templates = getScaleTemplates().filter(t => t.id !== id);
+  localStorage.setItem('scaleTemplates', JSON.stringify(templates));
+}
+
+// --- 学生量表评估记录 APIs ---
+export function getStudentScaleRecords(): any[] {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem('studentScaleRecords');
+  return data ? JSON.parse(data) : [];
+}
+
+export function getStudentScaleRecord(id: string): any | undefined {
+  return getStudentScaleRecords().find(r => r.id === id);
+}
+
+export function saveStudentScaleRecord(record: any): void {
+  const records = getStudentScaleRecords();
+  const idx = records.findIndex(r => r.id === record.id);
+  if (idx >= 0) {
+    records[idx] = record;
+  } else {
+    records.unshift(record);
+  }
+  localStorage.setItem('studentScaleRecords', JSON.stringify(records));
+}
+
+export function deleteStudentScaleRecord(id: string): void {
+  const records = getStudentScaleRecords().filter(r => r.id !== id);
+  localStorage.setItem('studentScaleRecords', JSON.stringify(records));
+}

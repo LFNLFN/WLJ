@@ -6,15 +6,25 @@ interface Column {
   render?: (value: any, row: any) => React.ReactNode;
 }
 
+interface Action {
+  label: string;
+  onClick: (row: any) => void;
+  color?: string;
+  hoverColor?: string;
+}
+
 interface TableProps {
   columns: Column[];
   data: any[];
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
   rowKey?: string;
+  actions?: Action[];  // 自定义操作按钮
 }
 
-export default function Table({ columns, data, onEdit, onDelete, rowKey }: TableProps) {
+export default function Table({ columns, data, onEdit, onDelete, rowKey, actions }: TableProps) {
+  const hasActions = !!(onEdit || onDelete || (actions && actions.length > 0));
+
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -38,7 +48,7 @@ export default function Table({ columns, data, onEdit, onDelete, rowKey }: Table
                   {col.label}
                 </th>
               ))}
-              {(onEdit || onDelete) && (
+              {hasActions && (
                 <th className="text-right px-6 py-3 text-sm font-medium text-gray-600 uppercase tracking-wider">
                   操作
                 </th>
@@ -55,9 +65,19 @@ export default function Table({ columns, data, onEdit, onDelete, rowKey }: Table
                     {col.render ? col.render(row[col.key], row) : row[col.key]}
                   </td>
                 ))}
-                {(onEdit || onDelete) && (
+                {hasActions && (
                   <td className="px-6 py-4 text-sm text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
+                      {/* 自定义操作 */}
+                      {actions?.map((action, i) => (
+                        <button
+                          key={i}
+                          onClick={() => action.onClick(row)}
+                          className={`px-3 py-1.5 ${action.color || 'text-[#F08020]'} ${action.hoverColor || 'hover:bg-[#FFF0E0]'} rounded-lg transition-colors`}
+                        >
+                          {action.label}
+                        </button>
+                      ))}
                       {onEdit && (
                         <button
                           onClick={() => onEdit(row)}

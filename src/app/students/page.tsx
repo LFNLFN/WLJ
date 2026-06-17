@@ -33,6 +33,14 @@ export default function StudentsPage() {
     },
   ];
 
+  const goToAssessments = (student: any) => {
+    router.push(`/students/assessments?studentId=${student._id || student.id}`);
+  };
+
+  const goToNewAssessment = (student: any) => {
+    router.push(`/scales/records/new?studentId=${student._id || student.id}`);
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -40,7 +48,10 @@ export default function StudentsPage() {
         <Header />
         <main className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-500">共 {students.length} 位学生</p>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">学生管理</h2>
+              <p className="text-gray-500 text-sm mt-1">管理学生信息，查看和录入量表评估</p>
+            </div>
             <button
               onClick={() => router.push('/students/new')}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -48,11 +59,34 @@ export default function StudentsPage() {
               ➕ 添加学生
             </button>
           </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex items-center gap-4">
+            <span className="text-sm text-gray-500">共 {students.length} 位学生</span>
+            <span className="text-gray-300">|</span>
+            <span className="text-sm text-gray-500">
+              点击"查看评估"查看学生所有量表结果，点击"新建评估"快速录入
+            </span>
+          </div>
+
           <Table
             columns={columns}
             data={students}
             onEdit={(row) => router.push(`/students/edit?id=${row._id}`)}
             onDelete={handleDelete}
+            actions={[
+              {
+                label: '📊 查看评估',
+                onClick: goToAssessments,
+                color: 'text-blue-600',
+                hoverColor: 'hover:bg-blue-50',
+              },
+              {
+                label: '➕ 新建评估',
+                onClick: goToNewAssessment,
+                color: 'text-green-600',
+                hoverColor: 'hover:bg-green-50',
+              },
+            ]}
           />
         </main>
       </div>
