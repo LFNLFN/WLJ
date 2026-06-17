@@ -13,10 +13,23 @@ app.use(express.json());
 
 // ==================== SQLite 数据库初始化 ====================
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'db', 'data.db');
+// 优先使用 Railway Volume 挂载路径，如果设置了 VOLUME_PATH 环境变量
+// 否则使用 DB_PATH 环境变量，最后使用默认路径
+const volumePath = process.env.VOLUME_PATH || '/app/server/db';
+const dbPath = process.env.DB_PATH || path.join(volumePath, 'data.db');
 const dbDir = path.dirname(dbPath);
+
+// 确保目录存在
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
+}
+
+// 如果数据库文件不存在，但旧的默认路径下有数据，则复制过来
+const oldDbPath = path.join(__dirname, 'db', 'data.db');
+if (!fs.existsSync(dbPath) && fs.existsSync(oldDbPath)) {
+  console.log('📂 检测到旧数据库文件，正在迁移到 Volume 目录...');
+  fs.copyFileSync(oldDbPath, dbPath);
+  console.log('✅ 数据库迁移完成');
 }
 
 const db = new Database(dbPath);
@@ -102,6 +115,7 @@ db.exec(`
 `);
 
 console.log('✅ SQLite 数据库已初始化');
+console.log(`📁 数据库路径: ${dbPath}`);
 
 // ==================== 辅助函数 ====================
 
@@ -277,11 +291,10 @@ app.get('/api/stats', (req, res) => {
 
 // 健康检查
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
+  res.json({ status: 'ok', db: dbPath, time: new Date().toISOString() });
 });
 
 // ==================== 集成 Next.js ====================
-// 将非 API 请求交给 Next.js 处理
 const nextDir = path.join(__dirname, '..');
 const nextBuildDir = path.join(nextDir, '.next');
 
@@ -293,7 +306,6 @@ if (fs.existsSync(nextBuildDir)) {
   nextApp.prepare().then(() => {
     // 所有非 API 请求交给 Next.js
     app.all('*', (req, res) => {
-      // 明确跳过 API 路由
       if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'API 路由未找到' });
       }
@@ -310,7 +322,6 @@ if (fs.existsSync(nextBuildDir)) {
     process.exit(1);
   });
 } else {
-  // 没有 .next 构建，仅启动 API 服务
   app.get('/', (req, res) => {
     res.send(`
       <html>

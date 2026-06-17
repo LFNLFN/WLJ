@@ -7,10 +7,21 @@ let db: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (db) return db;
 
-  const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'server', 'db', 'data.db');
+  // 优先使用 Railway Volume 挂载路径
+  const volumePath = process.env.VOLUME_PATH || '/app/server/db';
+  const dbPath = process.env.DB_PATH || path.join(volumePath, 'data.db');
   const dbDir = path.dirname(dbPath);
+  
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  // 如果数据库文件不存在，但旧的默认路径下有数据，则复制过来
+  const oldDbPath = path.join(process.cwd(), 'server', 'db', 'data.db');
+  if (!fs.existsSync(dbPath) && fs.existsSync(oldDbPath)) {
+    console.log('📂 检测到旧数据库文件，正在迁移到 Volume 目录...');
+    fs.copyFileSync(oldDbPath, dbPath);
+    console.log('✅ 数据库迁移完成');
   }
 
   db = new Database(dbPath);
