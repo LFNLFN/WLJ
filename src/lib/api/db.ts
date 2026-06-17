@@ -1,14 +1,130 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
+import { Pool } from 'pg';
 
-let db: Database.Database | null = null;
+type DbType = 'sqlite' | 'postgres';
 
-export function getDb(): Database.Database {
-  if (db) return db;
+interface DbConfig {
+  type: DbType;
+  sqlite?: Database.Database;
+  pg?: Pool;
+}
 
-  // 优先使用 Railway Volume 挂载路径
-  const volumePath = process.env.VOLUME_PATH || '/app/server/db';
+let dbConfig: DbConfig | null = null;
+
+// PostgreSQL 连接配置
+function getPgPool(): Pool {
+  return new Pool({
+    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  });
+}
+
+// 获取数据库类型
+function getDbType(): DbType {
+  if (process.env.DATABASE_URL || process.env.POSTGRES_URL) return 'postgres';
+  return 'sqlite';
+}
+
+// PostgreSQL 表创建
+const PG_CREATE_TABLES = `
+  CREATE TABLE IF NOT EXISTS teachers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT DEFAULT '',
+    subjects TEXT DEFAULT '[]',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+
+  CREATE TABLE IF NOT EXISTS students (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT DEFAULT '',
+    "parentName" TEXT DEFAULT '',
+    "parentPhone" TEXT DEFAULT '',
+    grade TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+
+  CREATE TABLE IF NOT EXISTS courses (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    subject TEXT DEFAULT '',
+    "teacherId" TEXT DEFAULT '',
+    "teacherName" TEXT DEFAULT '',
+    "studentIds" TEXT DEFAULT '[]',
+    "studentNames" TEXT DEFAULT '[]',
+    price REAL DEFAULT 0,
+    "classHour" REAL DEFAULT 1,
+    "totalClasses" INTEGER DEFAULT 1,
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+
+  CREATE TABLE IF NOT EXISTS class_records (
+    id TEXT PRIMARY KEY,
+    "courseId" TEXT DEFAULT '',
+    "courseName" TEXT DEFAULT '',
+    "teacherId" TEXT DEFAULT '',
+    "teacherName" TEXT DEFAULT '',
+    "studentId" TEXT DEFAULT '',
+    "studentName" TEXT DEFAULT '',
+    date TEXT DEFAULT '',
+    "startTime" TEXT DEFAULT '',
+    "endTime" TEXT DEFAULT '',
+    duration REAL DEFAULT 0,
+    content TEXT DEFAULT '',
+    homework TEXT DEFAULT '',
+    status TEXT DEFAULT 'completed',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+
+  CREATE TABLE IF NOT EXISTS scale_templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT DEFAULT '',
+    description TEXT DEFAULT '',
+    fields TEXT DEFAULT '[]',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+
+  CREATE TABLE IF NOT EXISTS student_scale_records (
+    id TEXT PRIMARY KEY,
+    "studentId" TEXT DEFAULT '',
+    "studentName" TEXT DEFAULT '',
+    "scaleTemplateId" TEXT DEFAULT '',
+    "scaleName" TEXT DEFAULT '',
+    category TEXT DEFAULT '',
+    evaluator TEXT DEFAULT '',
+    "evaluationDate" TEXT DEFAULT '',
+    scores TEXT DEFAULT '[]',
+    summary TEXT DEFAULT '',
+    recommendations TEXT DEFAULT '',
+    status TEXT DEFAULT 'draft',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+    "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
+`;
+
+export async function getDb(): Promise<Database.Database | Pool> {
+  if (dbConfig) {
+    if (dbConfig.type === 'postgres') return dbConfig.pg!;
+    return dbConfig.sqlite!;
+  }
+
+  const type = getDbType();
+
+  if (type === 'postgres') {
+    const pool = getPgPool();
+    // 创建表
+    await pool.query(PG_CREATE_TABLES);
+    dbConfig = { type: 'postgres', pg: pool };
+    console.log('✅ PostgreSQL 数据库已连接');
+    return pool;
+  }
+
+  // SQLite 模式（本地开发用）
+  const volumePath = process.env.VOLUME_PATH || path.join(process.cwd(), 'server', 'db');
   const dbPath = process.env.DB_PATH || path.join(volumePath, 'data.db');
   const dbDir = path.dirname(dbPath);
   
@@ -16,97 +132,59 @@ export function getDb(): Database.Database {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  // 如果数据库文件不存在，但旧的默认路径下有数据，则复制过来
   const oldDbPath = path.join(process.cwd(), 'server', 'db', 'data.db');
   if (!fs.existsSync(dbPath) && fs.existsSync(oldDbPath)) {
-    console.log('📂 检测到旧数据库文件，正在迁移到 Volume 目录...');
+    console.log('📂 检测到旧数据库文件，正在迁移...');
     fs.copyFileSync(oldDbPath, dbPath);
-    console.log('✅ 数据库迁移完成');
   }
 
-  db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
-
-  // 创建表
-  db.exec(`
+  const sqliteDb = new Database(dbPath);
+  sqliteDb.pragma('journal_mode = WAL');
+  
+  sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      phone TEXT DEFAULT '',
-      subjects TEXT DEFAULT '[]',
-      createdAt TEXT DEFAULT (datetime('now'))
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '',
+      subjects TEXT DEFAULT '[]', createdAt TEXT DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS students (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      phone TEXT DEFAULT '',
-      parentName TEXT DEFAULT '',
-      parentPhone TEXT DEFAULT '',
-      grade TEXT DEFAULT '',
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '',
+      parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', grade TEXT DEFAULT '',
       createdAt TEXT DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS courses (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      subject TEXT DEFAULT '',
-      teacherId TEXT DEFAULT '',
-      teacherName TEXT DEFAULT '',
-      studentIds TEXT DEFAULT '[]',
-      studentNames TEXT DEFAULT '[]',
-      price REAL DEFAULT 0,
-      classHour REAL DEFAULT 1,
-      totalClasses INTEGER DEFAULT 1,
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '',
+      teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '',
+      studentIds TEXT DEFAULT '[]', studentNames TEXT DEFAULT '[]',
+      price REAL DEFAULT 0, classHour REAL DEFAULT 1, totalClasses INTEGER DEFAULT 1,
       createdAt TEXT DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS class_records (
-      id TEXT PRIMARY KEY,
-      courseId TEXT DEFAULT '',
-      courseName TEXT DEFAULT '',
-      teacherId TEXT DEFAULT '',
-      teacherName TEXT DEFAULT '',
-      studentId TEXT DEFAULT '',
-      studentName TEXT DEFAULT '',
-      date TEXT DEFAULT '',
-      startTime TEXT DEFAULT '',
-      endTime TEXT DEFAULT '',
-      duration REAL DEFAULT 0,
-      content TEXT DEFAULT '',
-      homework TEXT DEFAULT '',
-      status TEXT DEFAULT 'completed',
-      createdAt TEXT DEFAULT (datetime('now'))
+      id TEXT PRIMARY KEY, courseId TEXT DEFAULT '', courseName TEXT DEFAULT '',
+      teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '',
+      studentId TEXT DEFAULT '', studentName TEXT DEFAULT '',
+      date TEXT DEFAULT '', startTime TEXT DEFAULT '', endTime TEXT DEFAULT '',
+      duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '',
+      status TEXT DEFAULT 'completed', createdAt TEXT DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS scale_templates (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      category TEXT DEFAULT "",
-      description TEXT DEFAULT "",
-      fields TEXT DEFAULT "[]",
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT "",
+      description TEXT DEFAULT "", fields TEXT DEFAULT "[]",
       createdAt TEXT DEFAULT (datetime('now'))
     );
-
     CREATE TABLE IF NOT EXISTS student_scale_records (
-      id TEXT PRIMARY KEY,
-      studentId TEXT DEFAULT "",
-      studentName TEXT DEFAULT "",
-      scaleTemplateId TEXT DEFAULT "",
-      scaleName TEXT DEFAULT "",
-      category TEXT DEFAULT "",
-      evaluator TEXT DEFAULT "",
-      evaluationDate TEXT DEFAULT "",
-      scores TEXT DEFAULT "[]",
-      summary TEXT DEFAULT "",
-      recommendations TEXT DEFAULT "",
+      id TEXT PRIMARY KEY, studentId TEXT DEFAULT "", studentName TEXT DEFAULT "",
+      scaleTemplateId TEXT DEFAULT "", scaleName TEXT DEFAULT "",
+      category TEXT DEFAULT "", evaluator TEXT DEFAULT "",
+      evaluationDate TEXT DEFAULT "", scores TEXT DEFAULT "[]",
+      summary TEXT DEFAULT "", recommendations TEXT DEFAULT "",
       status TEXT DEFAULT "draft",
       createdAt TEXT DEFAULT (datetime('now')),
       updatedAt TEXT DEFAULT (datetime('now'))
     );
   `);
 
-  return db;
+  dbConfig = { type: 'sqlite', sqlite: sqliteDb };
+  return sqliteDb;
 }
 
 export function generateId(): string {
