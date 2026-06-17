@@ -112,21 +112,11 @@ function generateId() {
 function parseRow(row) {
   if (!row) return null;
   const result = { ...row };
-  if (typeof result.subjects === 'string') {
-    try { result.subjects = JSON.parse(result.subjects); } catch(e) { result.subjects = []; }
-  }
-  if (typeof result.studentIds === 'string') {
-    try { result.studentIds = JSON.parse(result.studentIds); } catch(e) { result.studentIds = []; }
-  }
-  if (typeof result.fields === "string") {
-    try { result.fields = JSON.parse(result.fields); } catch(e) { result.fields = []; }
-  }
-  if (typeof result.scores === "string") {
-    try { result.scores = JSON.parse(result.scores); } catch(e) { result.scores = []; }
-  }
-  if (typeof result.studentNames === 'string') {
-    try { result.studentNames = JSON.parse(result.studentNames); } catch(e) { result.studentNames = []; }
-  }
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach((field) => {
+    if (typeof result[field] === 'string') {
+      try { result[field] = JSON.parse(result[field]); } catch(e) { result[field] = []; }
+    }
+  });
   result._id = row.id;
   return result;
 }
@@ -138,11 +128,9 @@ function parseRows(rows) {
 function prepareSaveData(body) {
   const data = { ...body };
   if (data._id) { data.id = data._id; delete data._id; }
-  if (data.subjects && Array.isArray(data.subjects)) data.subjects = JSON.stringify(data.subjects);
-  if (data.studentIds && Array.isArray(data.studentIds)) data.studentIds = JSON.stringify(data.studentIds);
-  if (data.studentNames && Array.isArray(data.studentNames)) data.studentNames = JSON.stringify(data.studentNames);
-  if (data.fields && Array.isArray(data.fields)) data.fields = JSON.stringify(data.fields);
-  if (data.scores && Array.isArray(data.scores)) data.scores = JSON.stringify(data.scores);
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach((field) => {
+    if (data[field] && Array.isArray(data[field])) data[field] = JSON.stringify(data[field]);
+  });
   return data;
 }
 
@@ -160,9 +148,7 @@ function createCRUD(route, tableName, filterFields = []) {
           params.push(req.query[field]);
         }
       }
-      if (conditions.length > 0) {
-        sql += ` WHERE ${conditions.join(' AND ')}`;
-      }
+      if (conditions.length > 0) sql += ` WHERE ${conditions.join(' AND ')}`;
       sql += ` ORDER BY createdAt DESC`;
       const rows = db.prepare(sql).all(...params);
       res.json(parseRows(rows));
@@ -240,12 +226,10 @@ app.post('/api/class-records/batch', (req, res) => {
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({ error: '学生列表不能为空' });
     }
-
     const insert = db.prepare(`
       INSERT INTO class_records (id, courseId, courseName, teacherId, teacherName, studentId, studentName, date, startTime, endTime, duration, content, homework, status, createdAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `);
-
     const savedIds = [];
     const insertMany = db.transaction((items) => {
       for (const item of items) {
@@ -253,7 +237,6 @@ app.post('/api/class-records/batch', (req, res) => {
         savedIds.push(item.id);
       }
     });
-
     const records = studentIds.map((studentId, index) => ({
       id: generateId(),
       courseId: courseId || '',
@@ -270,9 +253,7 @@ app.post('/api/class-records/batch', (req, res) => {
       homework: homework || '',
       status: status || 'completed',
     }));
-
     insertMany(records);
-
     const saved = db.prepare(`SELECT * FROM class_records WHERE id IN (${savedIds.map(() => '?').join(',')})`).all(...savedIds);
     res.status(201).json(parseRows(saved));
   } catch (err) {
@@ -287,9 +268,7 @@ app.get('/api/stats', (req, res) => {
     const students = db.prepare('SELECT COUNT(*) as count FROM students').get().count;
     const courses = db.prepare('SELECT COUNT(*) as count FROM courses').get().count;
     const records = db.prepare('SELECT COUNT(*) as count FROM class_records').get().count;
-    const recentRecords = parseRows(
-      db.prepare('SELECT * FROM class_records ORDER BY createdAt DESC LIMIT 5').all()
-    );
+    const recentRecords = parseRows(db.prepare('SELECT * FROM class_records ORDER BY createdAt DESC LIMIT 5').all());
     res.json({ teachers, students, courses, records, recentRecords });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -298,66 +277,57 @@ app.get('/api/stats', (req, res) => {
 
 // 健康检查
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', db: dbPath, time: new Date().toISOString() });
+  res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// ==================== 提供 Next.js 静态文件 ====================
-// 生产环境下，由 Express 同时提供前端静态文件
-const nextStaticDir = path.join(__dirname, '..', '.next');
-if (fs.existsSync(nextStaticDir)) {
-  // 提供 _next 静态资源
-  app.use('/_next', express.static(path.join(nextStaticDir)));
-  
-  // 提供 public 目录
-  const publicDir = path.join(__dirname, '..', 'public');
-  if (fs.existsSync(publicDir)) {
-    app.use(express.static(publicDir));
-  }
+// ==================== 集成 Next.js ====================
+// 将非 API 请求交给 Next.js 处理
+const nextDir = path.join(__dirname, '..');
+const nextBuildDir = path.join(nextDir, '.next');
 
-  // 所有非 API 路由返回 index.html（SPA 模式）
-  // 但注意：Next.js 静态导出后，页面路径需要对应 HTML 文件
-  
-  // 尝试读取 .next 目录下的路由信息
-  const routesDir = path.join(nextStaticDir, 'server', 'app');
-  if (fs.existsSync(routesDir)) {
-    // SSR 模式 - 这里简化处理，实际 Next.js SSR 需要更复杂的设置
-    // 对于 Railway 部署，更好的方式是使用 next start 命令
-    console.log('⚠️ 检测到 Next.js 构建文件，但 Express 直接提供静态文件可能不完整');
-    console.log('💡 建议使用 "next start" 命令启动前端，或使用 npx serve@latest out 启动静态导出');
-  }
-  
-  // 提供静态导出目录（如果存在）
-  const outDir = path.join(__dirname, '..', 'out');
-  if (fs.existsSync(outDir)) {
-    app.use(express.static(outDir));
-    // SPA fallback
-    app.get('*', (req, res) => {
-      if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(outDir, 'index.html'));
+if (fs.existsSync(nextBuildDir)) {
+  const next = require(path.join(__dirname, '..', 'node_modules', 'next'));
+  const nextApp = next({ dev: false, dir: nextDir, conf: { distDir: '.next' } });
+  const handle = nextApp.getRequestHandler();
+
+  nextApp.prepare().then(() => {
+    // 所有非 API 请求交给 Next.js
+    app.all('*', (req, res) => {
+      // 明确跳过 API 路由
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API 路由未找到' });
       }
+      return handle(req, res);
     });
-    console.log('✅ 提供静态文件服务来自:', outDir);
-  }
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 服务已启动 (Next.js + Express): http://localhost:${PORT}`);
+      console.log(`📋 API: http://localhost:${PORT}/api`);
+      console.log(`❤️ 健康检查: http://localhost:${PORT}/api/health`);
+    });
+  }).catch((err) => {
+    console.error('❌ Next.js 启动失败:', err);
+    process.exit(1);
+  });
+} else {
+  // 没有 .next 构建，仅启动 API 服务
+  app.get('/', (req, res) => {
+    res.send(`
+      <html>
+        <head><meta charset="utf-8"><title>未来家课程管理系统</title></head>
+        <body style="font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5">
+          <div style="text-align:center;padding:2rem">
+            <h1>📚 未来家儿童能力发展中心</h1>
+            <p>课程管理系统 API 已启动（前端未构建）</p>
+            <p><a href="/api/health">检查服务状态</a></p>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 API 服务已启动 (无前端): http://localhost:${PORT}`);
+    console.log(`📋 API: http://localhost:${PORT}/api`);
+  });
 }
-
-// 添加一个简单的首页重定向（当没有静态文件时）
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head><meta charset="utf-8"><title>未来家课程管理系统</title></head>
-      <body style="font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5">
-        <div style="text-align:center;padding:2rem">
-          <h1>📚 未来家儿童能力发展中心</h1>
-          <p>课程管理系统 API 已启动</p>
-          <p><a href="/api/health">检查服务状态</a></p>
-        </div>
-      </body>
-    </html>
-  `);
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 服务已启动: http://localhost:${PORT}`);
-  console.log(`📋 API 地址: http://localhost:${PORT}/api`);
-  console.log(`❤️ 健康检查: http://localhost:${PORT}/api/health`);
-});
