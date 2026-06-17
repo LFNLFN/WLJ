@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHandlers, getDb, generateId, parseRows } from '@/lib/api/crud';
-import { Pool } from 'pg';
 
 const baseHandlers = createHandlers('class_records');
 
