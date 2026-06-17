@@ -1,10 +1,30 @@
 // API 基础地址
-// 优先使用环境变量（Vercel 上设置）
-// 开发环境默认 localhost:3001
-const API_BASE = (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_URL) 
-  || (typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? 'http://localhost:3001/api' 
-    : 'https://wlj-production.up.railway.app/api');
+// 优先级：1. NEXT_PUBLIC_API_URL 环境变量（Vercel 上设置）
+//         2. 开发环境 localhost:3001
+//         3. 生产环境 Railway
+let API_BASE: string;
+
+// 在浏览器环境运行时判断
+if (typeof window !== 'undefined') {
+  // 1. 优先使用环境变量（Next.js 构建时会替换 NEXT_PUBLIC_ 开头的变量）
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) {
+    API_BASE = envUrl;
+  }
+  // 2. 开发环境
+  else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    API_BASE = 'http://localhost:3001/api';
+  }
+  // 3. 生产环境 - Railway 后端
+  else {
+    API_BASE = 'https://wlj-production.up.railway.app/api';
+  }
+} else {
+  // 构建时或服务端渲染时，使用环境变量
+  API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://wlj-production.up.railway.app/api';
+}
+
+console.log('[API] 当前 API 地址:', API_BASE);
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;
@@ -197,6 +217,6 @@ export async function deleteStudentScaleRecord(id: string) {
 
 // 获取某个学生的所有量表评估记录
 export async function getStudentScaleRecordsByStudent(studentId: string) {
-  const records = await getStudentScaleRecords();
-  return records.filter((r: any) => r.studentId === studentId);
+  // 使用服务端过滤，避免全量数据拉取
+  return request(`/student-scale-records?studentId=${encodeURIComponent(studentId)}`);
 }

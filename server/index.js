@@ -162,11 +162,24 @@ function prepareSaveData(body) {
 
 // ==================== CRUD 工厂 ====================
 
-function createCRUD(route, tableName) {
-  // 获取全部
+function createCRUD(route, tableName, filterFields = []) {
+  // 获取全部（支持查询参数过滤）
   app.get(`/api/${route}`, (req, res) => {
     try {
-      const rows = db.prepare(`SELECT * FROM ${tableName} ORDER BY createdAt DESC`).all();
+      let sql = `SELECT * FROM ${tableName}`;
+      const conditions = [];
+      const params = [];
+      for (const field of filterFields) {
+        if (req.query[field]) {
+          conditions.push(`${field} = ?`);
+          params.push(req.query[field]);
+        }
+      }
+      if (conditions.length > 0) {
+        sql += ` WHERE ${conditions.join(' AND ')}`;
+      }
+      sql += ` ORDER BY createdAt DESC`;
+      const rows = db.prepare(sql).all(...params);
       res.json(parseRows(rows));
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -244,7 +257,7 @@ createCRUD('students', 'students');
 createCRUD('courses', 'courses');
 createCRUD('class-records', 'class_records');
 createCRUD("scale-templates", "scale_templates");
-createCRUD("student-scale-records", "student_scale_records");
+createCRUD("student-scale-records", "student_scale_records", ["studentId"]);
 
 // 批量创建上课记录
 app.post('/api/class-records/batch', (req, res) => {
