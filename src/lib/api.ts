@@ -1,9 +1,16 @@
 // API 基础地址
-// 开发环境使用 localhost:3001，生产环境使用 Railway
-const API_BASE = 
-  typeof window !== 'undefined' && window.location.hostname === 'localhost'
-    ? 'http://localhost:3001/api'
-    : 'https://wlj-production.up.railway.app/api';
+// 开发环境使用 localhost:3001，生产环境同域访问
+const API_BASE = (() => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:3001/api';
+    }
+    // 生产环境 - 同域
+    return '/api';
+  }
+  return process.env.NEXT_PUBLIC_API_URL || '/api';
+})();
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;

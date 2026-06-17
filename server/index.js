@@ -2,34 +2,24 @@ const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // 中间件
-// CORS 配置 - 允许来自 Vercel 前端的请求
-const corsOptions = {
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-};
-app.use(cors(corsOptions));
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json());
 
 // ==================== SQLite 数据库初始化 ====================
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, 'db', 'data.db');
-
-// 确保数据库目录存在
 const dbDir = path.dirname(dbPath);
-if (!require('fs').existsSync(dbDir)) {
-  require('fs').mkdirSync(dbDir, { recursive: true });
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
 }
 
 const db = new Database(dbPath);
-
-// 启用 WAL 模式（提高并发性能）
 db.pragma('journal_mode = WAL');
 
 // 创建表
@@ -122,7 +112,6 @@ function generateId() {
 function parseRow(row) {
   if (!row) return null;
   const result = { ...row };
-  // 解析 JSON 字符串字段
   if (typeof result.subjects === 'string') {
     try { result.subjects = JSON.parse(result.subjects); } catch(e) { result.subjects = []; }
   }
@@ -138,7 +127,6 @@ function parseRow(row) {
   if (typeof result.studentNames === 'string') {
     try { result.studentNames = JSON.parse(result.studentNames); } catch(e) { result.studentNames = []; }
   }
-  // 把 id 映射为 _id（兼容前端 _id 访问）
   result._id = row.id;
   return result;
 }
@@ -149,9 +137,7 @@ function parseRows(rows) {
 
 function prepareSaveData(body) {
   const data = { ...body };
-  // 把 _id 映射为 id
   if (data._id) { data.id = data._id; delete data._id; }
-  // 序列化 JSON 字段
   if (data.subjects && Array.isArray(data.subjects)) data.subjects = JSON.stringify(data.subjects);
   if (data.studentIds && Array.isArray(data.studentIds)) data.studentIds = JSON.stringify(data.studentIds);
   if (data.studentNames && Array.isArray(data.studentNames)) data.studentNames = JSON.stringify(data.studentNames);
@@ -163,7 +149,6 @@ function prepareSaveData(body) {
 // ==================== CRUD 工厂 ====================
 
 function createCRUD(route, tableName, filterFields = []) {
-  // 获取全部（支持查询参数过滤）
   app.get(`/api/${route}`, (req, res) => {
     try {
       let sql = `SELECT * FROM ${tableName}`;
@@ -186,7 +171,6 @@ function createCRUD(route, tableName, filterFields = []) {
     }
   });
 
-  // 获取单个
   app.get(`/api/${route}/:id`, (req, res) => {
     try {
       const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
@@ -197,17 +181,13 @@ function createCRUD(route, tableName, filterFields = []) {
     }
   });
 
-  // 创建
   app.post(`/api/${route}`, (req, res) => {
     try {
       const data = prepareSaveData(req.body);
       const id = data.id || generateId();
-      
       const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
       const values = columns.map(k => data[k]);
-      
       db.prepare(`INSERT INTO ${tableName} (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
-      
       const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(id);
       res.status(201).json(parseRow(row));
     } catch (err) {
@@ -215,22 +195,17 @@ function createCRUD(route, tableName, filterFields = []) {
     }
   });
 
-  // 更新
   app.put(`/api/${route}/:id`, (req, res) => {
     try {
       const data = prepareSaveData(req.body);
       const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id' && k !== 'createdAt');
-      
       if (columns.length === 0) {
         const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
         return res.json(parseRow(row));
       }
-      
       const setClause = columns.map(k => `${k} = ?`).join(',');
       const values = columns.map(k => data[k]);
-      
       db.prepare(`UPDATE ${tableName} SET ${setClause} WHERE id = ?`).run(...values, req.params.id);
-      
       const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
       if (!row) return res.status(404).json({ error: '未找到' });
       res.json(parseRow(row));
@@ -239,7 +214,6 @@ function createCRUD(route, tableName, filterFields = []) {
     }
   });
 
-  // 删除
   app.delete(`/api/${route}/:id`, (req, res) => {
     try {
       const result = db.prepare(`DELETE FROM ${tableName} WHERE id = ?`).run(req.params.id);
@@ -263,7 +237,6 @@ createCRUD("student-scale-records", "student_scale_records", ["studentId"]);
 app.post('/api/class-records/batch', (req, res) => {
   try {
     const { courseId, courseName, teacherId, teacherName, studentIds, studentNames, date, startTime, endTime, duration, content, homework, status } = req.body;
-
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return res.status(400).json({ error: '学生列表不能为空' });
     }
@@ -317,7 +290,6 @@ app.get('/api/stats', (req, res) => {
     const recentRecords = parseRows(
       db.prepare('SELECT * FROM class_records ORDER BY createdAt DESC LIMIT 5').all()
     );
-
     res.json({ teachers, students, courses, records, recentRecords });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -329,6 +301,63 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', db: dbPath, time: new Date().toISOString() });
 });
 
+// ==================== 提供 Next.js 静态文件 ====================
+// 生产环境下，由 Express 同时提供前端静态文件
+const nextStaticDir = path.join(__dirname, '..', '.next');
+if (fs.existsSync(nextStaticDir)) {
+  // 提供 _next 静态资源
+  app.use('/_next', express.static(path.join(nextStaticDir)));
+  
+  // 提供 public 目录
+  const publicDir = path.join(__dirname, '..', 'public');
+  if (fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir));
+  }
+
+  // 所有非 API 路由返回 index.html（SPA 模式）
+  // 但注意：Next.js 静态导出后，页面路径需要对应 HTML 文件
+  
+  // 尝试读取 .next 目录下的路由信息
+  const routesDir = path.join(nextStaticDir, 'server', 'app');
+  if (fs.existsSync(routesDir)) {
+    // SSR 模式 - 这里简化处理，实际 Next.js SSR 需要更复杂的设置
+    // 对于 Railway 部署，更好的方式是使用 next start 命令
+    console.log('⚠️ 检测到 Next.js 构建文件，但 Express 直接提供静态文件可能不完整');
+    console.log('💡 建议使用 "next start" 命令启动前端，或使用 npx serve@latest out 启动静态导出');
+  }
+  
+  // 提供静态导出目录（如果存在）
+  const outDir = path.join(__dirname, '..', 'out');
+  if (fs.existsSync(outDir)) {
+    app.use(express.static(outDir));
+    // SPA fallback
+    app.get('*', (req, res) => {
+      if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(outDir, 'index.html'));
+      }
+    });
+    console.log('✅ 提供静态文件服务来自:', outDir);
+  }
+}
+
+// 添加一个简单的首页重定向（当没有静态文件时）
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head><meta charset="utf-8"><title>未来家课程管理系统</title></head>
+      <body style="font-family:sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f5f5f5">
+        <div style="text-align:center;padding:2rem">
+          <h1>📚 未来家儿童能力发展中心</h1>
+          <p>课程管理系统 API 已启动</p>
+          <p><a href="/api/health">检查服务状态</a></p>
+        </div>
+      </body>
+    </html>
+  `);
+});
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 API 服务已启动: http://localhost:${PORT}`);
+  console.log(`🚀 服务已启动: http://localhost:${PORT}`);
+  console.log(`📋 API 地址: http://localhost:${PORT}/api`);
+  console.log(`❤️ 健康检查: http://localhost:${PORT}/api/health`);
 });
