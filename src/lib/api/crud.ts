@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, generateId, parseRow, parseRows, prepareSaveData } from './db';
 import { Pool } from 'pg';
 
-export { getDb, generateId, parseRow, parseRows, prepareSaveData };
+export { getDb, generateId, parseRow, parseRows, prepareSaveData, isPg };
 
 // 判断是否 PostgreSQL
 function isPg(db: any): db is Pool {

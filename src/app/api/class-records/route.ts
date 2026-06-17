@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHandlers, getDb, generateId, parseRows } from '@/lib/api/crud';
+import { createHandlers, getDb, generateId, parseRows, isPg } from '@/lib/api/crud';
 
 const baseHandlers = createHandlers('class_records');
-
-function isPg(db: any): db is Pool {
-  return db.constructor?.name === 'Pool';
-}
 
 export async function GET(req: NextRequest) {
   return baseHandlers.GET(req);
