@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-// use native <img> for public assets to avoid next/image loader issues in some deployments
+import Image from 'next/image';
 import { useState } from 'react';
 
 const navItems = [
@@ -48,7 +48,7 @@ export default function Sidebar() {
       <div className="p-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border border-gray-100">
-            <img
+            <Image
               src="/logo.jpg"
               alt="未来家儿童能力发展中心"
               width={40}
