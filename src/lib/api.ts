@@ -1,16 +1,6 @@
 // API 基础地址
-// 开发环境使用 localhost:3001，生产环境同域访问
-const API_BASE = (() => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3001/api';
-    }
-    // 生产环境 - 同域
-    return '/api';
-  }
-  return process.env.NEXT_PUBLIC_API_URL || '/api';
-})();
+// 现在 Next.js API Routes 和前端在同一域名/端口下
+const API_BASE = '/api';
 
 async function request(path: string, options: RequestInit = {}) {
   const url = `${API_BASE}${path}`;
@@ -135,7 +125,7 @@ export async function deleteClassRecord(id: string) {
 
 // 批量创建上课记录
 export async function batchCreateClassRecords(data: any) {
-  return request('/class-records/batch', {
+  return request('/class-records?batch=true', {
     method: 'POST',
     body: JSON.stringify(data),
   });

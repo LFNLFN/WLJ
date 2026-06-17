@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 纯前端应用，API 由独立后端提供
+  // API 路由由 Next.js API Routes 处理
+  // 开发模式下 next dev 会自动处理 /api/* 路由
 };
 
 module.exports = nextConfig;
