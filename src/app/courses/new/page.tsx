@@ -8,8 +8,6 @@ import { getTeachers, getStudents, saveCourse } from '@/lib/api';
 
 import type { Course, Teacher, Student } from '@/lib/types';
 
-const subjectOptions = ['数学', '语文', '英语', '物理', '化学', '生物', '历史', '地理', '政治', '编程', '美术', '音乐', '舞蹈', '其他'];
-
 export default function NewCoursePage() {
   const router = useRouter();
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -23,11 +21,17 @@ export default function NewCoursePage() {
     classHour: '1',
     totalClasses: '10',
   });
+  const [customSubject, setCustomSubject] = useState('');
 
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
     getStudents().then(data => setStudents(data));
   }, []);
+
+  // 从所有教师中收集所有科目
+  const allSubjects = Array.from(
+    new Set(teachers.flatMap(t => t.subjects || []))
+  ).filter(Boolean) as string[];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +65,14 @@ export default function NewCoursePage() {
     }));
   };
 
+  const addCustomSubject = () => {
+    const sub = customSubject.trim();
+    if (sub) {
+      setForm(prev => ({ ...prev, subject: sub }));
+      setCustomSubject('');
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -81,8 +93,19 @@ export default function NewCoursePage() {
                   <select value={form.subject} onChange={e => setForm(prev => ({ ...prev, subject: e.target.value }))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white">
                     <option value="">选择科目</option>
-                    {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                    {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  {/* 自定义科目输入 */}
+                  <div className="flex gap-2 mt-2">
+                    <input type="text" value={customSubject} onChange={e => setCustomSubject(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomSubject(); } }}
+                      className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                      placeholder="或输入自定义科目" />
+                    <button type="button" onClick={addCustomSubject}
+                      className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300">
+                      使用
+                    </button>
+                  </div>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">授课教师 *</label>
