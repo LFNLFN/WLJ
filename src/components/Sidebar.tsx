@@ -59,7 +59,7 @@ export default function Sidebar() {
           <div>
             <h1 className="text-base font-bold text-gray-800 leading-tight">未来家儿童能力</h1>
             <h1 className="text-base font-bold text-gray-800 leading-tight">发展中心</h1>
-            <p className="text-[10px] text-gray-400 mt-0.5">课程管理系统</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">工作枢</p>
           </div>
         </Link>
       </div>
