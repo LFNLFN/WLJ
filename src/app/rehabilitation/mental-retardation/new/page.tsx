@@ -345,6 +345,7 @@ export default function NewRehabilitationRecordPage() {
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent"
                                             >
                                                 <option value="">请选择</option>
+                                                <option value="无">无</option>
                                                 <option value="一级">一级</option>
                                                 <option value="二级">二级</option>
                                                 <option value="三级">三级</option>

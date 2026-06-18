@@ -250,6 +250,7 @@ export default function MentalRetardationPage() {
       label: '残障等级',
       render: (val: string) => {
         const colors: Record<string, string> = {
+          '无': 'text-gray-500 bg-gray-100',
           '一级': 'text-red-600 bg-red-50',
           '二级': 'text-orange-600 bg-orange-50',
           '三级': 'text-yellow-600 bg-yellow-50',
@@ -545,6 +546,7 @@ export default function MentalRetardationPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent"
                       >
                         <option value="">请选择</option>
+                        <option value="无">无</option>
                         <option value="一级">一级</option>
                         <option value="二级">二级</option>
                         <option value="三级">三级</option>
