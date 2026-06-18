@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 const navItems = [
-  { href: '/', label: '工作台', icon: '📊' },
   { href: '/teachers', label: '教师管理', icon: '👨‍🏫' },
   { href: '/students', label: '学生管理', icon: '👦' },
   { href: '/courses', label: '课程管理', icon: '📚' },
@@ -59,7 +58,7 @@ export default function Sidebar() {
           <div>
             <h1 className="text-base font-bold text-gray-800 leading-tight">未来家儿童能力</h1>
             <h1 className="text-base font-bold text-gray-800 leading-tight">发展中心</h1>
-            <p className="text-[10px] text-gray-400 mt-0.5">工作枢</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">工作台</p>
           </div>
         </Link>
       </div>
