@@ -27,7 +27,6 @@ export default function StudentsPage() {
     { key: 'grade', label: '年级' },
     { key: 'parentName', label: '家长姓名' },
     { key: 'parentPhone', label: '家长电话' },
-    { key: 'phone', label: '学生电话' },
     { key: 'createdAt', label: '添加时间',
       render: (val: string) => new Date(val).toLocaleDateString('zh-CN')
     },

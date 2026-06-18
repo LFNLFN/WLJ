@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 // 教师
 const teacherSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  gender: String,
   phone: String,
+  hireDate: String,
+  rank: String,
   subjects: [String],
   createdAt: { type: Date, default: Date.now },
 });
@@ -11,7 +14,6 @@ const teacherSchema = new mongoose.Schema({
 // 学生
 const studentSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  phone: String,
   parentName: String,
   parentPhone: String,
   grade: String,

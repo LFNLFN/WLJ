@@ -28,11 +28,22 @@ export default function TeachersPage() {
 
   const columns = [
     { key: 'name', label: '姓名' },
+    { key: 'gender', label: '性别',
+      render: (val: string) => val || '-'
+    },
     { key: 'phone', label: '电话' },
+    { key: 'hireDate', label: '入职时间',
+      render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-'
+    },
+    { key: 'rank', label: '职级',
+      render: (val: string) => val ? (
+        <span className="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-full">{val}</span>
+      ) : '-'
+    },
     { key: 'subjects', label: '可教科目',
       render: (val: string[]) => (
         <div className="flex gap-1 flex-wrap">
-          {val.map((s, i) => (
+          {(val || []).map((s, i) => (
             <span key={i} className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">
               {s}
             </span>

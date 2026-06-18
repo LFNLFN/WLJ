@@ -2,7 +2,10 @@
 export interface Teacher {
   id: string;
   name: string;
+  gender: string;
   phone: string;
+  hireDate: string;
+  rank: string;
   subjects: string[];
   createdAt: string;
 }
@@ -11,7 +14,6 @@ export interface Teacher {
 export interface Student {
   id: string;
   name: string;
-  phone: string;
   parentName: string;
   parentPhone: string;
   grade: string;
@@ -64,40 +66,40 @@ export interface DashboardStats {
 
 // ==================== 量表 ====================
 
-// 量表模板定义（某种量表的模板，如"韦氏智力测试"、"感统评估量表"等）
+// 量表模板定义
 export interface ScaleTemplate {
   id: string;
-  name: string;              // 量表名称
-  category: string;          // 量表类别（智力/感统/语言/行为/情绪/其他）
-  description: string;       // 量表描述
-  fields: ScaleField[];      // 量表包含的评估字段
+  name: string;
+  category: string;
+  description: string;
+  fields: ScaleField[];
   createdAt: string;
 }
 
 // 量表的评估字段
 export interface ScaleField {
   id: string;
-  label: string;             // 字段名称（如"语言理解"、"粗大动作"）
-  type: 'score' | 'select' | 'text' | 'date';  // 字段类型
-  options?: string[];        // 如果是 select 类型，可选值列表
-  unit?: string;             // 单位（如"分"、"月龄"）
-  sortOrder: number;         // 排序
+  label: string;
+  type: 'score' | 'select' | 'text' | 'date';
+  options?: string[];
+  unit?: string;
+  sortOrder: number;
 }
 
-// 学生量表评估记录（某个学生在某个量表上的评估结果）
+// 学生量表评估记录
 export interface StudentScaleRecord {
   id: string;
-  studentId: string;         // 学生 ID
-  studentName: string;       // 学生姓名
-  scaleTemplateId: string;   // 量表模板 ID
-  scaleName: string;         // 量表名称
-  category: string;          // 量表类别
-  evaluator: string;         // 评估人
-  evaluationDate: string;    // 评估日期
-  scores: ScaleScore[];      // 各维度得分
-  summary: string;           // 综合评估结论
-  recommendations: string;   // 康复建议
-  status: 'draft' | 'completed';  // 状态
+  studentId: string;
+  studentName: string;
+  scaleTemplateId: string;
+  scaleName: string;
+  category: string;
+  evaluator: string;
+  evaluationDate: string;
+  scores: ScaleScore[];
+  summary: string;
+  recommendations: string;
+  status: 'draft' | 'completed';
   createdAt: string;
   updatedAt: string;
 }

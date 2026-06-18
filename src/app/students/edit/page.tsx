@@ -13,12 +13,12 @@ function EditForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
-  const [form, setForm] = useState({ name: '', phone: '', parentName: '', parentPhone: '', grade: '' });
+  const [form, setForm] = useState({ name: '', parentName: '', parentPhone: '', grade: '' });
 
   useEffect(() => {
     if (id) {
       getStudent(id).then(student => {
-        if (student) setForm({ name: student.name, phone: student.phone, parentName: student.parentName, parentPhone: student.parentPhone, grade: student.grade });
+        if (student) setForm({ name: student.name, parentName: student.parentName, parentPhone: student.parentPhone, grade: student.grade });
       });
     }
   }, [id]);
@@ -55,11 +55,6 @@ function EditForm() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">家长电话</label>
           <input type="tel" value={form.parentPhone} onChange={e => setForm(prev => ({ ...prev, parentPhone: e.target.value }))}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">学生电话</label>
-          <input type="tel" value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
         </div>
       </div>

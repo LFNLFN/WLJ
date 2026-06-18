@@ -6,15 +6,12 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { saveStudent } from '@/lib/api';
 
-
-
 const gradeOptions = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '初一', '初二', '初三', '高一', '高二', '高三'];
 
 export default function NewStudentPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     name: '',
-    phone: '',
     parentName: '',
     parentPhone: '',
     grade: '',
@@ -28,7 +25,6 @@ export default function NewStudentPage() {
     }
     saveStudent({
       name: form.name.trim(),
-      phone: form.phone.trim(),
       parentName: form.parentName.trim(),
       parentPhone: form.parentPhone.trim(),
       grade: form.grade,
@@ -70,12 +66,6 @@ export default function NewStudentPage() {
                   <input type="tel" value={form.parentPhone} onChange={e => setForm(prev => ({ ...prev, parentPhone: e.target.value }))}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                     placeholder="请输入家长电话" />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">学生电话</label>
-                  <input type="tel" value={form.phone} onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                    placeholder="请输入学生电话" />
                 </div>
               </div>
 

@@ -32,7 +32,10 @@ const PG_CREATE_TABLES = `
   CREATE TABLE IF NOT EXISTS teachers (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    gender TEXT DEFAULT '',
     phone TEXT DEFAULT '',
+    "hireDate" TEXT DEFAULT '',
+    rank TEXT DEFAULT '',
     subjects TEXT DEFAULT '[]',
     "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
   );
@@ -40,7 +43,6 @@ const PG_CREATE_TABLES = `
   CREATE TABLE IF NOT EXISTS students (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    phone TEXT DEFAULT '',
     "parentName" TEXT DEFAULT '',
     "parentPhone" TEXT DEFAULT '',
     grade TEXT DEFAULT '',
@@ -143,11 +145,12 @@ export async function getDb(): Promise<Database.Database | Pool> {
   
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '',
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '',
+      phone TEXT DEFAULT '', "hireDate" TEXT DEFAULT '', rank TEXT DEFAULT '',
       subjects TEXT DEFAULT '[]', createdAt TEXT DEFAULT (datetime('now'))
     );
     CREATE TABLE IF NOT EXISTS students (
-      id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '',
+      id TEXT PRIMARY KEY, name TEXT NOT NULL,
       parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', grade TEXT DEFAULT '',
       createdAt TEXT DEFAULT (datetime('now'))
     );
