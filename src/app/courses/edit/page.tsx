@@ -13,7 +13,7 @@ function EditForm() {
   const id = searchParams.get('id');
   const [teachers, setTeachers] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
-  const [form, setForm] = useState({ name: '', subject: '', teacherId: '', studentIds: [] as string[], price: '', classHour: '1', totalClasses: '10' });
+  const [form, setForm] = useState({ name: '', subject: '', teacherId: '', studentIds: [] as string[], price: '', classHour: '45', totalClasses: '10' });
   const [customSubject, setCustomSubject] = useState('');
 
   useEffect(() => {
@@ -108,9 +108,9 @@ function EditForm() {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" min="0" />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">每节课时长 (小时)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">每节课时长 (分钟)</label>
           <input type="number" value={form.classHour} onChange={e => setForm(prev => ({ ...prev, classHour: e.target.value }))}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" min="0.5" step="0.5" />
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" min="1" step="1" />
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">总课次</label>
