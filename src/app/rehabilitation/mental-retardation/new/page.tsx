@@ -329,10 +329,10 @@ export default function NewRehabilitationRecordPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">诊断结果</label>
-                                            <input
-                                                type="text"
+                                            <textarea
                                                 value={formData.diagnosis}
                                                 onChange={(e) => handleInputChange('diagnosis', e.target.value)}
+                                                rows={3}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent"
                                                 placeholder="如：智力发育迟缓、唐氏综合征等"
                                             />
