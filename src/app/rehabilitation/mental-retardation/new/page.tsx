@@ -89,7 +89,7 @@ export default function NewRehabilitationRecordPage() {
         diagnosis: '',
         disabilityLevel: '',
         iqScore: '',
-        institution: '',
+        institution: '未来家儿童能力发展中心',
         guardian: '',
         phone: '',
         address: '',
