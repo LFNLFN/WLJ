@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 const navItems = [
-  { href: '/', label: '仪表盘', icon: '📊' },
+  { href: '/', label: '工作台', icon: '📊' },
   { href: '/teachers', label: '教师管理', icon: '👨‍🏫' },
   { href: '/students', label: '学生管理', icon: '👦' },
   { href: '/courses', label: '课程管理', icon: '📚' },

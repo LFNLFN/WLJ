@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 
 const pageTitles: Record<string, string> = {
-  '/': '仪表盘',
+  '/': '工作台',
   '/teachers': '教师管理',
   '/teachers/new': '添加教师',
   '/students': '学生管理',
