@@ -261,7 +261,7 @@ export default function MentalRetardationPage() {
         new DocxParagraph({ children: [new TextRun({ text: '广东省残疾儿童康复档案', bold: true, size: 36 })], alignment: AlignmentType.CENTER, spacing: { before: 2000, after: 400 } }),
         new DocxParagraph({ children: [new TextRun({ text: '档案编号：' + (record.studentId || ''), size: 22 })], alignment: AlignmentType.RIGHT, spacing: { after: 600 } }),
       );
-      children.push(makeTable([
+      children.push(makeSimpleTable([
         ['儿童姓名', record.studentName || '', '性别', record.gender || ''],
         ['出生日期', record.birthDate || '', '入学时间', record.admissionDate || ''],
         ['康复机构', record.institution || '未来家儿童能力发展中心', '残障等级', record.disabilityLevel || ''],
@@ -269,7 +269,7 @@ export default function MentalRetardationPage() {
 
       // ===== 1. 入学登记表 =====
       children.push(stepTitle('一、智障儿童入学登记表'));
-      children.push(makeTable([
+      children.push(makeSimpleTable([
         ['姓名', record.studentName || '', '性别', record.gender || '', '出生日期', record.birthDate || ''],
         ['身份证号', record.idNumber || '', '年龄', String(record.age || ''), '诊断结果', record.diagnosis || ''],
         ['残障等级', record.disabilityLevel || '', '智商评分', record.iqScore || '', '康复机构', record.institution || ''],
@@ -281,7 +281,7 @@ export default function MentalRetardationPage() {
       // ===== 2. 学习能力评估表 =====
       children.push(stepTitle('二、学习能力评估表'));
       if (record.assessmentDate) children.push(infoLine('评估日期：' + record.assessmentDate));
-      children.push(makeTable([
+      children.push(makeSimpleTable([
         ['听觉理解能力', record.listeningAbility || '', '语言表达能力', record.speakingAbility || ''],
         ['阅读理解能力', record.readingAbility || '', '写作表达能力', record.writingAbility || ''],
         ['数学计算能力', record.mathAbility || '', '自理能力', record.selfCareAbility || ''],
@@ -292,31 +292,31 @@ export default function MentalRetardationPage() {
       // ===== 3. 结果分析报告 =====
       children.push(stepTitle('三、结果分析报告'));
       if (record.analysisDate) children.push(infoLine('报告日期：' + record.analysisDate));
-      children.push(textBlock('优势领域', record.strengthAreas));
-      children.push(textBlock('发展需求领域', record.developmentAreas));
-      children.push(textBlock('建议干预措施', record.recommendedInterventions));
-      children.push(textBlock('后续跟进计划', record.followUpPlan));
+      children.push(titleValueBlock('优势领域', record.strengthAreas));
+      children.push(titleValueBlock('发展需求领域', record.developmentAreas));
+      children.push(titleValueBlock('建议干预措施', record.recommendedInterventions));
+      children.push(titleValueBlock('后续跟进计划', record.followUpPlan));
       if (record.reportNotes) children.push(infoLine('报告备注：' + record.reportNotes));
 
       // ===== 4. 个别化教育计划(IEP) =====
       children.push(stepTitle('四、个别化教育计划（IEP）'));
       if (record.iepDate) children.push(infoLine('计划日期：' + record.iepDate));
-      children.push(textBlock('', record.individualizedEducationPlan));
+      children.push(contentBlock(record.individualizedEducationPlan));
 
       // ===== 5. 个别教学记录卡 =====
       children.push(stepTitle('五、个别教学记录卡'));
       if (record.teachingRecordDate) children.push(infoLine('记录日期：' + record.teachingRecordDate));
-      children.push(textBlock('', record.teachingRecordCard));
+      children.push(contentBlock(record.teachingRecordCard));
 
       // ===== 6. 学习进度报告表 =====
       children.push(stepTitle('六、学习进度报告表'));
       if (record.progressReportDate) children.push(infoLine('报告日期：' + record.progressReportDate));
-      children.push(textBlock('', record.learningProgressReport));
+      children.push(contentBlock(record.learningProgressReport));
 
       // ===== 7. 后续教育跟踪表 =====
       children.push(stepTitle('七、后续教育跟踪表'));
       if (record.educationTrackingDate) children.push(infoLine('跟踪日期：' + record.educationTrackingDate));
-      children.push(textBlock('', record.followUpEducationTracking));
+      children.push(contentBlock(record.followUpEducationTracking));
 
       // 生成文档
       const doc = new DocxDocument({ sections: [{ children }] });
@@ -333,43 +333,52 @@ export default function MentalRetardationPage() {
   };
 
   // ===== 辅助函数 =====
-  function hdr(text: string) {
-    return new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text, bold: true, size: 20 })] })] });
-  }
-  function cel(text: string, span?: number) {
-    const opts: any = { children: [new DocxParagraph({ children: [new TextRun({ text: text || '', size: 20 })] })] };
-    if (span) opts.columnSpan = span;
-    return new DocxTableCell(opts);
-  }
-  function makeTable(rows: string[][]) {
+
+  // 创建简单的两列表格（标签+值），行内用竖排
+  function makeSimpleTable(rows: string[][]) {
     return new DocxTable({
-      rows: rows.map(r => {
+      rows: rows.map(row => {
         const cells: any[] = [];
-        for (let i = 0; i < r.length; i += 2) {
-          const label = r[i];
-          const value = r[i+1] || '';
-          if (i + 1 === r.length - 1 && i > 0) {
-            // 最后一列是值且没有配对标签
-            cells.push(cel(label, 5));
-          } else if (i + 1 === r.length - 1) {
-            // 最后一个值且没有下一对
-            cells.push(hdr(label));
-            cells.push(cel(value, 5));
-          } else if (i + 2 >= r.length - 1 && r.length % 2 === 1) {
-            // 最后一对但值需要占更多列
-            cells.push(hdr(label));
-            cells.push(cel(value, 3));
-          } else {
-            cells.push(hdr(label));
-            cells.push(cel(value));
-          }
+        // 每行偶数个元素，成对出现
+        for (let i = 0; i < row.length; i += 2) {
+          const label = row[i];
+          const value = row[i + 1] || '';
+          cells.push(
+            new DocxTableCell({
+              width: { size: 2000, type: WidthType.DXA },
+              children: [new DocxParagraph({ children: [new TextRun({ text: label, bold: true, size: 20 })] })],
+            }),
+            new DocxTableCell({
+              children: [new DocxParagraph({ children: [new TextRun({ text: value, size: 20 })] })],
+            }),
+          );
         }
-        // 如果只有两个字段且第二个是长文本
-        if (r.length === 2) {
-          return new DocxTableRow({ children: [hdr(r[0]), cel(r[1] || '', 5)] });
+        // 如果是奇数对，最后一个单元格跨列
+        if (row.length % 2 === 1) {
+          cells.push(
+            new DocxTableCell({
+              columnSpan: 5,
+              children: [new DocxParagraph({ children: [new TextRun({ text: row[row.length - 1] || '', size: 20 })] })],
+            }),
+          );
         }
         return new DocxTableRow({ children: cells });
       }),
+    });
+  }
+
+  // 长文本单行（如既往病史）
+  function makeLongRow(label: string, value: string) {
+    return new DocxTableRow({
+      children: [
+        new DocxTableCell({
+          children: [new DocxParagraph({ children: [new TextRun({ text: label, bold: true, size: 20 })] })],
+        }),
+        new DocxTableCell({
+          columnSpan: 5,
+          children: [new DocxParagraph({ children: [new TextRun({ text: value || '', size: 20 })] })],
+        }),
+      ],
     });
   }
 
@@ -388,19 +397,24 @@ export default function MentalRetardationPage() {
     });
   }
 
-  function textBlock(title: string, content?: string) {
-    const items: any[] = [];
-    if (title) {
-      items.push(new DocxParagraph({
+  function titleValueBlock(title: string, content?: string) {
+    return [
+      new DocxParagraph({
         children: [new TextRun({ text: title, bold: true, size: 22 })],
-        spacing: { before: 150, after: 50 },
-      }));
-    }
-    items.push(new DocxParagraph({
+        spacing: { before: 200, after: 50 },
+      }),
+      new DocxParagraph({
+        children: [new TextRun({ text: content || '无', size: 20 })],
+        spacing: { after: 150 },
+      }),
+    ];
+  }
+
+  function contentBlock(content?: string) {
+    return new DocxParagraph({
       children: [new TextRun({ text: content || '无', size: 20 })],
-      spacing: { after: 150 },
-    }));
-    return items;
+      spacing: { before: 100, after: 200 },
+    });
   }
 
 
