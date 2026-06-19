@@ -15,15 +15,31 @@ let dbConfig: DbConfig | null = null;
 
 // PostgreSQL 连接配置
 function getPgPool(): Pool {
+  // 优先使用连接字符串
+  const connStr = process.env.DATABASE_URL || process.env.POSTGRES_URL || 
+                  process.env.RAILWAY_DATABASE_URL || process.env.RAILWAY_POSTGRES_URL;
+  if (connStr) {
+    return new Pool({
+      connectionString: connStr,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    });
+  }
+  // 支持独立的环境变量（PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD）
   return new Pool({
-    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL,
+    host: process.env.PGHOST || 'localhost',
+    port: parseInt(process.env.PGPORT || '5432'),
+    database: process.env.PGDATABASE || 'postgres',
+    user: process.env.PGUSER || 'postgres',
+    password: process.env.PGPASSWORD || '',
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   });
 }
 
 // 获取数据库类型
 function getDbType(): DbType {
-  if (process.env.DATABASE_URL || process.env.POSTGRES_URL) return 'postgres';
+  if (process.env.DATABASE_URL || process.env.POSTGRES_URL || 
+      process.env.RAILWAY_DATABASE_URL || process.env.RAILWAY_POSTGRES_URL ||
+      process.env.PGHOST) return 'postgres';
   return 'sqlite';
 }
 
