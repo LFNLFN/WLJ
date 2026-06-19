@@ -109,13 +109,13 @@ export default function NewRehabilitationRecordPage() {
     };
 
     const steps = [
-        { step: 1, label: '入学登记表', file: '01_入学登记表.docx', isDocx: true },
-        { step: 2, label: '学习能力评估表', file: '02_学习能力评估表.doc', isDocx: false },
-        { step: 3, label: '结果分析报告', file: '03_结果分析报告.doc', isDocx: false },
-        { step: 4, label: '个别化教育计划（IEP）', file: '04_个别化教育计划.docx', isDocx: true },
-        { step: 5, label: '个别教学记录卡', file: '05_个别教学记录卡.doc', isDocx: false },
-        { step: 6, label: '学习进度报告表', file: '06_学习进度报告表.doc', isDocx: false },
-        { step: 7, label: '后续教育跟踪表', file: '07_后续教育跟踪表.doc', isDocx: false },
+        { step: 1, label: '入学登记表', file: '01_入学登记表.docx', hasTemplate: true },
+        { step: 2, label: '学习能力评估表', file: '', hasTemplate: false },
+        { step: 3, label: '结果分析报告', file: '', hasTemplate: false },
+        { step: 4, label: '个别化教育计划（IEP）', file: '', hasTemplate: false },
+        { step: 5, label: '个别教学记录卡', file: '', hasTemplate: false },
+        { step: 6, label: '学习进度报告表', file: '', hasTemplate: false },
+        { step: 7, label: '后续教育跟踪表', file: '07_后续教育跟踪表.doc', hasTemplate: true },
     ];
 
     return (
@@ -260,7 +260,7 @@ export default function NewRehabilitationRecordPage() {
                             <h3 className="text-lg font-semibold text-gray-800 mb-2">文档上传</h3>
                             <p className="text-sm text-gray-500 mb-4">下载模板填写后重新上传，支持 .docx 格式（可选）</p>
                             <div className="space-y-3">
-                                {steps.map(({ step, label, file, isDocx }) => (
+                                {steps.map(({ step, label, file, hasTemplate }) => (
                                     <div key={step} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                         <div className="flex items-center gap-3">
                                             <span className="text-gray-700">{label}</span>
@@ -271,10 +271,12 @@ export default function NewRehabilitationRecordPage() {
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <a href={`/templates/${file}`} download
-                                                className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                                                下载模板 {isDocx ? '(.docx)' : '(.doc)'}
-                                            </a>
+                                            {hasTemplate && (
+                                                <a href={`/templates/${file}`} download
+                                                    className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                                    下载模板
+                                                </a>
+                                            )}
                                             <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                                                 上传
                                                 <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(step)} />
