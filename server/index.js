@@ -33,7 +33,8 @@ async function initDb() {
       );
       CREATE TABLE IF NOT EXISTS students (
         id TEXT PRIMARY KEY, name TEXT NOT NULL,
-        "parentName" TEXT DEFAULT '', "parentPhone" TEXT DEFAULT '', grade TEXT DEFAULT '',
+        "parentName" TEXT DEFAULT '', "parentPhone" TEXT DEFAULT '', "birthDate" TEXT DEFAULT '',
+        age INTEGER DEFAULT 0,
         "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
       );
       CREATE TABLE IF NOT EXISTS courses (
@@ -88,7 +89,7 @@ async function initDb() {
     
     db.exec(`
       CREATE TABLE IF NOT EXISTS teachers (id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '', phone TEXT DEFAULT '', "hireDate" TEXT DEFAULT '', rank TEXT DEFAULT '', subjects TEXT DEFAULT '[]', createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL, parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', grade TEXT DEFAULT '', createdAt TEXT DEFAULT (datetime('now')));
+      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL, parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', birthDate TEXT DEFAULT '', age INTEGER DEFAULT 0, createdAt TEXT DEFAULT (datetime('now')));
       CREATE TABLE IF NOT EXISTS courses (id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentIds TEXT DEFAULT '[]', studentNames TEXT DEFAULT '[]', price REAL DEFAULT 0, classHour REAL DEFAULT 1, totalClasses INTEGER DEFAULT 1, createdAt TEXT DEFAULT (datetime('now')));
       CREATE TABLE IF NOT EXISTS class_records (id TEXT PRIMARY KEY, courseId TEXT DEFAULT '', courseName TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentId TEXT DEFAULT '', studentName TEXT DEFAULT '', date TEXT DEFAULT '', startTime TEXT DEFAULT '', endTime TEXT DEFAULT '', duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '', status TEXT DEFAULT 'completed', createdAt TEXT DEFAULT (datetime('now')));
       CREATE TABLE IF NOT EXISTS scale_templates (id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT "", description TEXT DEFAULT "", fields TEXT DEFAULT "[]", createdAt TEXT DEFAULT (datetime('now')));

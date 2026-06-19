@@ -8,7 +8,11 @@
     "build": "next build",
     "start": "next start -p 3001",
     "server": "node server/index.js",
-    "dev:full": "concurrently \"npm run server\" \"npm run dev\""
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "sync:remote": "node scripts/sync-to-remote.js",
+    "sync:local": "node scripts/sync-local-db.js",
+    "sync:scales": "node scripts/init-scales-remote.js",
+    "setup:pg": "node scripts/setup-postgresql.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
