@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
 import { getStudents, saveStudent, deleteStudent } from '@/lib/api';
+import { Document as DocxDocument, Packer, Paragraph as DocxParagraph, TextRun, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, WidthType, AlignmentType } from 'docx';
 import type { Student } from '@/lib/types';
 
 // 智障儿童康复档案扩展字段
@@ -223,6 +224,91 @@ export default function MentalRetardationPage() {
     if (confirm(`确定要删除 ${record.studentName} 的康复档案吗？`)) {
       const filtered = records.filter((r) => r.id !== record.id);
       saveRecords(filtered);
+    }
+  };
+
+  const exportToWord = async (record: RehabilitationRecord) => {
+    try {
+      // 构建 Word 文档
+      const doc = new DocxDocument({
+        sections: [{
+          properties: {},
+          children: [
+            new DocxParagraph({
+              children: [new TextRun({ text: '智障儿童入学登记表', bold: true, size: 28 })],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 200 },
+            }),
+            new DocxParagraph({
+              children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: 20 })],
+              alignment: AlignmentType.RIGHT,
+              spacing: { after: 200 },
+            }),
+            new DocxParagraph({
+              children: [new TextRun({ text: '', size: 20 })],
+              spacing: { after: 100 },
+            }),
+            // 基本信息表格
+            new DocxTable({
+              rows: [
+                new DocxTableRow({
+                  children: [
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '姓名', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.studentName || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '性别', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.gender || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '出生日期', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.birthDate || '', size: 20 })] })] }),
+                  ],
+                }),
+                new DocxTableRow({
+                  children: [
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '诊断结果', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.diagnosis || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '残障等级', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.disabilityLevel || '', size: 20 })] })] }),
+                  ],
+                }),
+                new DocxTableRow({
+                  children: [
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '身份证号', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.idNumber || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '康复机构', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.institution || '', size: 20 })] })] }),
+                  ],
+                }),
+                new DocxTableRow({
+                  children: [
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '监护人', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.guardian || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '联系电话', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.phone || '', size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '入院日期', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.admissionDate || '', size: 20 })] })] }),
+                  ],
+                }),
+                new DocxTableRow({
+                  children: [
+                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '家庭地址', bold: true, size: 20 })] })] }),
+                    new DocxTableCell({ columnSpan: 5, children: [new DocxParagraph({ children: [new TextRun({ text: record.address || '', size: 20 })] })] }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }],
+      });
+
+      // 生成并下载
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `康复档案_${record.studentName}_${new Date().toLocaleDateString('zh-CN')}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('导出失败: ' + (err instanceof Error ? err.message : '未知错误'));
     }
   };
 
@@ -685,6 +771,9 @@ export default function MentalRetardationPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               rowKey="id"
+              actions={[
+                { label: '📄 导出Word', onClick: exportToWord, color: 'text-green-600', hoverColor: 'hover:bg-green-50' },
+              ]}
             />
           )}
         </main>
