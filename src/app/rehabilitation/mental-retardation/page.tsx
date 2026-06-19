@@ -255,47 +255,91 @@ export default function MentalRetardationPage() {
   const exportToWord = async (record: RehabilitationRecord) => {
     try {
       const children: any[] = [];
+      const S = 24; // 正文字号
+      const B = 32; // 标题字号
 
       // ===== 封面 =====
       children.push(
-        new DocxParagraph({ children: [new TextRun({ text: '广东省残疾儿童康复档案', bold: true, size: 36 })], alignment: AlignmentType.CENTER, spacing: { before: 2000, after: 400 } }),
-        new DocxParagraph({ children: [new TextRun({ text: '档案编号：' + (record.studentId || ''), size: 22 })], alignment: AlignmentType.RIGHT, spacing: { after: 600 } }),
+        new DocxParagraph({
+          children: [new TextRun({ text: '广东省残疾儿童康复档案', bold: true, size: B + 4 })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 2000, after: 200 },
+        }),
       );
+      children.push(
+        new DocxParagraph({
+          children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: S })],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 400 },
+        }),
+      );
+      children.push(
+        new DocxParagraph({
+          children: [new TextRun({ text: '' })],
+          spacing: { after: 100 },
+        }),
+      );
+      // 封面信息 - 用简单段落
+      children.push(makeInfoLine('儿童姓名', record.studentName));
+      children.push(makeInfoLine('性别', record.gender));
+      children.push(makeInfoLine('出生日期', record.birthDate));
+      children.push(makeInfoLine('入学时间', record.admissionDate));
+      children.push(makeInfoLine('康复机构', record.institution || '未来家儿童能力发展中心'));
+      children.push(makeInfoLine('残障等级', record.disabilityLevel));
 
-      // 封面表格 - 2列
-      children.push(makeSimpleTable([
-        ['儿童姓名', record.studentName || ''],
-        ['性别', record.gender || ''],
-        ['出生日期', record.birthDate || ''],
-        ['入学时间', record.admissionDate || ''],
-        ['康复机构', record.institution || '未来家儿童能力发展中心'],
-        ['残障等级', record.disabilityLevel || ''],
-      ]));
+      // 分页
+      children.push(new DocxParagraph({ children: [new TextRun({ text: '' })], spacing: { before: 800 } }));
 
       // ===== 1. 入学登记表 =====
-      children.push(stepTitle('一、智障儿童入学登记表'));
-      children.push(makeSimpleTable([
-        ['姓名', record.studentName || ''],
-        ['性别', record.gender || ''],
-        ['出生日期', record.birthDate || ''],
-        ['身份证号', record.idNumber || ''],
+      children.push(
+        new DocxParagraph({
+          children: [new TextRun({ text: '智障儿童入学登记表', bold: true, size: B })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 400, after: 200 },
+        }),
+      );
+      children.push(
+        new DocxParagraph({
+          children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: S })],
+          alignment: AlignmentType.RIGHT,
+          spacing: { after: 200 },
+        }),
+      );
+
+      // 使用简单表格 - 每行固定2列：标签 | 值
+      children.push(...makeLabelValueTable([
+        ['姓名', record.studentName],
+        ['性别', record.gender],
+        ['出生日期', record.birthDate],
+        ['身份证号', record.idNumber],
         ['年龄', String(record.age || '')],
-        ['诊断结果', record.diagnosis || ''],
-        ['残障等级', record.disabilityLevel || ''],
-        ['智商评分', record.iqScore || ''],
-        ['康复机构', record.institution || ''],
-        ['监护人', record.guardian || ''],
-        ['联系电话', record.phone || ''],
-        ['入院日期', record.admissionDate || ''],
-        ['家庭地址', record.address || ''],
-        ['状态', record.status || ''],
-        ['既往病史', record.medicalHistory || ''],
-        ['治疗方案', record.treatmentPlan || ''],
-        ['康复进展', record.progress || ''],
+        ['诊断结果', record.diagnosis],
+        ['残障等级', record.disabilityLevel],
+        ['智商评分', record.iqScore],
+        ['康复机构', record.institution],
+        ['监护人', record.guardian],
+        ['联系电话', record.phone],
+        ['入院日期', record.admissionDate],
+        ['家庭地址', record.address],
+        ['既往病史', record.medicalHistory],
+        ['治疗方案', record.treatmentPlan],
+        ['康复进展', record.progress],
+        ['诊断机构', ''],
+        ['户籍所在地', ''],
+        ['状态', record.status],
       ]));
 
       // 生成文档
-      const doc = new DocxDocument({ sections: [{ children }] });
+      const doc = new DocxDocument({
+        sections: [{
+          properties: {
+            page: {
+              margin: { top: 1000, bottom: 800, left: 800, right: 800 },
+            },
+          },
+          children,
+        }],
+      });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -308,33 +352,40 @@ export default function MentalRetardationPage() {
     }
   };
 
-  // ===== 辅助函数 =====
+  // 信息条目：标签：值
+  function makeInfoLine(label: string, value?: string) {
+    return new DocxParagraph({
+      children: [
+        new TextRun({ text: label + '：', bold: true, size: 22 }),
+        new TextRun({ text: value || '', size: 22 }),
+      ],
+      spacing: { before: 60, after: 60 },
+    });
+  }
 
-  // 创建一个两列表格（标签+值）
-  function makeSimpleTable(rows: string[][]) {
-    const tableRows = rows.map(row => {
-      const label = row[0];
-      const value = row[1] || '';
+  // 两列表格：标签 | 值
+  function makeLabelValueTable(rows: (string | undefined)[][]) {
+    const tableRows = rows.map(([label, value]) => {
       return new DocxTableRow({
         children: [
           new DocxTableCell({
-            children: [new DocxParagraph({ children: [new TextRun({ text: label, bold: true, size: 20 })] })],
+            width: { size: 2500, type: WidthType.DXA },
+            children: [new DocxParagraph({
+              alignment: AlignmentType.RIGHT,
+              children: [new TextRun({ text: (label || '') + '：', bold: true, size: 21 })],
+            })],
           }),
           new DocxTableCell({
-            children: [new DocxParagraph({ children: [new TextRun({ text: value, size: 20 })] })],
+            children: [new DocxParagraph({
+              children: [new TextRun({ text: value || '', size: 21 })],
+            })],
           }),
         ],
       });
     });
-    return new DocxTable({ rows: tableRows });
-  }
-
-  function stepTitle(text: string) {
-    return new DocxParagraph({
-      children: [new TextRun({ text, bold: true, size: 28 })],
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 600, after: 300 },
-    });
+    return [new DocxTable({
+      rows: tableRows,
+    })];
   }const clearAllSearch = () => {
     setSearchName('');
     setSearchIdNumber('');
