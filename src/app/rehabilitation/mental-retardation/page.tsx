@@ -32,6 +32,30 @@ interface RehabilitationRecord {
   progress: string;          // 康复进展
   status: string;            // 状态: 在训/结业/转介
   createdAt: string;
+  // 以下为扩展字段（可选）
+  assessmentDate?: string;
+  listeningAbility?: string;
+  speakingAbility?: string;
+  readingAbility?: string;
+  writingAbility?: string;
+  mathAbility?: string;
+  selfCareAbility?: string;
+  socialAbility?: string;
+  assessmentNotes?: string;
+  analysisDate?: string;
+  strengthAreas?: string;
+  developmentAreas?: string;
+  recommendedInterventions?: string;
+  followUpPlan?: string;
+  reportNotes?: string;
+  iepDate?: string;
+  individualizedEducationPlan?: string;
+  teachingRecordDate?: string;
+  teachingRecordCard?: string;
+  progressReportDate?: string;
+  learningProgressReport?: string;
+  educationTrackingDate?: string;
+  followUpEducationTracking?: string;
 }
 
 export default function MentalRetardationPage() {
@@ -227,79 +251,75 @@ export default function MentalRetardationPage() {
     }
   };
 
+
   const exportToWord = async (record: RehabilitationRecord) => {
     try {
-      // 构建 Word 文档
-      const doc = new DocxDocument({
-        sections: [{
-          properties: {},
-          children: [
-            new DocxParagraph({
-              children: [new TextRun({ text: '智障儿童入学登记表', bold: true, size: 28 })],
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 },
-            }),
-            new DocxParagraph({
-              children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: 20 })],
-              alignment: AlignmentType.RIGHT,
-              spacing: { after: 200 },
-            }),
-            new DocxParagraph({
-              children: [new TextRun({ text: '', size: 20 })],
-              spacing: { after: 100 },
-            }),
-            // 基本信息表格
-            new DocxTable({
-              rows: [
-                new DocxTableRow({
-                  children: [
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '姓名', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.studentName || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '性别', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.gender || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '出生日期', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.birthDate || '', size: 20 })] })] }),
-                  ],
-                }),
-                new DocxTableRow({
-                  children: [
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '诊断结果', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.diagnosis || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '残障等级', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.disabilityLevel || '', size: 20 })] })] }),
-                  ],
-                }),
-                new DocxTableRow({
-                  children: [
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '身份证号', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.idNumber || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '康复机构', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ columnSpan: 2, children: [new DocxParagraph({ children: [new TextRun({ text: record.institution || '', size: 20 })] })] }),
-                  ],
-                }),
-                new DocxTableRow({
-                  children: [
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '监护人', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.guardian || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '联系电话', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.phone || '', size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '入院日期', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: record.admissionDate || '', size: 20 })] })] }),
-                  ],
-                }),
-                new DocxTableRow({
-                  children: [
-                    new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text: '家庭地址', bold: true, size: 20 })] })] }),
-                    new DocxTableCell({ columnSpan: 5, children: [new DocxParagraph({ children: [new TextRun({ text: record.address || '', size: 20 })] })] }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }],
-      });
+      const children: any[] = [];
 
-      // 生成并下载
+      // ===== 封面 =====
+      children.push(
+        new DocxParagraph({ children: [new TextRun({ text: '广东省残疾儿童康复档案', bold: true, size: 36 })], alignment: AlignmentType.CENTER, spacing: { before: 2000, after: 400 } }),
+        new DocxParagraph({ children: [new TextRun({ text: '档案编号：' + (record.studentId || ''), size: 22 })], alignment: AlignmentType.RIGHT, spacing: { after: 600 } }),
+      );
+      children.push(makeTable([
+        ['儿童姓名', record.studentName || '', '性别', record.gender || ''],
+        ['出生日期', record.birthDate || '', '入学时间', record.admissionDate || ''],
+        ['康复机构', record.institution || '未来家儿童能力发展中心', '残障等级', record.disabilityLevel || ''],
+      ]));
+
+      // ===== 1. 入学登记表 =====
+      children.push(stepTitle('一、智障儿童入学登记表'));
+      children.push(makeTable([
+        ['姓名', record.studentName || '', '性别', record.gender || '', '出生日期', record.birthDate || ''],
+        ['身份证号', record.idNumber || '', '年龄', String(record.age || ''), '诊断结果', record.diagnosis || ''],
+        ['残障等级', record.disabilityLevel || '', '智商评分', record.iqScore || '', '康复机构', record.institution || ''],
+        ['监护人', record.guardian || '', '联系电话', record.phone || '', '入院日期', record.admissionDate || ''],
+        ['家庭地址', record.address || '', '状态', record.status || ''],
+        ['既往病史', record.medicalHistory || ''],
+      ]));
+
+      // ===== 2. 学习能力评估表 =====
+      children.push(stepTitle('二、学习能力评估表'));
+      if (record.assessmentDate) children.push(infoLine('评估日期：' + record.assessmentDate));
+      children.push(makeTable([
+        ['听觉理解能力', record.listeningAbility || '', '语言表达能力', record.speakingAbility || ''],
+        ['阅读理解能力', record.readingAbility || '', '写作表达能力', record.writingAbility || ''],
+        ['数学计算能力', record.mathAbility || '', '自理能力', record.selfCareAbility || ''],
+        ['社交互动能力', record.socialAbility || ''],
+      ]));
+      if (record.assessmentNotes) children.push(infoLine('评估备注：' + record.assessmentNotes));
+
+      // ===== 3. 结果分析报告 =====
+      children.push(stepTitle('三、结果分析报告'));
+      if (record.analysisDate) children.push(infoLine('报告日期：' + record.analysisDate));
+      children.push(textBlock('优势领域', record.strengthAreas));
+      children.push(textBlock('发展需求领域', record.developmentAreas));
+      children.push(textBlock('建议干预措施', record.recommendedInterventions));
+      children.push(textBlock('后续跟进计划', record.followUpPlan));
+      if (record.reportNotes) children.push(infoLine('报告备注：' + record.reportNotes));
+
+      // ===== 4. 个别化教育计划(IEP) =====
+      children.push(stepTitle('四、个别化教育计划（IEP）'));
+      if (record.iepDate) children.push(infoLine('计划日期：' + record.iepDate));
+      children.push(textBlock('', record.individualizedEducationPlan));
+
+      // ===== 5. 个别教学记录卡 =====
+      children.push(stepTitle('五、个别教学记录卡'));
+      if (record.teachingRecordDate) children.push(infoLine('记录日期：' + record.teachingRecordDate));
+      children.push(textBlock('', record.teachingRecordCard));
+
+      // ===== 6. 学习进度报告表 =====
+      children.push(stepTitle('六、学习进度报告表'));
+      if (record.progressReportDate) children.push(infoLine('报告日期：' + record.progressReportDate));
+      children.push(textBlock('', record.learningProgressReport));
+
+      // ===== 7. 后续教育跟踪表 =====
+      children.push(stepTitle('七、后续教育跟踪表'));
+      if (record.educationTrackingDate) children.push(infoLine('跟踪日期：' + record.educationTrackingDate));
+      children.push(textBlock('', record.followUpEducationTracking));
+
+      // 生成文档
+      const doc = new DocxDocument({ sections: [{ children }] });
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -311,6 +331,78 @@ export default function MentalRetardationPage() {
       alert('导出失败: ' + (err instanceof Error ? err.message : '未知错误'));
     }
   };
+
+  // ===== 辅助函数 =====
+  function hdr(text: string) {
+    return new DocxTableCell({ children: [new DocxParagraph({ children: [new TextRun({ text, bold: true, size: 20 })] })] });
+  }
+  function cel(text: string, span?: number) {
+    const opts: any = { children: [new DocxParagraph({ children: [new TextRun({ text: text || '', size: 20 })] })] };
+    if (span) opts.columnSpan = span;
+    return new DocxTableCell(opts);
+  }
+  function makeTable(rows: string[][]) {
+    return new DocxTable({
+      rows: rows.map(r => {
+        const cells: any[] = [];
+        for (let i = 0; i < r.length; i += 2) {
+          const label = r[i];
+          const value = r[i+1] || '';
+          if (i + 1 === r.length - 1 && i > 0) {
+            // 最后一列是值且没有配对标签
+            cells.push(cel(label, 5));
+          } else if (i + 1 === r.length - 1) {
+            // 最后一个值且没有下一对
+            cells.push(hdr(label));
+            cells.push(cel(value, 5));
+          } else if (i + 2 >= r.length - 1 && r.length % 2 === 1) {
+            // 最后一对但值需要占更多列
+            cells.push(hdr(label));
+            cells.push(cel(value, 3));
+          } else {
+            cells.push(hdr(label));
+            cells.push(cel(value));
+          }
+        }
+        // 如果只有两个字段且第二个是长文本
+        if (r.length === 2) {
+          return new DocxTableRow({ children: [hdr(r[0]), cel(r[1] || '', 5)] });
+        }
+        return new DocxTableRow({ children: cells });
+      }),
+    });
+  }
+
+  function stepTitle(text: string) {
+    return new DocxParagraph({
+      children: [new TextRun({ text, bold: true, size: 28 })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 600, after: 300 },
+    });
+  }
+
+  function infoLine(text: string) {
+    return new DocxParagraph({
+      children: [new TextRun({ text, size: 20 })],
+      spacing: { before: 100, after: 100 },
+    });
+  }
+
+  function textBlock(title: string, content?: string) {
+    const items: any[] = [];
+    if (title) {
+      items.push(new DocxParagraph({
+        children: [new TextRun({ text: title, bold: true, size: 22 })],
+        spacing: { before: 150, after: 50 },
+      }));
+    }
+    items.push(new DocxParagraph({
+      children: [new TextRun({ text: content || '无', size: 20 })],
+      spacing: { after: 150 },
+    }));
+    return items;
+  }
+
 
   const clearAllSearch = () => {
     setSearchName('');
