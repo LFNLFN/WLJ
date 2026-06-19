@@ -158,7 +158,7 @@ async function initScales() {
   try {
     const res = await fetch(`${API_BASE}/scale-templates`);
     const existing = await res.json();
-    existingNames = existing.map((s: any) => s.name);
+    existingNames = existing.map((s) => s.name);
     console.log(`📋 已有 ${existing.length} 个量表: ${existingNames.join(', ')}`);
   } catch (err) {
     console.log('⚠️  获取已有量表失败');
@@ -179,7 +179,7 @@ async function initScales() {
       name: scale.name,
       category: scale.category,
       description: scale.description,
-      fields: scale.fields.map((f: any, i: number) => ({
+      fields: scale.fields.map((f, i) => ({
         id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
         label: f.label,
         type: f.type,
@@ -204,7 +204,7 @@ async function initScales() {
         console.log(`❌ [${success + failed + skipped + 1}/${PRESET_SCALES.length}] ${scale.name}: ${err}`);
         failed++;
       }
-    } catch (err: any) {
+    } catch (err) {
       console.log(`❌ [${success + failed + skipped + 1}/${PRESET_SCALES.length}] ${scale.name}: ${err.message}`);
       failed++;
     }
