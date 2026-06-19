@@ -908,7 +908,7 @@ export default function MentalRetardationPage() {
                   <button onClick={closeUploadModal} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
                 </div>
                 <div className="p-6">
-                  <p className="text-sm text-gray-500 mb-4">请下载模板填写后上传，支持 .docx 格式</p>
+                  <p className="text-sm text-gray-500 mb-4">请下载模板填写后上传，支持 .docx/.doc 格式</p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
@@ -943,9 +943,12 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/02_学习能力评估表.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
-                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(2)} />
+                          <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(2)} />
                         </label>
                       </div>
                     </div>
@@ -961,9 +964,12 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/03_结果分析报告.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
-                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(3)} />
+                          <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(3)} />
                         </label>
                       </div>
                     </div>
@@ -1000,9 +1006,12 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/05_个别教学记录卡.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
-                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(5)} />
+                          <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(5)} />
                         </label>
                       </div>
                     </div>
@@ -1018,9 +1027,12 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/06_学习进度报告表.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
-                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(6)} />
+                          <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(6)} />
                         </label>
                       </div>
                     </div>
@@ -1036,9 +1048,12 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/07_后续教育跟踪表.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
-                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(7)} />
+                          <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(7)} />
                         </label>
                       </div>
                     </div>
