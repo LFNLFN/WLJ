@@ -7,18 +7,16 @@ import Header from '@/components/Header';
 import { getStudent, saveStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
-const gradeOptions = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '初一', '初二', '初三', '高一', '高二', '高三'];
-
 function EditForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
-  const [form, setForm] = useState({ name: '', parentName: '', parentPhone: '', grade: '' });
+  const [form, setForm] = useState({ name: '', parentName: '', parentPhone: '', birthDate: '', age: 0 });
 
   useEffect(() => {
     if (id) {
       getStudent(id).then(student => {
-        if (student) setForm({ name: student.name, parentName: student.parentName, parentPhone: student.parentPhone, grade: student.grade });
+        if (student) setForm({ name: student.name, parentName: student.parentName, parentPhone: student.parentPhone, birthDate: student.birthDate || '', age: student.age || 0 });
       });
     }
   }, [id]);
@@ -27,6 +25,8 @@ function EditForm() {
     e.preventDefault();
     if (!id || !form.name.trim()) return;
     const student: Student = { id, ...form, createdAt: new Date().toISOString() };
+    // 计算年龄
+    student.age = student.birthDate ? Math.floor((new Date().getTime() - new Date(student.birthDate).getTime()) / 31557600000) : 0;
     saveStudent(student);
     router.push('/students');
   };
@@ -40,12 +40,19 @@ function EditForm() {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">年级</label>
-          <select value={form.grade} onChange={e => setForm(prev => ({ ...prev, grade: e.target.value }))}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white">
-            <option value="">选择年级</option>
-            {gradeOptions.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
+          <label className="block text-sm font-medium text-gray-700 mb-2">出生日期 *</label>
+          <input type="date" value={form.birthDate} onChange={e => {
+            const birthDate = e.target.value;
+            const age = birthDate ? Math.floor((new Date().getTime() - new Date(birthDate).getTime()) / 31557600000) : 0;
+            setForm(prev => ({ ...prev, birthDate, age }));
+          }}
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">年龄</label>
+          <input type="text" value={form.age ? `${form.age} 岁` : ''} readOnly
+            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 outline-none"
+            placeholder="选择出生日期后自动计算" />
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">家长姓名</label>

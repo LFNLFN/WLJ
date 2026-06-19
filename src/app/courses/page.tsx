@@ -42,6 +42,9 @@ export default function CoursesPage() {
       render: (val: number) => `${val}小时`
     },
     { key: 'totalClasses', label: '总课次' },
+    { key: 'totalPrice', label: '总费用',
+      render: (_: any, row: any) => <span className="font-medium text-primary-600">¥{(row.price || 0) * (row.totalClasses || 0)}</span>
+    },
   ];
 
   return (

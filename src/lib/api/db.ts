@@ -45,7 +45,8 @@ const PG_CREATE_TABLES = `
     name TEXT NOT NULL,
     "parentName" TEXT DEFAULT '',
     "parentPhone" TEXT DEFAULT '',
-    grade TEXT DEFAULT '',
+    "birthDate" TEXT DEFAULT '',
+    age INTEGER DEFAULT 0,
     "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
   );
 
@@ -120,6 +121,10 @@ export async function getDb(): Promise<Database.Database | Pool> {
     const pool = getPgPool();
     // 创建表
     await pool.query(PG_CREATE_TABLES);
+    // 数据库迁移: 为已有表添加新字段
+    try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS "birthDate" TEXT DEFAULT \'\''); } catch(e) {}
+    try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0'); } catch(e) {}
+    try { await pool.query('ALTER TABLE students DROP COLUMN IF EXISTS grade'); } catch(e) {}
     dbConfig = { type: 'postgres', pg: pool };
     console.log('✅ PostgreSQL 数据库已连接');
     return pool;
@@ -143,6 +148,11 @@ export async function getDb(): Promise<Database.Database | Pool> {
   const sqliteDb = new Database(dbPath);
   sqliteDb.pragma('journal_mode = WAL');
   
+  // 数据库迁移: 为已有表添加新字段
+  try { sqliteDb.exec('ALTER TABLE students ADD COLUMN birthDate TEXT DEFAULT \'\''); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE students ADD COLUMN age INTEGER DEFAULT 0'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE students DROP COLUMN grade'); } catch(e) {}
+
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
       id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '',
@@ -151,7 +161,8 @@ export async function getDb(): Promise<Database.Database | Pool> {
     );
     CREATE TABLE IF NOT EXISTS students (
       id TEXT PRIMARY KEY, name TEXT NOT NULL,
-      parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', grade TEXT DEFAULT '',
+      parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', birthDate TEXT DEFAULT '',
+    age INTEGER DEFAULT 0,
       createdAt TEXT DEFAULT (datetime('now'))
     );
     CREATE TABLE IF NOT EXISTS courses (

@@ -24,7 +24,12 @@ export default function StudentsPage() {
 
   const columns = [
     { key: 'name', label: '姓名' },
-    { key: 'grade', label: '年级' },
+    { key: 'birthDate', label: '出生日期',
+      render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-',
+    },
+    { key: 'age', label: '年龄',
+      render: (val: number) => val ? `${val} 岁` : '-',
+    },
     { key: 'parentName', label: '家长姓名' },
     { key: 'parentPhone', label: '家长电话' },
     { key: 'createdAt', label: '添加时间',

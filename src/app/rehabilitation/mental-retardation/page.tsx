@@ -300,97 +300,49 @@ export default function MentalRetardationPage() {
 
   const exportToWord = async (record: RehabilitationRecord) => {
     try {
-      const children: any[] = [];
-      const S = 24; // 正文字号
-      const B = 32; // 标题字号
+      const uploads = record.fileUploads || {};
+      const stepNames: { [key: number]: string } = {
+        1: '01_入学登记表',
+        2: '02_学习能力评估表',
+        3: '03_结果分析报告',
+        4: '04_个别化教育计划（IEP）',
+        5: '05_个别教学记录卡',
+        6: '06_学习进度报告表',
+        7: '07_后续教育跟踪表'
+      };
 
-      // ===== 封面 =====
-      children.push(
-        new DocxParagraph({
-          children: [new TextRun({ text: '广东省残疾儿童康复档案', bold: true, size: B + 4 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 2000, after: 200 },
-        }),
-      );
-      children.push(
-        new DocxParagraph({
-          children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: S })],
-          alignment: AlignmentType.RIGHT,
-          spacing: { after: 400 },
-        }),
-      );
-      children.push(
-        new DocxParagraph({
-          children: [new TextRun({ text: '' })],
-          spacing: { after: 100 },
-        }),
-      );
-      // 封面信息 - 用简单段落
-      children.push(makeInfoLine('儿童姓名', record.studentName));
-      children.push(makeInfoLine('性别', record.gender));
-      children.push(makeInfoLine('出生日期', record.birthDate));
-      children.push(makeInfoLine('入学时间', record.admissionDate));
-      children.push(makeInfoLine('康复机构', record.institution || '未来家儿童能力发展中心'));
-      children.push(makeInfoLine('残障等级', record.disabilityLevel));
+      const zip = new JSZip();
+      let hasFile = false;
 
-      // 分页
-      children.push(new DocxParagraph({ children: [new TextRun({ text: '' })], spacing: { before: 800 } }));
+      for (const [stepStr, base64] of Object.entries(uploads)) {
+        const step = parseInt(stepStr);
+        const stepName = stepNames[step] || `步骤${step}`;
+        try {
+          const byteStr = atob(base64 as string);
+          const ab = new ArrayBuffer(byteStr.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteStr.length; i++) {
+            ia[i] = byteStr.charCodeAt(i);
+          }
+          // 根据文件名判断扩展名
+          const ext = step === 1 || step === 4 ? 'docx' : (step === 5 || step === 7 ? 'doc' : 'docx');
+          zip.file(`${stepName}.${ext}`, ab);
+          hasFile = true;
+        } catch (e) {
+          console.warn(`跳过步骤${step}，文件解析失败`);
+        }
+      }
 
-      // ===== 1. 入学登记表 =====
-      children.push(
-        new DocxParagraph({
-          children: [new TextRun({ text: '智障儿童入学登记表', bold: true, size: B })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 400, after: 200 },
-        }),
-      );
-      children.push(
-        new DocxParagraph({
-          children: [new TextRun({ text: `档案编号：${record.studentId || ''}`, size: S })],
-          alignment: AlignmentType.RIGHT,
-          spacing: { after: 200 },
-        }),
-      );
+      if (!hasFile) {
+        alert('该档案没有已上传的文件，请先上传文件再导出');
+        return;
+      }
 
-      // 使用简单表格 - 每行固定2列：标签 | 值
-      children.push(...makeLabelValueTable([
-        ['姓名', record.studentName],
-        ['性别', record.gender],
-        ['出生日期', record.birthDate],
-        ['身份证号', record.idNumber],
-        ['年龄', String(record.age || '')],
-        ['诊断结果', record.diagnosis],
-        ['残障等级', record.disabilityLevel],
-        ['智商评分', record.iqScore],
-        ['康复机构', record.institution],
-        ['监护人', record.guardian],
-        ['联系电话', record.phone],
-        ['入院日期', record.admissionDate],
-        ['家庭地址', record.address],
-        ['既往病史', record.medicalHistory],
-        ['治疗方案', record.treatmentPlan],
-        ['康复进展', record.progress],
-        ['诊断机构', ''],
-        ['户籍所在地', ''],
-        ['状态', record.status],
-      ]));
-
-      // 生成文档
-      const doc = new DocxDocument({
-        sections: [{
-          properties: {
-            page: {
-              margin: { top: 1000, bottom: 800, left: 800, right: 800 },
-            },
-          },
-          children,
-        }],
-      });
-      const blob = await Packer.toBlob(doc);
-      const url = URL.createObjectURL(blob);
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `康复档案_${record.studentName}_${new Date().toLocaleDateString('zh-CN')}.docx`;
+      a.download = `康复档案_${record.studentName}_${new Date().toLocaleDateString('zh-CN')}.zip`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -398,41 +350,8 @@ export default function MentalRetardationPage() {
     }
   };
 
-  // 信息条目：标签：值
-  function makeInfoLine(label: string, value?: string) {
-    return new DocxParagraph({
-      children: [
-        new TextRun({ text: label + '：', bold: true, size: 22 }),
-        new TextRun({ text: value || '', size: 22 }),
-      ],
-      spacing: { before: 60, after: 60 },
-    });
-  }
 
-  // 两列表格：标签 | 值
-  function makeLabelValueTable(rows: (string | undefined)[][]) {
-    const tableRows = rows.map(([label, value]) => {
-      return new DocxTableRow({
-        children: [
-          new DocxTableCell({
-            width: { size: 2500, type: WidthType.DXA },
-            children: [new DocxParagraph({
-              alignment: AlignmentType.RIGHT,
-              children: [new TextRun({ text: (label || '') + '：', bold: true, size: 21 })],
-            })],
-          }),
-          new DocxTableCell({
-            children: [new DocxParagraph({
-              children: [new TextRun({ text: value || '', size: 21 })],
-            })],
-          }),
-        ],
-      });
-    });
-    return [new DocxTable({
-      rows: tableRows,
-    })];
-  }const clearAllSearch = () => {
+  const clearAllSearch = () => {
     setSearchName('');
     setSearchIdNumber('');
     setSearchInstitution('');

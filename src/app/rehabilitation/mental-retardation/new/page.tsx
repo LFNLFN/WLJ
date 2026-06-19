@@ -112,8 +112,8 @@ export default function NewRehabilitationRecordPage() {
         { step: 1, label: '入学登记表', file: '01_入学登记表.docx', hasTemplate: true },
         { step: 2, label: '学习能力评估表', file: '', hasTemplate: false },
         { step: 3, label: '结果分析报告', file: '', hasTemplate: false },
-        { step: 4, label: '个别化教育计划（IEP）', file: '04_个别化教育计划.docx', hasTemplate: true },
-        { step: 5, label: '个别教学记录卡', file: '05_个别教学记录卡.docx', hasTemplate: true },
+        { step: 4, label: '个别化教育计划（IEP）', file: '', hasTemplate: false },
+        { step: 5, label: '个别教学记录卡', file: '05_个别教学记录卡.doc', hasTemplate: true },
         { step: 6, label: '学习进度报告表', file: '', hasTemplate: false },
         { step: 7, label: '后续教育跟踪表', file: '07_后续教育跟踪表.doc', hasTemplate: true },
     ];
@@ -279,7 +279,7 @@ export default function NewRehabilitationRecordPage() {
                                             )}
                                             <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                                                 上传
-                                                <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(step)} />
+                                                <input type="file" accept=".doc,.docx" className="hidden" onChange={handleFileUpload(step)} />
                                             </label>
                                         </div>
                                     </div>

@@ -40,6 +40,31 @@ const categoryColors: Record<string, string> = {
   '社交': 'bg-indigo-100 text-indigo-700',
 };
 
+
+// SRS 评分映射
+const srsScoreMap: Record<string, number> = {
+  '没有': 1, '有时': 2, '经常': 3, '总是': 4,
+};
+
+// SRS 评估标准
+const srsCriteria = [
+  { range: [0, 76], level: '正常范围', description: '社交反应正常，无明显困难', color: 'text-green-600 bg-green-50' },
+  { range: [77, 89], level: '轻微异常', description: '存在轻微的社交反应异常，需要关注和指导', color: 'text-yellow-600 bg-yellow-50' },
+  { range: [90, 106], level: '中等异常', description: '存在中等程度的社交反应异常，建议进行干预和支持', color: 'text-orange-600 bg-orange-50' },
+  { range: [107, Infinity], level: '严重异常', description: '存在严重的社交反应异常，需要专业评估和重点干预', color: 'text-red-600 bg-red-50' },
+];
+
+const isSrsScale = (name: string) => name.includes('社交反应量表') || name.includes('SRS');
+
+const calculateSrsResult = (scores: any[]) => {
+  if (!scores || scores.length === 0) return null;
+  const totalScore = scores.reduce((sum: number, s: any) => {
+    return sum + (srsScoreMap[s.value as string] || 0);
+  }, 0);
+  const criterion = srsCriteria.find(c => totalScore >= c.range[0] && totalScore <= c.range[1]) || srsCriteria[0];
+  return { totalScore, criterion };
+};
+
 const categoryIcons: Record<string, string> = {
   '智力': '🧠',
   '感统': '🤸',
@@ -194,7 +219,7 @@ export default function StudentAssessmentsPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">年级</p>
-                    <p className="text-sm font-medium text-gray-800">{student.grade || '未设置'}</p>
+                    <p className="text-sm font-medium text-gray-800">{student.age ? `${student.age} 岁` : '未设置'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">家长姓名</p>
@@ -368,6 +393,119 @@ export default function StudentAssessmentsPage() {
                       </div>
                     </div>
 
+                    {/* SRS 评估结果 */}
+                    {selectedRecord && isSrsScale(selectedRecord.scaleName) && selectedRecord.scores && selectedRecord.scores.length > 0 && (() => {
+                      const result = calculateSrsResult(selectedRecord.scores);
+                      if (!result) return null;
+                      const levelColors: Record<string, string> = {
+                        '正常范围': 'text-green-600 bg-green-50 border-green-200',
+                        '轻微异常': 'text-yellow-600 bg-yellow-50 border-yellow-200',
+                        '中等异常': 'text-orange-600 bg-orange-50 border-orange-200',
+                        '严重异常': 'text-red-600 bg-red-50 border-red-200',
+                      };
+                      const bgColors: Record<string, string> = {
+                        '正常范围': 'from-green-50 to-emerald-50',
+                        '轻微异常': 'from-yellow-50 to-amber-50',
+                        '中等异常': 'from-orange-50 to-amber-50',
+                        '严重异常': 'from-red-50 to-rose-50',
+                      };
+                      return (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                          <h3 className="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            社交反应量表 (SRS) 评估结果
+                          </h3>
+                          <div className={`p-6 rounded-xl bg-gradient-to-br ${bgColors[result.criterion.level] || 'from-gray-50 to-gray-50'} border ${levelColors[result.criterion.level]?.split(' ').slice(-1)[0] || 'border-gray-200'} mb-4`}>
+                            <div className="flex items-center gap-8">
+                              <div className="text-center">
+                                <div className="text-5xl font-bold text-indigo-700">{result.totalScore}</div>
+                                <div className="text-xs text-gray-500 mt-1">总分</div>
+                                <div className="text-[10px] text-gray-400">范围 65-260</div>
+                              </div>
+                              <div className="flex-1">
+                                <div className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold mb-2 ${
+                                  result.criterion.level === '正常范围' ? 'bg-green-100 text-green-700' :
+                                  result.criterion.level === '轻微异常' ? 'bg-yellow-100 text-yellow-700' :
+                                  result.criterion.level === '中等异常' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {result.criterion.level}
+                                </div>
+                                <p className="text-sm text-gray-600">{result.criterion.description}</p>
+                              </div>
+                            </div>
+                            {/* 进度条 */}
+                            <div className="mt-4">
+                              <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="absolute inset-0 flex">
+                                  <div className="flex-1 bg-green-400 opacity-20" />
+                                  <div className="flex-1 bg-yellow-400 opacity-20" />
+                                  <div className="flex-1 bg-orange-400 opacity-20" />
+                                  <div className="flex-1 bg-red-400 opacity-20" />
+                                </div>
+                                <div className="absolute h-full bg-indigo-600 rounded-full transition-all duration-500"
+                                  style={{width: `${Math.min(((result.totalScore - 65) / (260 - 65)) * 100, 100)}%`}} />
+                              </div>
+                              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                                <span className="text-green-600 font-medium">65 正常</span>
+                                <span className="text-yellow-600 font-medium">77 轻微</span>
+                                <span className="text-orange-600 font-medium">90 中等</span>
+                                <span className="text-red-600 font-medium">107 严重</span>
+                                <span>260</span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* 各题得分统计 */}
+                          <div className="grid grid-cols-4 gap-2 text-center text-xs mb-4">
+                            <div className="p-2 bg-green-50 rounded-lg">
+                              <div className="font-bold text-green-700 text-base">{selectedRecord.scores.filter((s: any) => s.value === '没有').length}</div>
+                              <div className="text-green-600">没有(1分)</div>
+                            </div>
+                            <div className="p-2 bg-yellow-50 rounded-lg">
+                              <div className="font-bold text-yellow-700 text-base">{selectedRecord.scores.filter((s: any) => s.value === '有时').length}</div>
+                              <div className="text-yellow-600">有时(2分)</div>
+                            </div>
+                            <div className="p-2 bg-orange-50 rounded-lg">
+                              <div className="font-bold text-orange-700 text-base">{selectedRecord.scores.filter((s: any) => s.value === '经常').length}</div>
+                              <div className="text-orange-600">经常(3分)</div>
+                            </div>
+                            <div className="p-2 bg-red-50 rounded-lg">
+                              <div className="font-bold text-red-700 text-base">{selectedRecord.scores.filter((s: any) => s.value === '总是').length}</div>
+                              <div className="text-red-600">总是(4分)</div>
+                            </div>
+                          </div>
+                          <details className="group">
+                            <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition-colors list-none flex items-center gap-1">
+                              <svg className="w-4 h-4 group-open:rotate-90 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                              查看各题详情
+                            </summary>
+                            <div className="mt-3 space-y-1 max-h-96 overflow-y-auto">
+                              {selectedRecord.scores.map((score: any, idx: number) => {
+                                const scoreColors: Record<string, string> = {
+                                  '没有': 'text-green-600 bg-green-50',
+                                  '有时': 'text-yellow-600 bg-yellow-50',
+                                  '经常': 'text-orange-600 bg-orange-50',
+                                  '总是': 'text-red-600 bg-red-50',
+                                };
+                                return (
+                                  <div key={idx} className="flex items-center gap-3 p-2 rounded-lg even:bg-gray-50">
+                                    <span className="text-xs text-gray-400 w-8">{idx + 1}.</span>
+                                    <span className="text-xs text-gray-600 flex-1">{score.fieldLabel?.replace(/^第\d+题: /, '') || score.fieldLabel}</span>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${scoreColors[score.value as string] || 'bg-gray-100 text-gray-600'}`}>
+                                      {score.value as string} ({srsScoreMap[score.value as string] || '?'}分)
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </details>
+                        </div>
+                      );
+                    })()}
                     {/* 各维度得分 */}
                     {selectedRecord.scores && selectedRecord.scores.length > 0 && (
                       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

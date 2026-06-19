@@ -16,7 +16,8 @@ export interface Student {
   name: string;
   parentName: string;
   parentPhone: string;
-  grade: string;
+  birthDate: string;
+  age: number;
   createdAt: string;
 }
 

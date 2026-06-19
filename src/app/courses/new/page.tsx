@@ -14,24 +14,17 @@ export default function NewCoursePage() {
   const [students, setStudents] = useState<any[]>([]);
   const [form, setForm] = useState({
     name: '',
-    subject: '',
+    
     teacherId: '',
     studentIds: [] as string[],
     price: '',
     classHour: '45',
     totalClasses: '10',
   });
-  const [customSubject, setCustomSubject] = useState('');
-
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
     getStudents().then(data => setStudents(data));
   }, []);
-
-  // 从所有教师中收集所有科目
-  const allSubjects = Array.from(
-    new Set(teachers.flatMap(t => t.subjects || []))
-  ).filter(Boolean) as string[];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +37,7 @@ export default function NewCoursePage() {
 
     saveCourse({
       name: form.name.trim(),
-      subject: form.subject,
+
       teacherId: form.teacherId,
       teacherName: teacher.name,
       studentIds: form.studentIds,
@@ -64,15 +57,6 @@ export default function NewCoursePage() {
         : [...prev.studentIds, id]
     }));
   };
-
-  const addCustomSubject = () => {
-    const sub = customSubject.trim();
-    if (sub) {
-      setForm(prev => ({ ...prev, subject: sub }));
-      setCustomSubject('');
-    }
-  };
-
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -88,25 +72,7 @@ export default function NewCoursePage() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
                     placeholder="如：初三数学冲刺班" />
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">科目</label>
-                  <select value={form.subject} onChange={e => setForm(prev => ({ ...prev, subject: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white">
-                    <option value="">选择科目</option>
-                    {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  {/* 自定义科目输入 */}
-                  <div className="flex gap-2 mt-2">
-                    <input type="text" value={customSubject} onChange={e => setCustomSubject(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustomSubject(); } }}
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
-                      placeholder="或输入自定义科目" />
-                    <button type="button" onClick={addCustomSubject}
-                      className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors border border-gray-300">
-                      使用
-                    </button>
-                  </div>
-                </div>
+
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">授课教师 *</label>
                   <select value={form.teacherId} onChange={e => setForm(prev => ({ ...prev, teacherId: e.target.value }))}
@@ -134,6 +100,16 @@ export default function NewCoursePage() {
                 </div>
               </div>
 
+              <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">课程总费用</span>
+                  <span className="text-xl font-bold text-primary-600">
+                    ¥{Number(form.price || 0) * Number(form.totalClasses || 0)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">每节课费用 ¥{form.price || 0} × 总课次 {form.totalClasses || 0}</p>
+              </div>
+
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">选择学生 * ({form.studentIds.length} 人)</label>
                 {students.length === 0 ? (
@@ -147,7 +123,7 @@ export default function NewCoursePage() {
                             ? 'bg-primary-600 text-white border-primary-600'
                             : 'bg-white text-gray-600 border-gray-300 hover:border-primary-300'
                         }`}>
-                        {s.name} ({s.grade || '未设置'})
+                        {s.name}{s.age ? `（${s.age}岁）` : ''}
                       </button>
                     ))}
                   </div>

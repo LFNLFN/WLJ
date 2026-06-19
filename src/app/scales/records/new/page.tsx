@@ -124,6 +124,34 @@ export default function NewScaleRecordPage() {
     setScores(prev => prev.map(s => (s.fieldId === fieldId ? { ...s, value } : s)));
   };
 
+
+  // SRS 评分分值映射
+  const srsScoreMap: Record<string, number> = {
+    '没有': 1,
+    '有时': 2,
+    '经常': 3,
+    '总是': 4,
+  };
+
+  // SRS 评估标准
+  const srsCriteria = [
+    { range: [0, 76], level: '正常范围', description: '社交反应正常，无明显困难', color: 'text-green-600 bg-green-50' },
+    { range: [77, 89], level: '轻微异常', description: '存在轻微的社交反应异常，需要关注和指导', color: 'text-yellow-600 bg-yellow-50' },
+    { range: [90, 106], level: '中等异常', description: '存在中等程度的社交反应异常，建议进行干预和支持', color: 'text-orange-600 bg-orange-50' },
+    { range: [107, Infinity], level: '严重异常', description: '存在严重的社交反应异常，需要专业评估和重点干预', color: 'text-red-600 bg-red-50' },
+  ];
+
+  // 计算 SRS 总分和等级
+  const calculateSrsResult = (scores: ScoreValue[]) => {
+    const totalScore = scores.reduce((sum, s) => {
+      return sum + (srsScoreMap[s.value as string] || 0);
+    }, 0);
+    const criterion = srsCriteria.find(c => totalScore >= c.range[0] && totalScore <= c.range[1]) || srsCriteria[0];
+    return { totalScore, criterion };
+  };
+
+  const isSrsScale = (name: string) => name.includes('社交反应量表') || name.includes('SRS');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.studentId) {
@@ -182,7 +210,7 @@ export default function NewScaleRecordPage() {
                       <option value="">选择学生</option>
                       {students.map(s => (
                         <option key={(s as any)._id || (s as any).id} value={(s as any)._id || (s as any).id}>
-                          {(s as any).name} - {(s as any).grade || '未设置年级'}
+                          {(s as any).name}{(s as any).age ? `（${(s as any).age}岁）` : ''}
                         </option>
                       ))}
                     </select>
@@ -296,6 +324,64 @@ export default function NewScaleRecordPage() {
               {/* 第三步：评估结论 */}
               {selectedTemplate && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+
+              {/* SRS 总分展示 */}
+              {selectedTemplate && isSrsScale(selectedTemplate.name) && scores.length > 0 && (
+                <div className="mt-6 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+                  <h4 className="text-base font-semibold text-indigo-800 mb-4">📊 评估结果</h4>
+                  {(() => {
+                    const result = calculateSrsResult(scores);
+                    const allAnswered = scores.every(s => s.value !== '' && s.value !== undefined);
+                    if (!allAnswered) {
+                      return (
+                        <div className="text-sm text-indigo-600">
+                          ⚠️ 请完成所有题目的评分后查看结果
+                          <div className="mt-2 text-indigo-400">
+                            已答 {scores.filter(s => s.value !== '' && s.value !== undefined).length} / {scores.length} 题
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div>
+                        <div className="flex items-center gap-6 mb-4">
+                          <div className="text-center">
+                            <div className="text-4xl font-bold text-indigo-700">{result.totalScore}</div>
+                            <div className="text-xs text-indigo-500 mt-1">总分</div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg font-bold" style={{color: result.criterion.level === '正常范围' ? '#16a34a' : result.criterion.level === '轻微异常' ? '#ca8a04' : result.criterion.level === '中等异常' ? '#ea580c' : '#dc2626'}}>
+                                {result.criterion.level}
+                              </span>
+                              <span className="text-xs text-gray-400">（{result.totalScore}分）</span>
+                            </div>
+                            <p className="text-sm text-gray-600">{result.criterion.description}</p>
+                          </div>
+                        </div>
+                        {/* 评估等级进度条 */}
+                        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="absolute inset-0 flex">
+                            <div className="flex-1 bg-green-400 opacity-30" />
+                            <div className="flex-1 bg-yellow-400 opacity-30" />
+                            <div className="flex-1 bg-orange-400 opacity-30" />
+                            <div className="flex-1 bg-red-400 opacity-30" />
+                          </div>
+                          <div className="absolute h-full bg-indigo-500 rounded-full transition-all duration-500"
+                            style={{width: `${Math.min((result.totalScore / 260) * 100, 100)}%`}} />
+                        </div>
+                        <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                          <span>65 (正常)</span>
+                          <span>77 (轻微)</span>
+                          <span>90 (中等)</span>
+                          <span>107 (严重)</span>
+                          <span>260</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
                   <h3 className="text-lg font-semibold text-gray-700 mb-4">③ 评估结论</h3>
                   <div className="space-y-4">
                     <div>

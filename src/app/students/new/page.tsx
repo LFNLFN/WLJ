@@ -6,15 +6,14 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { saveStudent } from '@/lib/api';
 
-const gradeOptions = ['一年级', '二年级', '三年级', '四年级', '五年级', '六年级', '初一', '初二', '初三', '高一', '高二', '高三'];
-
 export default function NewStudentPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     name: '',
     parentName: '',
     parentPhone: '',
-    grade: '',
+    birthDate: '',
+    age: 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,7 +26,8 @@ export default function NewStudentPage() {
       name: form.name.trim(),
       parentName: form.parentName.trim(),
       parentPhone: form.parentPhone.trim(),
-      grade: form.grade,
+      birthDate: form.birthDate,
+      age: form.age,
     });
     router.push('/students');
   };
@@ -48,12 +48,19 @@ export default function NewStudentPage() {
                     placeholder="请输入姓名" />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">年级</label>
-                  <select value={form.grade} onChange={e => setForm(prev => ({ ...prev, grade: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white">
-                    <option value="">选择年级</option>
-                    {gradeOptions.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">出生日期 *</label>
+                  <input type="date" value={form.birthDate} onChange={e => {
+                    const birthDate = e.target.value;
+                    const age = birthDate ? Math.floor((new Date().getTime() - new Date(birthDate).getTime()) / 31557600000) : 0;
+                    setForm(prev => ({ ...prev, birthDate, age }));
+                  }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">年龄</label>
+                  <input type="text" value={form.age ? `${form.age} 岁` : ''} readOnly
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 outline-none"
+                    placeholder="选择出生日期后自动计算" />
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">家长姓名</label>
