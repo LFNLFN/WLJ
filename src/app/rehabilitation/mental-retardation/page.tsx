@@ -1000,6 +1000,9 @@ export default function MentalRetardationPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
+                        <a href="/templates/05_个别教学记录卡.doc" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
                         <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                           上传
                           <input type="file" accept=".docx,.doc" className="hidden" onChange={handleFileUpload(5)} />
