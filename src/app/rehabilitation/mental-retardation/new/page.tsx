@@ -113,7 +113,7 @@ export default function NewRehabilitationRecordPage() {
         { step: 2, label: '学习能力评估表', file: '', hasTemplate: false },
         { step: 3, label: '结果分析报告', file: '', hasTemplate: false },
         { step: 4, label: '个别化教育计划（IEP）', file: '04_个别化教育计划.docx', hasTemplate: true },
-        { step: 5, label: '个别教学记录卡', file: '05_个别教学记录卡.doc', hasTemplate: true },
+        { step: 5, label: '个别教学记录卡', file: '05_个别教学记录卡.docx', hasTemplate: true },
         { step: 6, label: '学习进度报告表', file: '', hasTemplate: false },
         { step: 7, label: '后续教育跟踪表', file: '07_后续教育跟踪表.doc', hasTemplate: true },
     ];
