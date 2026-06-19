@@ -7,7 +7,8 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
 import { getStudents, saveStudent, deleteStudent } from '@/lib/api';
-import { Document as DocxDocument, Packer, Paragraph as DocxParagraph, TextRun, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, WidthType, AlignmentType } from 'docx';
+import JSZip from 'jszip';
+import { Document as DocxDocument, Packer, Paragraph as DocxParagraph, TextRun, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, AlignmentType, WidthType } from 'docx';
 import type { Student } from '@/lib/types';
 
 // 智障儿童康复档案扩展字段
@@ -56,6 +57,8 @@ interface RehabilitationRecord {
   learningProgressReport?: string;
   educationTrackingDate?: string;
   followUpEducationTracking?: string;
+  // 上传的docx文件（步骤编号 -> base64内容）
+  fileUploads?: { [step: number]: string };
 }
 
 export default function MentalRetardationPage() {
@@ -249,6 +252,49 @@ export default function MentalRetardationPage() {
       const filtered = records.filter((r) => r.id !== record.id);
       saveRecords(filtered);
     }
+  };
+
+  // ===== 文件上传相关 =====
+  const [uploadRecord, setUploadRecord] = useState<RehabilitationRecord | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
+  const handleUploadClick = (record: RehabilitationRecord) => {
+    setUploadRecord(record);
+    setShowUploadModal(true);
+  };
+
+  const handleFileUpload = (step: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadRecord) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // 提取 base64 数据
+      const base64 = result.split(',')[1];
+
+      // 更新 records
+      const updated = records.map(r => {
+        if (r.id === uploadRecord.id) {
+          const uploads = { ...(r.fileUploads || {}), [step]: base64 };
+          return { ...r, fileUploads: uploads };
+        }
+        return r;
+      });
+      saveRecords(updated);
+      setUploadRecord(updated.find(r => r.id === uploadRecord.id) || null);
+      alert(`步骤 ${step} 文件上传成功！`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const getUploadStatus = (record: RehabilitationRecord, step: number): boolean => {
+    return !!(record.fileUploads && record.fileUploads[step]);
+  };
+
+  const closeUploadModal = () => {
+    setShowUploadModal(false);
+    setUploadRecord(null);
   };
 
 
@@ -846,11 +892,162 @@ export default function MentalRetardationPage() {
               onDelete={handleDelete}
               rowKey="id"
               actions={[
-                { label: '📄 导出Word', onClick: exportToWord, color: 'text-green-600', hoverColor: 'hover:bg-green-50' },
+                { label: '📄 导出', onClick: exportToWord, color: 'text-green-600', hoverColor: 'hover:bg-green-50' },
+                { label: '📁 上传文件', onClick: (row: any) => handleUploadClick(row), color: 'text-blue-600', hoverColor: 'hover:bg-blue-50' },
               ]}
             />
           )}
-        </main>
+                  {/* 上传文件弹窗 */}
+          {showUploadModal && uploadRecord && (
+            <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center" onClick={(e) => { if (e.target === e.currentTarget) closeUploadModal(); }}>
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto m-4">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    上传文件 &mdash; {uploadRecord.studentName}
+                  </h3>
+                  <button onClick={closeUploadModal} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-gray-500 mb-4">请下载模板填写后上传，支持 .docx 格式</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          入学登记表
+                        </span>
+                        {getUploadStatus(uploadRecord, 1) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a href="/templates/01_入学登记表.docx" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(1)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          学习能力评估表
+                        </span>
+                        {getUploadStatus(uploadRecord, 2) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(2)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          结果分析报告
+                        </span>
+                        {getUploadStatus(uploadRecord, 3) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(3)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          个别化教育计划（IEP）
+                        </span>
+                        {getUploadStatus(uploadRecord, 4) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a href="/templates/04_个别化教育计划.docx" download className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          下载模板
+                        </a>
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(4)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          个别教学记录卡
+                        </span>
+                        {getUploadStatus(uploadRecord, 5) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(5)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          学习进度报告表
+                        </span>
+                        {getUploadStatus(uploadRecord, 6) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(6)} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700">
+                          后续教育跟踪表
+                        </span>
+                        {getUploadStatus(uploadRecord, 7) ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">已上传</span>
+                        ) : (
+                          <span className="text-xs text-gray-400">未上传</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="px-3 py-1.5 text-sm cursor-pointer bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                          上传
+                          <input type="file" accept=".docx" className="hidden" onChange={handleFileUpload(7)} />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+</main>
       </div>
     </div>
   );
