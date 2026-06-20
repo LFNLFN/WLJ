@@ -56,7 +56,7 @@ export function createHandlers(tableName: string, filterFields: string[] = []) {
         
         if (isPg(db)) {
           const cols = columns.map(c => `"${c}"`).join(',');
-          const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+          const vals = columns.map((_, i) => `$${i + 2}`).join(',');
           const result = await db.query(
             `INSERT INTO ${tableName} (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
             [id, ...columns.map(k => data[k])]
