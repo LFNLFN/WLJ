@@ -4,9 +4,12 @@ import { Pool } from 'pg';
 
 export { getDb, generateId, parseRow, parseRows, prepareSaveData, isPg };
 
-// 判断是否 PostgreSQL
+// 判断是否 PostgreSQL（更可靠的写法）
 function isPg(db: any): db is Pool {
-  return db.constructor?.name === 'Pool';
+  return db && 
+         typeof db.query === 'function' && 
+         typeof db.connect === 'function' && 
+         typeof db.prepare !== 'function';
 }
 
 export function createHandlers(tableName: string, filterFields: string[] = []) {

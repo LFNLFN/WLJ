@@ -141,6 +141,12 @@ export async function getDb(): Promise<Database.Database | Pool> {
     try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS "birthDate" TEXT DEFAULT \'\''); } catch(e) {}
     try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0'); } catch(e) {}
     try { await pool.query('ALTER TABLE students DROP COLUMN IF EXISTS grade'); } catch(e) {}
+  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "gender" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "phone" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "hireDate" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "rank" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "subjects" TEXT DEFAULT \'[]\''); } catch(e) {}
+
     dbConfig = { type: 'postgres', pg: pool };
     console.log('✅ PostgreSQL 数据库已连接');
     return pool;
@@ -164,10 +170,16 @@ export async function getDb(): Promise<Database.Database | Pool> {
   const sqliteDb = new Database(dbPath);
   sqliteDb.pragma('journal_mode = WAL');
   
+
   // 数据库迁移: 为已有表添加新字段
   try { sqliteDb.exec('ALTER TABLE students ADD COLUMN birthDate TEXT DEFAULT \'\''); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE students ADD COLUMN age INTEGER DEFAULT 0'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE students DROP COLUMN grade'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN gender TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN phone TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN "hireDate" TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN rank TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN subjects TEXT DEFAULT "[]"'); } catch(e) {}
 
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
