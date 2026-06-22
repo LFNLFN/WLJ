@@ -56,12 +56,14 @@ export default function StudentsPage() {
         return (
           <div className="flex gap-1 flex-wrap max-w-xs">
             {studentCourses.map((c: any) => (
-              <span
+              <button
                 key={c._id}
-                className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full whitespace-nowrap"
+                onClick={() => router.push(`/courses/edit?id=${c._id}`)}
+                className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full whitespace-nowrap hover:bg-primary-100 hover:text-primary-800 transition-colors cursor-pointer"
+                title="点击查看课程详情"
               >
                 {c.name}
-              </span>
+              </button>
             ))}
           </div>
         );
