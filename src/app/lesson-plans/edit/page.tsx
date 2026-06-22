@@ -11,7 +11,7 @@ function EditForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
-  const [form, setForm] = useState({ title: '', content: '' });
+  const [form, setForm] = useState({ title: '', type: 'personal', content: '' });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -20,6 +20,7 @@ function EditForm() {
         if (plan) {
           setForm({
             title: plan.title || '',
+            type: plan.type || 'personal',
             content: plan.content || '',
           });
         }
@@ -39,6 +40,7 @@ function EditForm() {
       await saveLessonPlan({
         _id: id,
         title: form.title.trim(),
+        type: form.type,
         content: form.content.trim(),
       });
       router.push('/lesson-plans');
@@ -60,6 +62,33 @@ function EditForm() {
             onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">类型 *</label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="type"
+                value="personal"
+                checked={form.type === 'personal'}
+                onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-4 h-4 text-primary-600"
+              />
+              <span className="text-sm text-gray-700">个人教案</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="type"
+                value="group"
+                checked={form.type === 'group'}
+                onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-4 h-4 text-primary-600"
+              />
+              <span className="text-sm text-gray-700">集体教案</span>
+            </label>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">教学内容 *</label>

@@ -10,6 +10,7 @@ export default function NewLessonPlanPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     title: '',
+    type: 'personal',
     content: '',
   });
   const [saving, setSaving] = useState(false);
@@ -28,6 +29,7 @@ export default function NewLessonPlanPage() {
     try {
       await saveLessonPlan({
         title: form.title.trim(),
+        type: form.type,
         content: form.content.trim(),
       });
       router.push('/lesson-plans');
@@ -56,6 +58,33 @@ export default function NewLessonPlanPage() {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors"
                     placeholder="请输入教案标题"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">类型 *</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="type"
+                        value="personal"
+                        checked={form.type === 'personal'}
+                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                        className="w-4 h-4 text-primary-600"
+                      />
+                      <span className="text-sm text-gray-700">个人教案</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="type"
+                        value="group"
+                        checked={form.type === 'group'}
+                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                        className="w-4 h-4 text-primary-600"
+                      />
+                      <span className="text-sm text-gray-700">集体教案</span>
+                    </label>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">教学内容 *</label>

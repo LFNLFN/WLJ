@@ -198,9 +198,12 @@ export async function getStudentScaleRecordsByStudent(studentId: string) {
 
 // ==================== 教案 ====================
 
-export async function getLessonPlans(keyword?: string) {
-  const params = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-  return request(`/lesson-plans${params}`);
+export async function getLessonPlans(keyword?: string, type?: string) {
+  const searchParams = new URLSearchParams();
+  if (keyword) searchParams.set('keyword', keyword);
+  if (type) searchParams.set('type', type);
+  const query = searchParams.toString();
+  return request(`/lesson-plans${query ? '?' + query : ''}`);
 }
 
 export async function getLessonPlan(id: string) {

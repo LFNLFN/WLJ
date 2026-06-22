@@ -118,6 +118,7 @@ export interface ScaleScore {
 export interface LessonPlan {
   id: string;
   title: string;
+  type: 'personal' | 'group';
   content: string;
   createdAt: string;
   updatedAt: string;
