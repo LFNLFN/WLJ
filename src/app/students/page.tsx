@@ -5,14 +5,23 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
-import { getStudents, deleteStudent } from '@/lib/api';
+import { getStudents, getCourses, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
 
-  const loadData = () => getStudents().then(setStudents).catch(err => console.error('加载失败:', err));
+  const loadData = () => {
+    Promise.all([
+      getStudents(),
+      getCourses()
+    ]).then(([studentsData, coursesData]) => {
+      setStudents(studentsData);
+      setCourses(coursesData);
+    }).catch(err => console.error('加载失败:', err));
+  };
 
   useEffect(() => { loadData(); }, []);
 
@@ -20,6 +29,13 @@ export default function StudentsPage() {
     if (confirm(`确定要删除学生 "${student.name}" 吗？`)) {
       deleteStudent(student._id).then(loadData).catch(err => alert('删除失败'));
     }
+  };
+
+  // 查找学生关联的课程
+  const getStudentCourses = (studentId: string) => {
+    return courses.filter((c: any) =>
+      c.studentIds && c.studentIds.includes(studentId)
+    );
   };
 
   const columns = [
@@ -32,6 +48,25 @@ export default function StudentsPage() {
     },
     { key: 'parentName', label: '家长姓名' },
     { key: 'parentPhone', label: '家长电话' },
+    {
+      key: 'courses', label: '关联课程',
+      render: (_: any, row: any) => {
+        const studentCourses = getStudentCourses(row._id);
+        if (studentCourses.length === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <div className="flex gap-1 flex-wrap max-w-xs">
+            {studentCourses.map((c: any) => (
+              <span
+                key={c._id}
+                className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full whitespace-nowrap"
+              >
+                {c.name}
+              </span>
+            ))}
+          </div>
+        );
+      }
+    },
     { key: 'createdAt', label: '添加时间',
       render: (val: string) => new Date(val).toLocaleDateString('zh-CN')
     },
