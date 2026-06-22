@@ -10,6 +10,7 @@ const navItems = [
   { href: '/students', label: '学生管理', icon: '👦' },
   { href: '/courses', label: '课程管理', icon: '📚' },
   { href: '/records', label: '上课记录', icon: '📝' },
+  { href: '/lesson-plans', label: '教案中心', icon: '📖' },
 ];
 
 const subNavGroups = [

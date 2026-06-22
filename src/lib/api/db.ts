@@ -123,6 +123,13 @@ const PG_CREATE_TABLES = `
     "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
     "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
   );
+  CREATE TABLE IF NOT EXISTS lesson_plans (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+    "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+  );
 `;
 
 export async function getDb(): Promise<Database.Database | Pool> {
@@ -146,6 +153,8 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "hireDate" TEXT DEFAULT \'\''); } catch(e) {}
   try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "rank" TEXT DEFAULT \'\''); } catch(e) {}
   try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "subjects" TEXT DEFAULT \'[]\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "content" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT \'\''); } catch(e) {}
 
     dbConfig = { type: 'postgres', pg: pool };
     console.log('✅ PostgreSQL 数据库已连接');
@@ -180,6 +189,8 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN "hireDate" TEXT DEFAULT ""'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN rank TEXT DEFAULT ""'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN subjects TEXT DEFAULT "[]"'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN content TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN updatedAt TEXT DEFAULT ""'); } catch(e) {}
 
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
@@ -223,6 +234,13 @@ export async function getDb(): Promise<Database.Database | Pool> {
       createdAt TEXT DEFAULT (datetime('now')),
       updatedAt TEXT DEFAULT (datetime('now'))
     );
+    CREATE TABLE IF NOT EXISTS lesson_plans (
+      id TEXT PRIMARY KEY, title TEXT NOT NULL,
+      content TEXT DEFAULT '',
+      createdAt TEXT DEFAULT (datetime('now')),
+      updatedAt TEXT DEFAULT (datetime('now'))
+    );
+
   `);
 
   dbConfig = { type: 'sqlite', sqlite: sqliteDb };

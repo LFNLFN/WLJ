@@ -112,3 +112,13 @@ export interface ScaleScore {
   value: string | number;
   remark?: string;
 }
+
+// ==================== 教案 ====================
+
+export interface LessonPlan {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}

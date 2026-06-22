@@ -195,3 +195,31 @@ export async function deleteStudentScaleRecord(id: string) {
 export async function getStudentScaleRecordsByStudent(studentId: string) {
   return request(`/student-scale-records?studentId=${encodeURIComponent(studentId)}`);
 }
+
+// ==================== 教案 ====================
+
+export async function getLessonPlans(keyword?: string) {
+  const params = keyword ? `?title=${encodeURIComponent(keyword)}` : '';
+  return request(`/lesson-plans${params}`);
+}
+
+export async function getLessonPlan(id: string) {
+  return request(`/lesson-plans/${id}`);
+}
+
+export async function saveLessonPlan(plan: any) {
+  if (plan.id || plan._id) {
+    return request(`/lesson-plans/${plan.id || plan._id}`, {
+      method: 'PUT',
+      body: JSON.stringify(plan),
+    });
+  }
+  return request('/lesson-plans', {
+    method: 'POST',
+    body: JSON.stringify(plan),
+  });
+}
+
+export async function deleteLessonPlan(id: string) {
+  return request(`/lesson-plans/${id}`, { method: 'DELETE' });
+}
