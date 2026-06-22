@@ -403,25 +403,45 @@ export default function NewCoursePage() {
                                 <div className="grid grid-cols-2 gap-2">
                                   <div>
                                     <label className="block text-xs text-gray-500 mb-1">起始{unitLabel}</label>
-                                    <input type="number" value={stage.start}
+                                    <input type="number" value={stage.start ?? ''}
                                       onChange={e => {
-                                        const val = Number(e.target.value);
-                                        setForm(prev => ({
-                                          ...prev,
-                                          stages: prev.stages.map((s, i) => i === idx ? { ...s, start: val } : s),
-                                        }));
+                                        const raw = e.target.value;
+                                        if (raw === '') {
+                                          setForm(prev => ({
+                                            ...prev,
+                                            stages: prev.stages.map((s, i) => i === idx ? { ...s, start: 1 } : s),
+                                          }));
+                                        } else {
+                                          const val = Number(raw);
+                                          if (!isNaN(val)) {
+                                            setForm(prev => ({
+                                              ...prev,
+                                              stages: prev.stages.map((s, i) => i === idx ? { ...s, start: val } : s),
+                                            }));
+                                          }
+                                        }
                                       }}
                                       className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
                                   </div>
                                   <div>
                                     <label className="block text-xs text-gray-500 mb-1">结束{unitLabel}</label>
-                                    <input type="number" value={stage.end}
+                                    <input type="number" value={stage.end ?? ''}
                                       onChange={e => {
-                                        const val = Number(e.target.value);
-                                        setForm(prev => ({
-                                          ...prev,
-                                          stages: prev.stages.map((s, i) => i === idx ? { ...s, end: val } : s),
-                                        }));
+                                        const raw = e.target.value;
+                                        if (raw === '') {
+                                          setForm(prev => ({
+                                            ...prev,
+                                            stages: prev.stages.map((s, i) => i === idx ? { ...s, end: 1 } : s),
+                                          }));
+                                        } else {
+                                          const val = Number(raw);
+                                          if (!isNaN(val)) {
+                                            setForm(prev => ({
+                                              ...prev,
+                                              stages: prev.stages.map((s, i) => i === idx ? { ...s, end: val } : s),
+                                            }));
+                                          }
+                                        }
                                       }}
                                       className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
                                   </div>
