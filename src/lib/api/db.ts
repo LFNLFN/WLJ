@@ -292,7 +292,7 @@ export function parseRows(rows: any[]): any[] {
 export function prepareSaveData(body: any): any {
   const data = { ...body };
   if (data._id) { data.id = data._id; delete data._id; }
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach((field) => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'lessonPlanIds', 'lessonPlanTitles', 'stages'].forEach((field) => {
     if (data[field] && Array.isArray(data[field])) data[field] = JSON.stringify(data[field]);
   });
   return data;
