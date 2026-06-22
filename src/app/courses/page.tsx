@@ -8,6 +8,16 @@ import Table from '@/components/Table';
 import { getCourses, deleteCourse } from '@/lib/api';
 import type { Course } from '@/lib/types';
 
+const TYPE_LABELS: Record<string, string> = {
+  personal: '个人课程',
+  group: '集体课程',
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  personal: 'bg-blue-50 text-blue-700',
+  group: 'bg-green-50 text-green-700',
+};
+
 export default function CoursesPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -24,10 +34,25 @@ export default function CoursesPage() {
 
   const columns = [
     { key: 'name', label: '课程名称' },
-    { key: 'subject', label: '科目',
-      render: (val: string) => <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{val}</span>
+    {
+      key: 'type', label: '类型',
+      render: (val: string) => (
+        <span className={`px-2 py-0.5 text-xs rounded-full ${TYPE_COLORS[val] || 'bg-gray-50 text-gray-600'}`}>
+          {TYPE_LABELS[val] || val || '个人课程'}
+        </span>
+      )
     },
     { key: 'teacherName', label: '授课教师' },
+    {
+      key: 'lessonPlanTitles', label: '关联教案',
+      render: (val: string[]) => val && val.length > 0 ? (
+        <div className="flex gap-1 flex-wrap">
+          {val.map((t, i) => (
+            <span key={i} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{t}</span>
+          ))}
+        </div>
+      ) : <span className="text-gray-400">-</span>
+    },
     { key: 'studentNames', label: '学生',
       render: (val: string[]) => (
         <div className="flex gap-1 flex-wrap">
@@ -39,7 +64,7 @@ export default function CoursesPage() {
       render: (val: number) => <span className="font-medium">¥{val}</span>
     },
     { key: 'classHour', label: '时长/课',
-      render: (val: number) => `${val}小时`
+      render: (val: number) => `${val}分钟`
     },
     { key: 'totalClasses', label: '总课次' },
     { key: 'totalPrice', label: '总费用',

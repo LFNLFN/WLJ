@@ -1,11 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getCourse, getTeachers, getStudents, saveCourse } from '@/lib/api';
-import type { Teacher, Student } from '@/lib/types';
+import { getCourse, getTeachers, getStudents, getLessonPlans, saveCourse } from '@/lib/api';
 
 function EditForm() {
   const router = useRouter();
@@ -13,7 +12,16 @@ function EditForm() {
   const id = searchParams.get('id');
   const [teachers, setTeachers] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
-  const [form, setForm] = useState({ name: '', teacherId: '', studentIds: [] as string[], price: '', classHour: '45', totalClasses: '10' });
+  const [form, setForm] = useState({
+    name: '', type: 'personal', teacherId: '', studentIds: [] as string[],
+    lessonPlanIds: [] as string[], lessonPlanTitles: [] as string[],
+    price: '', classHour: '45', totalClasses: '10',
+  });
+
+  // 教案搜索
+  const [planKeyword, setPlanKeyword] = useState('');
+  const [planResults, setPlanResults] = useState<any[]>([]);
+  const [showPlanSearch, setShowPlanSearch] = useState(false);
 
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
@@ -22,15 +30,53 @@ function EditForm() {
       getCourse(id).then(course => {
         if (course) {
           setForm({
-            name: course.name, teacherId: course.teacherId,
-            studentIds: course.studentIds, price: String(course.price),
-            classHour: String(course.classHour), totalClasses: String(course.totalClasses),
+            name: course.name, type: course.type || 'personal', teacherId: course.teacherId,
+            studentIds: course.studentIds || [],
+            lessonPlanIds: course.lessonPlanIds || [],
+            lessonPlanTitles: course.lessonPlanTitles || [],
+            price: String(course.price || 0),
+            classHour: String(course.classHour || 45),
+            totalClasses: String(course.totalClasses || 10),
           });
         }
       });
     }
   }, [id]);
 
+  const searchPlans = useCallback(async (kw: string) => {
+    if (!kw.trim()) { setPlanResults([]); return; }
+    try {
+      const res = await getLessonPlans(kw, form.type);
+      setPlanResults(res || []);
+    } catch (err) { setPlanResults([]); }
+  }, [form.type]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (planKeyword.trim()) searchPlans(planKeyword);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [planKeyword, searchPlans]);
+
+  const addLessonPlan = (plan: any) => {
+    if (form.lessonPlanIds.includes(plan._id)) return;
+    setForm(prev => ({
+      ...prev,
+      lessonPlanIds: [...prev.lessonPlanIds, plan._id],
+      lessonPlanTitles: [...prev.lessonPlanTitles, plan.title],
+    }));
+    setPlanKeyword('');
+    setPlanResults([]);
+    setShowPlanSearch(false);
+  };
+
+  const removeLessonPlan = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      lessonPlanIds: prev.lessonPlanIds.filter((_, i) => i !== index),
+      lessonPlanTitles: prev.lessonPlanTitles.filter((_, i) => i !== index),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +84,13 @@ function EditForm() {
     const teacher = teachers.find(t => t._id === form.teacherId)!;
     const selectedStudents = students.filter(s => form.studentIds.includes(s._id));
     saveCourse({
-      id, name: form.name.trim(), 
+      _id: id, name: form.name.trim(), type: form.type,
       teacherId: form.teacherId, teacherName: teacher.name,
+      lessonPlanIds: form.lessonPlanIds,
+      lessonPlanTitles: form.lessonPlanTitles,
       studentIds: form.studentIds, studentNames: selectedStudents.map(s => s.name),
       price: Number(form.price) || 0, classHour: Number(form.classHour) || 1,
-      totalClasses: Number(form.totalClasses) || 10, createdAt: new Date().toISOString(),
+      totalClasses: Number(form.totalClasses) || 10,
     });
     router.push('/courses');
   };
@@ -54,7 +102,6 @@ function EditForm() {
     }));
   };
 
-
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
       <div className="grid grid-cols-2 gap-6">
@@ -64,6 +111,23 @@ function EditForm() {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
         </div>
         <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">课程类型 *</label>
+          <div className="flex gap-4 pt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="type" value="personal"
+                checked={form.type === 'personal'}
+                onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-4 h-4 text-primary-600" />
+              <span className="text-sm text-gray-700">个人课程</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="type" value="group"
+                checked={form.type === 'group'}
+                onChange={e => setForm(prev => ({ ...prev, type: e.target.value }))}
+                className="w-4 h-4 text-primary-600" />
+              <span className="text-sm text-gray-700">集体课程</span>
+            </label>
+          </div>
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">授课教师 *</label>
@@ -97,6 +161,51 @@ function EditForm() {
           </span>
         </div>
         <p className="text-xs text-gray-400 mt-1">每节课费用 ¥{form.price || 0} × 总课次 {form.totalClasses || 0}</p>
+      </div>
+
+      {/* 关联教案 */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">关联教案</label>
+        {form.lessonPlanTitles.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {form.lessonPlanTitles.map((title, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-200">
+                {title}
+                <button type="button" onClick={() => removeLessonPlan(i)} className="ml-1 text-blue-400 hover:text-red-500">&times;</button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="relative">
+          <input type="text" value={planKeyword}
+            onChange={e => { setPlanKeyword(e.target.value); setShowPlanSearch(true); }}
+            onFocus={() => setShowPlanSearch(true)}
+            placeholder="输入教案标题关键词搜索..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm" />
+          {showPlanSearch && planKeyword.trim() && (
+            <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {planResults.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-gray-400">未找到匹配的教案</p>
+              ) : (
+                planResults.map((plan: any) => {
+                  const isSelected = form.lessonPlanIds.includes(plan._id);
+                  return (
+                    <button key={plan._id} type="button" disabled={isSelected}
+                      onClick={() => addLessonPlan(plan)}
+                      className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
+                        isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-blue-50 text-gray-700'
+                      }`}>
+                      <div className="flex items-center justify-between">
+                        <span>{plan.title}</span>
+                        <span className="text-xs text-gray-400">{isSelected ? '已添加' : '添加'}</span>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mb-6">

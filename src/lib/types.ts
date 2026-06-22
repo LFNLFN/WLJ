@@ -25,9 +25,12 @@ export interface Student {
 export interface Course {
   id: string;
   name: string;
+  type: 'personal' | 'group';
   subject: string;
   teacherId: string;
   teacherName: string;
+  lessonPlanIds: string[];
+  lessonPlanTitles: string[];
   studentIds: string[];
   studentNames: string[];
   price: number;
