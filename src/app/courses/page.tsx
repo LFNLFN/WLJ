@@ -85,9 +85,19 @@ export default function CoursesPage() {
               ➕ 添加课程
             </button>
           </div>
-          <Table columns={columns} data={courses}
+          <Table
+            columns={columns}
+            data={courses}
             onEdit={(row) => router.push(`/courses/edit?id=${row._id}`)}
             onDelete={handleDelete}
+            actions={[
+              {
+                label: '📝 上课记录',
+                onClick: (row) => router.push(`/records?courseId=${row._id}`),
+                color: 'text-blue-600',
+                hoverColor: 'hover:bg-blue-50',
+              }
+            ]}
           />
         </main>
       </div>
