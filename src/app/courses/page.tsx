@@ -45,29 +45,33 @@ export default function CoursesPage() {
     { key: 'teacherName', label: '授课教师' },
     {
       key: 'lessonPlanTitles', label: '关联教案',
-      render: (val: string[]) => val && val.length > 0 ? (
+      render: (val: string[]) => Array.isArray(val) && val.length > 0 ? (
         <div className="flex gap-1 flex-wrap">
-          {val.map((t, i) => (
+          {val?.map((t, i) => (
             <span key={i} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{t}</span>
           ))}
         </div>
       ) : <span className="text-gray-400">-</span>
     },
-    { key: 'studentNames', label: '学生',
+    {
+      key: 'studentNames', label: '学生',
       render: (val: string[]) => (
         <div className="flex gap-1 flex-wrap">
-          {val.map((s, i) => <span key={i} className="text-gray-600">{s}{i < val.length-1 ? '、' : ''}</span>)}
+          {val.map((s, i) => <span key={i} className="text-gray-600">{s}{i < val.length - 1 ? '、' : ''}</span>)}
         </div>
       )
     },
-    { key: 'price', label: '课时费',
+    {
+      key: 'price', label: '课时费',
       render: (val: number) => <span className="font-medium">¥{val}</span>
     },
-    { key: 'classHour', label: '时长/课',
+    {
+      key: 'classHour', label: '时长/课',
       render: (val: number) => `${val}分钟`
     },
     { key: 'totalClasses', label: '总课次' },
-    { key: 'totalPrice', label: '总费用',
+    {
+      key: 'totalPrice', label: '总费用',
       render: (_: any, row: any) => <span className="font-medium text-primary-600">¥{(row.price || 0) * (row.totalClasses || 0)}</span>
     },
   ];

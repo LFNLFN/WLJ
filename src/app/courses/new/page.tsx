@@ -20,6 +20,8 @@ export default function NewCoursePage() {
     price: '',
     classHour: '45',
     totalClasses: '10',
+    stagePlanType: 'lesson',
+    stages: [] as { id: string; label: string; start: number; end: number; content: string; lessonPlanIds: string[]; lessonPlanTitles: string[] }[],
   });
 
   // 教案搜索
@@ -38,6 +40,41 @@ export default function NewCoursePage() {
   }, []);
 
   // 搜索教案
+  // 阶段教案搜索
+  const [stagePlanKeyword, setStagePlanKeyword] = useState('');
+  const [stagePlanResults, setStagePlanResults] = useState<any[]>([]);
+  const [editingStageIdx, setEditingStageIdx] = useState<number | null>(null);
+
+  const searchStagePlans = useCallback(async (kw: string) => {
+    if (!kw.trim()) { setStagePlanResults([]); return; }
+    try {
+      const res = await getLessonPlans(kw, form.type);
+      setStagePlanResults(res || []);
+    } catch (err) { setStagePlanResults([]); }
+  }, [form.type]);
+
+  useEffect(() => {
+    if (stagePlanKeyword.trim() && editingStageIdx !== null) {
+      const timer = setTimeout(() => searchStagePlans(stagePlanKeyword), 300);
+      return () => clearTimeout(timer);
+    } else {
+      setStagePlanResults([]);
+    }
+  }, [stagePlanKeyword, editingStageIdx, searchStagePlans]);
+
+  const addPlanToStage = (plan: any, stageIdx: number) => {
+    setForm(prev => ({
+      ...prev,
+      stages: prev.stages.map((s, i) => i === stageIdx ? {
+        ...s,
+        lessonPlanIds: [...s.lessonPlanIds, plan._id],
+        lessonPlanTitles: [...s.lessonPlanTitles, plan.title],
+      } : s),
+    }));
+    setStagePlanKeyword('');
+    setStagePlanResults([]);
+  };
+
   const searchPlans = useCallback(async (kw: string) => {
     if (!kw.trim()) { setPlanResults([]); return; }
     try {
@@ -128,6 +165,8 @@ export default function NewCoursePage() {
       teacherName: teacher.name,
       lessonPlanIds: form.lessonPlanIds,
       lessonPlanTitles: form.lessonPlanTitles,
+      stagePlanType: form.stagePlanType,
+      stages: form.stages,
       studentIds: form.studentIds,
       studentNames: selectedStudents.map(s => s.name),
       price: Number(form.price) || 0,
@@ -224,7 +263,7 @@ export default function NewCoursePage() {
                 </label>
 
                 {/* 已选教案 */}
-                {form.lessonPlanTitles.length > 0 && (
+                {Array.isArray(form.lessonPlanTitles) && form.lessonPlanTitles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {form.lessonPlanTitles.map((title, i) => (
                       <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-200">
@@ -251,9 +290,8 @@ export default function NewCoursePage() {
                           return (
                             <button key={plan._id} type="button" disabled={isSelected}
                               onClick={() => addLessonPlan(plan)}
-                              className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
-                                isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-blue-50 text-gray-700'
-                              }`}>
+                              className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-blue-50 text-gray-700'
+                                }`}>
                               <div className="flex items-center justify-between">
                                 <span>{plan.title}</span>
                                 <span className="text-xs text-gray-400">{isSelected ? '已添加' : '添加'}</span>
@@ -266,6 +304,170 @@ export default function NewCoursePage() {
                   )}
                 </div>
                 <p className="text-xs text-gray-400 mt-1">搜索并选择与本课程关联的教案，支持添加多个</p>
+              </div>
+
+              {/* 阶段计划 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <label className="block text-sm font-medium text-gray-700 mb-3">阶段计划</label>
+
+                {/* 规划方式选择 */}
+                <div className="flex gap-6 mb-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="stagePlanType" value="lesson"
+                      checked={form.stagePlanType === 'lesson'}
+                      onChange={e => {
+                        const tp = e.target.value;
+                        setForm(prev => ({ ...prev, stagePlanType: tp, stages: [] }));
+                      }}
+                      className="w-4 h-4 text-primary-600" />
+                    <span className="text-sm text-gray-700">按节数规划</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="stagePlanType" value="week"
+                      checked={form.stagePlanType === 'week'}
+                      onChange={e => {
+                        const tp = e.target.value;
+                        setForm(prev => ({ ...prev, stagePlanType: tp, stages: [] }));
+                      }}
+                      className="w-4 h-4 text-primary-600" />
+                    <span className="text-sm text-gray-700">按周规划</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="stagePlanType" value="month"
+                      checked={form.stagePlanType === 'month'}
+                      onChange={e => {
+                        const tp = e.target.value;
+                        setForm(prev => ({ ...prev, stagePlanType: tp, stages: [] }));
+                      }}
+                      className="w-4 h-4 text-primary-600" />
+                    <span className="text-sm text-gray-700">按月规划</span>
+                  </label>
+                </div>
+
+                {/* 已添加的阶段列表 */}
+                {form.stages.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {form.stages.map((stage, idx) => (
+                      <div key={stage.id} className="bg-white p-3 rounded-lg border border-gray-200">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">{stage.label}</span>
+                            <span className="text-xs text-gray-400">
+                              {form.stagePlanType === 'lesson' ? `第${stage.start}-${stage.end}节` :
+                               form.stagePlanType === 'week' ? `第${stage.start}-${stage.end}周` :
+                               `第${stage.start}-${stage.end}个月`}
+                            </span>
+                          </div>
+                          <button type="button" onClick={() => {
+                            setForm(prev => ({
+                              ...prev,
+                              stages: prev.stages.filter((_, i) => i !== idx),
+                            }));
+                          }} className="text-red-400 hover:text-red-600 text-sm px-2 shrink-0">删除</button>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-xs text-gray-500">阶段教学内容</label>
+                            <textarea value={stage.content}
+                              onChange={e => {
+                                const val = e.target.value;
+                                setForm(prev => ({
+                                  ...prev,
+                                  stages: prev.stages.map((s, i) => i === idx ? { ...s, content: val } : s),
+                                }));
+                              }}
+                              className="w-full mt-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none resize-y"
+                              rows={2} placeholder="输入本阶段教学内容" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-500">关联教案</label>
+                            <div className="flex gap-1 flex-wrap mt-1">
+                              {stage.lessonPlanTitles.map((t, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
+                                  {t}
+                                  <button type="button" onClick={() => {
+                                    setForm(prev => ({
+                                      ...prev,
+                                      stages: prev.stages.map((s, si) => si === idx ? {
+                                        ...s,
+                                        lessonPlanIds: s.lessonPlanIds.filter((_, li) => li !== i),
+                                        lessonPlanTitles: s.lessonPlanTitles.filter((_, li) => li !== i),
+                                      } : s),
+                                    }));
+                                  }} className="text-blue-400 hover:text-red-500">&times;</button>
+                                </span>
+                              ))}
+                              <button type="button" onClick={() => {
+                                setEditingStageIdx(idx);
+                                setStagePlanKeyword('');
+                              }} className="text-xs text-primary-600 hover:text-primary-800">+ 添加教案</button>
+                              {editingStageIdx === idx && (
+                                <div className="relative inline-block">
+                                  <input type="text" value={stagePlanKeyword}
+                                    onChange={e => setStagePlanKeyword(e.target.value)}
+                                    placeholder="搜索教案..."
+                                    className="w-40 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-primary-500 outline-none"
+                                    autoFocus
+                                    onBlur={() => setTimeout(() => setEditingStageIdx(null), 200)} />
+                                  {stagePlanKeyword.trim() && (
+                                    <div className="absolute z-10 mt-1 left-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg max-h-32 overflow-y-auto">
+                                      {stagePlanResults.length === 0 ? (
+                                        <p className="px-3 py-2 text-xs text-gray-400">未找到</p>
+                                      ) : (
+                                        stagePlanResults.map((plan: any) => (
+                                          <button key={plan._id} type="button"
+                                            onMouseDown={() => addPlanToStage(plan, idx)}
+                                            className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 text-gray-700 border-b border-gray-50 last:border-0">
+                                            {plan.title}
+                                          </button>
+                                        ))
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 添加阶段按钮 */}
+                <button type="button" onClick={() => {
+                  const total = Number(form.totalClasses) || 10;
+                  const count = form.stages.length;
+                  const unitLabel = form.stagePlanType === 'lesson' ? '节' : form.stagePlanType === 'week' ? '周' : '个月';
+                  const max = form.stagePlanType === 'lesson' ? total : 52;
+
+                  if (count >= max) {
+                    alert(`已达到最大${unitLabel}数`);
+                    return;
+                  }
+
+                  const perStage = Math.ceil(max / 5); // 默认分5段
+                  const start = count * perStage + 1;
+                  let end = Math.min(start + perStage - 1, max);
+                  if (end < start) end = start;
+
+                  const newStage = {
+                    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+                    label: `阶段${count + 1}`,
+                    start,
+                    end,
+                    content: '',
+                    lessonPlanIds: [],
+                    lessonPlanTitles: [],
+                  };
+
+                  setForm(prev => ({
+                    ...prev,
+                    stages: [...prev.stages, newStage],
+                  }));
+                }} className="px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50 transition-colors">
+                  + 添加阶段
+                </button>
               </div>
 
               {/* 选择学生 - 模糊搜索 */}
@@ -308,11 +510,10 @@ export default function NewCoursePage() {
                           return (
                             <button key={s._id} type="button" disabled={isSelected || isDisabled}
                               onClick={() => selectStudent(s)}
-                              className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
-                                isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' :
-                                isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
-                                'hover:bg-primary-50 text-gray-700'
-                              }`}>
+                              className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' :
+                                  isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
+                                    'hover:bg-primary-50 text-gray-700'
+                                }`}>
                               <div className="flex items-center justify-between">
                                 <div>
                                   <span className="font-medium">{s.name}</span>

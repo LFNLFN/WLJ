@@ -75,6 +75,8 @@ const PG_CREATE_TABLES = `
     "teacherName" TEXT DEFAULT '',
     "lessonPlanIds" TEXT DEFAULT '[]',
     "lessonPlanTitles" TEXT DEFAULT '[]',
+    "stagePlanType" TEXT DEFAULT 'lesson',
+    "stages" TEXT DEFAULT '[]',
     "studentIds" TEXT DEFAULT '[]',
     "studentNames" TEXT DEFAULT '[]',
     price REAL DEFAULT 0,
@@ -163,6 +165,8 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanIds" TEXT DEFAULT \'[]\''); } catch(e) {}
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanTitles" TEXT DEFAULT \'[]\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stagePlanType" TEXT DEFAULT \'lesson\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stages" TEXT DEFAULT \'[]\''); } catch(e) {}
 
     dbConfig = { type: 'postgres', pg: pool };
     console.log('✅ PostgreSQL 数据库已连接');
@@ -203,6 +207,8 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanIds TEXT DEFAULT "[]"'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanTitles TEXT DEFAULT "[]"'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN stagePlanType TEXT DEFAULT "lesson"'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN stages TEXT DEFAULT "[]"'); } catch(e) {}
 
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
@@ -221,6 +227,7 @@ export async function getDb(): Promise<Database.Database | Pool> {
       subject TEXT DEFAULT '',
       teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '',
       lessonPlanIds TEXT DEFAULT '[]', lessonPlanTitles TEXT DEFAULT '[]',
+      stagePlanType TEXT DEFAULT 'lesson', stages TEXT DEFAULT '[]',
       studentIds TEXT DEFAULT '[]', studentNames TEXT DEFAULT '[]',
       price REAL DEFAULT 0, classHour REAL DEFAULT 1, totalClasses INTEGER DEFAULT 1,
       createdAt TEXT DEFAULT (datetime('now'))

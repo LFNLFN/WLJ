@@ -22,6 +22,22 @@ export interface Student {
 }
 
 // 课程
+
+// ==================== 阶段计划 ====================
+
+export type StagePlanType = 'lesson' | 'week' | 'month';
+
+export interface CourseStage {
+  id: string;
+  label: string;      // 阶段名称，如 "第一阶段"、"第1-5节"、"第1周"、"第1个月"
+  start: number;      // 起始节数/周数/月数
+  end: number;        // 结束节数/周数/月数
+  content: string;    // 阶段教学内容
+  lessonPlanIds: string[];  // 关联教案ID
+  lessonPlanTitles: string[];
+}
+
+
 export interface Course {
   id: string;
   name: string;
@@ -36,6 +52,8 @@ export interface Course {
   price: number;
   classHour: number;
   totalClasses: number;
+  stagePlanType: StagePlanType;
+  stages: CourseStage[];
   createdAt: string;
 }
 
