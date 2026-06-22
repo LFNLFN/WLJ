@@ -199,7 +199,7 @@ export async function getStudentScaleRecordsByStudent(studentId: string) {
 // ==================== 教案 ====================
 
 export async function getLessonPlans(keyword?: string) {
-  const params = keyword ? `?title=${encodeURIComponent(keyword)}` : '';
+  const params = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
   return request(`/lesson-plans${params}`);
 }
 
