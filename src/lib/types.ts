@@ -29,11 +29,13 @@ export type StagePlanType = 'lesson' | 'week' | 'month';
 
 export interface CourseStage {
   id: string;
-  label: string;      // 阶段名称，如 "第一阶段"、"第1-5节"、"第1周"、"第1个月"
-  start: number;      // 起始节数/周数/月数
-  end: number;        // 结束节数/周数/月数
-  content: string;    // 阶段教学内容
-  lessonPlanIds: string[];  // 关联教案ID
+  label: string;      // 阶段名称
+  start: number;      // 起始
+  end: number;        // 结束
+  content: string;    // 教学内容
+  objectives: string; // 教学目标/效果
+  completed: boolean; // 是否完成
+  lessonPlanIds: string[];
   lessonPlanTitles: string[];
 }
 
