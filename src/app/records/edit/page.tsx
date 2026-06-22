@@ -5,14 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { getClassRecord, saveClassRecord } from '@/lib/api';
-import type { ClassRecord } from '@/lib/types';
+
 
 function EditForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [form, setForm] = useState({
-    date: '', startTime: '', endTime: '', content: '', homework: '', status: 'completed' as ClassRecord['status'],
+    date: '', startTime: '', endTime: '', content: '', homework: '',
   });
 
   useEffect(() => {
@@ -21,7 +21,7 @@ function EditForm() {
         if (record) {
           setForm({
             date: record.date, startTime: record.startTime, endTime: record.endTime,
-            content: record.content, homework: record.homework, status: record.status,
+            content: record.content, homework: record.homework,
           });
         }
       });
@@ -66,19 +66,7 @@ function EditForm() {
         <textarea value={form.homework} onChange={e => setForm(prev => ({ ...prev, homework: e.target.value }))}
           rows={2} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none resize-none" />
       </div>
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
-        <div className="flex gap-3">
-          {(['completed', 'pending', 'cancelled'] as const).map(status => (
-            <button key={status} type="button" onClick={() => setForm(prev => ({ ...prev, status }))}
-              className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
-                form.status === status ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300'
-              }`}>
-              {status === 'completed' ? '✅ 已完成' : status === 'pending' ? '⏳ 待确认' : '❌ 已取消'}
-            </button>
-          ))}
-        </div>
-      </div>
+
       <div className="flex items-center gap-3">
         <button type="submit" className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">💾 保存修改</button>
         <button type="button" onClick={() => router.back()} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">取消</button>

@@ -72,7 +72,6 @@ export interface ClassRecord {
   duration: number;
   content: string;
   homework: string;
-  status: 'completed' | 'cancelled' | 'pending';
   createdAt: string;
 }
 

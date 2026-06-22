@@ -88,7 +88,6 @@ function NewRecordForm() {
         duration: Math.max(0.5, duration),
         content: form.content.trim(),
         homework: '',
-        status: 'completed',
       });
       router.push(`/records?courseId=${courseId}`);
     } catch (err: any) {

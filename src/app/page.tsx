@@ -80,10 +80,7 @@ export default function Dashboard() {
                 {recentRecords.map((record) => (
                   <div key={record.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                     <div className="flex items-center gap-3">
-                      <span className={`w-2 h-2 rounded-full ${
-                        record.status === 'completed' ? 'bg-green-500' : 
-                        record.status === 'cancelled' ? 'bg-red-500' : 'bg-yellow-500'
-                      }`} />
+
                       <div>
                         <p className="text-sm font-medium text-gray-800">{record.courseName}</p>
                         <p className="text-xs text-gray-500">

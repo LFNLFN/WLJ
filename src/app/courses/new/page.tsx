@@ -345,7 +345,7 @@ export default function NewCoursePage() {
                 </div>
 
                 {/* 已添加的阶段列表 */}
-                {form.stages.length > 0 && (
+                {Array.isArray(form.stages) && form.stages.length > 0 && (
                   <div className="space-y-2 mb-4">
                     {form.stages.map((stage, idx) => (
                       <div key={stage.id} className="bg-white p-3 rounded-lg border border-gray-200">
@@ -354,8 +354,8 @@ export default function NewCoursePage() {
                             <span className="text-sm font-medium text-gray-700">{stage.label}</span>
                             <span className="text-xs text-gray-400">
                               {form.stagePlanType === 'lesson' ? `第${stage.start}-${stage.end}节` :
-                               form.stagePlanType === 'week' ? `第${stage.start}-${stage.end}周` :
-                               `第${stage.start}-${stage.end}个月`}
+                                form.stagePlanType === 'week' ? `第${stage.start}-${stage.end}周` :
+                                  `第${stage.start}-${stage.end}个月`}
                             </span>
                           </div>
                           <button type="button" onClick={() => {
@@ -511,8 +511,8 @@ export default function NewCoursePage() {
                             <button key={s._id} type="button" disabled={isSelected || isDisabled}
                               onClick={() => selectStudent(s)}
                               className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' :
-                                  isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
-                                    'hover:bg-primary-50 text-gray-700'
+                                isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
+                                  'hover:bg-primary-50 text-gray-700'
                                 }`}>
                               <div className="flex items-center justify-between">
                                 <div>

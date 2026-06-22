@@ -21,7 +21,7 @@ async function handleBatchCreate(req: NextRequest) {
   try {
     const db = await getDb();
     const body = await req.json();
-    const { courseId, courseName, teacherId, teacherName, studentIds, studentNames, date, startTime, endTime, duration, content, homework, status } = body;
+    const { courseId, courseName, teacherId, teacherName, studentIds, studentNames, date, startTime, endTime, duration, content, homework } = body;
 
     if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
       return NextResponse.json({ error: '学生列表不能为空' }, { status: 400 });
@@ -41,7 +41,7 @@ async function handleBatchCreate(req: NextRequest) {
       duration: duration || 0,
       content: content || '',
       homework: homework || '',
-      status: status || 'completed',
+      status: 'completed',
     }));
 
     if (isPg(db)) {
