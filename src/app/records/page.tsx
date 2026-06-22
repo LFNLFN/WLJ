@@ -92,6 +92,7 @@ function RecordsContent() {
       <Table
         columns={columns}
         data={records}
+        onEdit={(row) => router.push(`/records/edit?id=${row._id}`)}
         onDelete={handleDelete}
       />
     </main>
