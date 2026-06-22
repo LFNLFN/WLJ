@@ -277,203 +277,203 @@ function EditForm() {
         </div>
       </div>
 
-              {/* 阶段计划 */}
-              <div className="mb-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700">📋 阶段性计划</h3>
-                </div>
-                <div className="p-4">
-                  {/* 规划方式选择 */}
-                  <div className="mb-4">
-                    <label className="block text-xs text-gray-500 mb-2">规划方式</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="stagePlanType" value="lesson"
-                          checked={form.stagePlanType === 'lesson'}
-                          onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
-                          className="w-4 h-4 text-primary-600" />
-                        <span className="text-sm text-gray-700">按课节</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="stagePlanType" value="week"
-                          checked={form.stagePlanType === 'week'}
-                          onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
-                          className="w-4 h-4 text-primary-600" />
-                        <span className="text-sm text-gray-700">按周</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="stagePlanType" value="month"
-                          checked={form.stagePlanType === 'month'}
-                          onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
-                          className="w-4 h-4 text-primary-600" />
-                        <span className="text-sm text-gray-700">按月</span>
-                      </label>
-                    </div>
-                  </div>
+      {/* 阶段计划 */}
+      <div className="mb-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700">📋 阶段性计划</h3>
+        </div>
+        <div className="p-4">
+          {/* 规划方式选择 */}
+          <div className="mb-4">
+            <label className="block text-xs text-gray-500 mb-2">规划方式</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="stagePlanType" value="lesson"
+                  checked={form.stagePlanType === 'lesson'}
+                  onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
+                  className="w-4 h-4 text-primary-600" />
+                <span className="text-sm text-gray-700">按课节</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="stagePlanType" value="week"
+                  checked={form.stagePlanType === 'week'}
+                  onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
+                  className="w-4 h-4 text-primary-600" />
+                <span className="text-sm text-gray-700">按周</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="stagePlanType" value="month"
+                  checked={form.stagePlanType === 'month'}
+                  onChange={e => { setForm(prev => ({ ...prev, stagePlanType: e.target.value, stages: [] })); }}
+                  className="w-4 h-4 text-primary-600" />
+                <span className="text-sm text-gray-700">按月</span>
+              </label>
+            </div>
+          </div>
 
-                  {/* 阶段列表 */}
-                  {form.stages.length > 0 ? (
-                    <div className="space-y-3 mb-4">
-                      {form.stages.map((stage, idx) => {
-                        const unitLabel = form.stagePlanType === 'lesson' ? '节' : form.stagePlanType === 'week' ? '周' : '个月';
-                        const rangeLabel = form.stagePlanType === 'lesson'
-                          ? `第${stage.start}-${stage.end}节`
-                          : form.stagePlanType === 'week'
-                          ? `第${stage.start}-${stage.end}周`
-                          : `第${stage.start}-${stage.end}个月`;
-                        return (
-                        <div key={stage.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                          {/* 阶段头部 */}
-                          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
-                            <div className="flex items-center gap-3">
-                              <span className={"inline-flex items-center justify-center w-6 h-6 rounded-full " + (stage.completed ? 'bg-green-100 text-green-700' : 'bg-primary-100 text-primary-700') + " text-xs font-bold"}>
-                                {stage.completed ? '✓' : (idx + 1)}
-                              </span>
-                              <div>
-                                <span className={"text-sm font-medium " + (stage.completed ? 'text-green-700' : 'text-gray-700')}>{stage.label || `阶段${idx + 1}`}</span>
-                                <span className="text-xs text-gray-400 ml-2">{rangeLabel}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
-                                <input type="checkbox" checked={stage.completed || false}
-                                  onChange={e => {
-                                    const checked = e.target.checked;
-                                    setForm(prev => ({
-                                      ...prev,
-                                      stages: prev.stages.map((s, i) => i === idx ? { ...s, completed: checked } : s),
-                                    }));
-                                  }}
-                                  className="w-3.5 h-3.5 text-green-600" />
-                                已完成
-                              </label>
-                              <button type="button" onClick={() => {
+          {/* 阶段列表 */}
+          {Array.isArray(form.stages) && form.stages.length > 0 ? (
+            <div className="space-y-3 mb-4">
+              {form.stages.map((stage, idx) => {
+                const unitLabel = form.stagePlanType === 'lesson' ? '节' : form.stagePlanType === 'week' ? '周' : '个月';
+                const rangeLabel = form.stagePlanType === 'lesson'
+                  ? `第${stage.start}-${stage.end}节`
+                  : form.stagePlanType === 'week'
+                    ? `第${stage.start}-${stage.end}周`
+                    : `第${stage.start}-${stage.end}个月`;
+                return (
+                  <div key={stage.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* 阶段头部 */}
+                    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <span className={"inline-flex items-center justify-center w-6 h-6 rounded-full " + (stage.completed ? 'bg-green-100 text-green-700' : 'bg-primary-100 text-primary-700') + " text-xs font-bold"}>
+                          {stage.completed ? '✓' : (idx + 1)}
+                        </span>
+                        <div>
+                          <span className={"text-sm font-medium " + (stage.completed ? 'text-green-700' : 'text-gray-700')}>{stage.label || `阶段${idx + 1}`}</span>
+                          <span className="text-xs text-gray-400 ml-2">{rangeLabel}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+                          <input type="checkbox" checked={stage.completed || false}
+                            onChange={e => {
+                              const checked = e.target.checked;
+                              setForm(prev => ({
+                                ...prev,
+                                stages: prev.stages.map((s, i) => i === idx ? { ...s, completed: checked } : s),
+                              }));
+                            }}
+                            className="w-3.5 h-3.5 text-green-600" />
+                          已完成
+                        </label>
+                        <button type="button" onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            stages: prev.stages.filter((_, i) => i !== idx),
+                          }));
+                        }} className="text-red-400 hover:text-red-600 text-xs px-1">删除</button>
+                      </div>
+                    </div>
+                    {/* 阶段内容编辑 */}
+                    <div className="p-3 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">阶段名称</label>
+                          <input type="text" value={stage.label}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setForm(prev => ({
+                                ...prev,
+                                stages: prev.stages.map((s, i) => i === idx ? { ...s, label: val } : s),
+                              }));
+                            }}
+                            className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none"
+                            placeholder={rangeLabel} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">起始{unitLabel}</label>
+                            <input type="number" value={stage.start}
+                              onChange={e => {
+                                const val = Number(e.target.value);
                                 setForm(prev => ({
                                   ...prev,
-                                  stages: prev.stages.filter((_, i) => i !== idx),
+                                  stages: prev.stages.map((s, i) => i === idx ? { ...s, start: val } : s),
                                 }));
-                              }} className="text-red-400 hover:text-red-600 text-xs px-1">删除</button>
-                            </div>
+                              }}
+                              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
                           </div>
-                          {/* 阶段内容编辑 */}
-                          <div className="p-3 space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-xs text-gray-500 mb-1">阶段名称</label>
-                                <input type="text" value={stage.label}
-                                  onChange={e => {
-                                    const val = e.target.value;
-                                    setForm(prev => ({
-                                      ...prev,
-                                      stages: prev.stages.map((s, i) => i === idx ? { ...s, label: val } : s),
-                                    }));
-                                  }}
-                                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none"
-                                  placeholder={rangeLabel} />
-                              </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">起始{unitLabel}</label>
-                                  <input type="number" value={stage.start}
-                                    onChange={e => {
-                                      const val = Number(e.target.value);
-                                      setForm(prev => ({
-                                        ...prev,
-                                        stages: prev.stages.map((s, i) => i === idx ? { ...s, start: val } : s),
-                                      }));
-                                    }}
-                                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">结束{unitLabel}</label>
-                                  <input type="number" value={stage.end}
-                                    onChange={e => {
-                                      const val = Number(e.target.value);
-                                      setForm(prev => ({
-                                        ...prev,
-                                        stages: prev.stages.map((s, i) => i === idx ? { ...s, end: val } : s),
-                                      }));
-                                    }}
-                                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
-                                </div>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-500 mb-1">教学内容</label>
-                              <textarea value={stage.content}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  setForm(prev => ({
-                                    ...prev,
-                                    stages: prev.stages.map((s, i) => i === idx ? { ...s, content: val } : s),
-                                  }));
-                                }}
-                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none resize-y"
-                                rows={2} placeholder="本阶段的教学内容" />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-500 mb-1">教学目标 / 预期效果</label>
-                              <textarea value={stage.objectives || ''}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  setForm(prev => ({
-                                    ...prev,
-                                    stages: prev.stages.map((s, i) => i === idx ? { ...s, objectives: val } : s),
-                                  }));
-                                }}
-                                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none resize-y"
-                                rows={2} placeholder="本阶段希望达到的教学效果" />
-                            </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">结束{unitLabel}</label>
+                            <input type="number" value={stage.end}
+                              onChange={e => {
+                                const val = Number(e.target.value);
+                                setForm(prev => ({
+                                  ...prev,
+                                  stages: prev.stages.map((s, i) => i === idx ? { ...s, end: val } : s),
+                                }));
+                              }}
+                              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none" min="1" />
                           </div>
                         </div>
-                        );
-                      })}
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">教学内容</label>
+                        <textarea value={stage.content}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setForm(prev => ({
+                              ...prev,
+                              stages: prev.stages.map((s, i) => i === idx ? { ...s, content: val } : s),
+                            }));
+                          }}
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none resize-y"
+                          rows={2} placeholder="本阶段的教学内容" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">教学目标 / 预期效果</label>
+                        <textarea value={stage.objectives || ''}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setForm(prev => ({
+                              ...prev,
+                              stages: prev.stages.map((s, i) => i === idx ? { ...s, objectives: val } : s),
+                            }));
+                          }}
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-primary-500 outline-none resize-y"
+                          rows={2} placeholder="本阶段希望达到的教学效果" />
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-6 bg-gray-50 rounded-lg mb-4">
-                      <p className="text-gray-400 text-sm mb-2">暂无阶段计划</p>
-                      <p className="text-gray-300 text-xs">点击下方按钮添加教学阶段</p>
-                    </div>
-                  )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-6 bg-gray-50 rounded-lg mb-4">
+              <p className="text-gray-400 text-sm mb-2">暂无阶段计划</p>
+              <p className="text-gray-300 text-xs">点击下方按钮添加教学阶段</p>
+            </div>
+          )}
 
-                  {/* 添加阶段 */}
-                  <button type="button" onClick={() => {
-                    const total = Number(form.totalClasses) || 10;
-                    const count = form.stages.length;
-                    const unitLabel = form.stagePlanType === 'lesson' ? '节' : form.stagePlanType === 'week' ? '周' : '个月';
-                    const max = form.stagePlanType === 'lesson' ? total : 52;
+          {/* 添加阶段 */}
+          <button type="button" onClick={() => {
+            const total = Number(form.totalClasses) || 10;
+            const count = form.stages.length;
+            const unitLabel = form.stagePlanType === 'lesson' ? '节' : form.stagePlanType === 'week' ? '周' : '个月';
+            const max = form.stagePlanType === 'lesson' ? total : 52;
 
-                    if (count >= max) {
-                      alert(`已达到最大${unitLabel}数`);
-                      return;
-                    }
+            if (count >= max) {
+              alert(`已达到最大${unitLabel}数`);
+              return;
+            }
 
-                    const perStage = Math.max(1, Math.ceil(max / 5));
-                    const start = count * perStage + 1;
-                    let end = Math.min(start + perStage - 1, max);
-                    if (end < start) end = start;
+            const perStage = Math.max(1, Math.ceil(max / 5));
+            const start = count * perStage + 1;
+            let end = Math.min(start + perStage - 1, max);
+            if (end < start) end = start;
 
-                    const newStage = {
-                      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-                      label: `阶段${count + 1}`,
-                      start,
-                      end,
-                      content: '',
-                      objectives: '',
-                      completed: false,
-                      lessonPlanIds: [],
-                      lessonPlanTitles: [],
-                    };
+            const newStage = {
+              id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+              label: `阶段${count + 1}`,
+              start,
+              end,
+              content: '',
+              objectives: '',
+              completed: false,
+              lessonPlanIds: [],
+              lessonPlanTitles: [],
+            };
 
-                    setForm(prev => ({
-                      ...prev,
-                      stages: [...prev.stages, newStage],
-                    }));
-                  }} className="w-full px-4 py-2.5 border-2 border-dashed border-gray-300 text-gray-500 text-sm rounded-lg hover:border-primary-300 hover:text-primary-600 transition-colors">
-                    + 添加阶段
-                  </button>
-                </div>
-              </div>
+            setForm(prev => ({
+              ...prev,
+              stages: [...prev.stages, newStage],
+            }));
+          }} className="w-full px-4 py-2.5 border-2 border-dashed border-gray-300 text-gray-500 text-sm rounded-lg hover:border-primary-300 hover:text-primary-600 transition-colors">
+            + 添加阶段
+          </button>
+        </div>
+      </div>
       {/* 选择学生 - 模糊搜索 */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">

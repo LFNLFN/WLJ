@@ -276,7 +276,7 @@ export function generateId(): string {
 export function parseRow(row: any): any {
   if (!row) return null;
   const result = { ...row };
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach((field) => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'stages'].forEach((field) => {
     if (typeof result[field] === 'string') {
       try { result[field] = JSON.parse(result[field]); } catch (e) { result[field] = []; }
     }
