@@ -27,6 +27,11 @@ export default function NewCoursePage() {
   const [planResults, setPlanResults] = useState<any[]>([]);
   const [showPlanSearch, setShowPlanSearch] = useState(false);
 
+  // 学生搜索
+  const [studentKeyword, setStudentKeyword] = useState('');
+  const [studentResults, setStudentResults] = useState<any[]>([]);
+  const [showStudentSearch, setShowStudentSearch] = useState(false);
+
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
     getStudents().then(data => setStudents(data));
@@ -34,16 +39,11 @@ export default function NewCoursePage() {
 
   // 搜索教案
   const searchPlans = useCallback(async (kw: string) => {
-    if (!kw.trim()) {
-      setPlanResults([]);
-      return;
-    }
+    if (!kw.trim()) { setPlanResults([]); return; }
     try {
       const res = await getLessonPlans(kw, form.type);
       setPlanResults(res || []);
-    } catch (err) {
-      setPlanResults([]);
-    }
+    } catch (err) { setPlanResults([]); }
   }, [form.type]);
 
   useEffect(() => {
@@ -52,6 +52,18 @@ export default function NewCoursePage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [planKeyword, searchPlans]);
+
+  // 搜索学生
+  useEffect(() => {
+    if (!studentKeyword.trim()) { setStudentResults([]); return; }
+    const kw = studentKeyword.toLowerCase();
+    const filtered = students.filter(s =>
+      s.name.toLowerCase().includes(kw) ||
+      (s.parentName && s.parentName.toLowerCase().includes(kw)) ||
+      (s.phone && s.phone.includes(kw))
+    );
+    setStudentResults(filtered);
+  }, [studentKeyword, students]);
 
   const addLessonPlan = (plan: any) => {
     if (form.lessonPlanIds.includes(plan._id)) return;
@@ -70,6 +82,33 @@ export default function NewCoursePage() {
       ...prev,
       lessonPlanIds: prev.lessonPlanIds.filter((_, i) => i !== index),
       lessonPlanTitles: prev.lessonPlanTitles.filter((_, i) => i !== index),
+    }));
+  };
+
+  const selectStudent = (student: any) => {
+    // 个人课程：只能选一个
+    // 集体课程：支持多个
+    if (form.type === 'personal') {
+      setForm(prev => ({
+        ...prev,
+        studentIds: [student._id],
+      }));
+    } else {
+      if (form.studentIds.includes(student._id)) return;
+      setForm(prev => ({
+        ...prev,
+        studentIds: [...prev.studentIds, student._id],
+      }));
+    }
+    setStudentKeyword('');
+    setStudentResults([]);
+    setShowStudentSearch(false);
+  };
+
+  const removeStudent = (id: string) => {
+    setForm(prev => ({
+      ...prev,
+      studentIds: prev.studentIds.filter(s => s !== id),
     }));
   };
 
@@ -98,18 +137,10 @@ export default function NewCoursePage() {
     router.push('/courses');
   };
 
-  const toggleStudent = (id: string) => {
-    setForm(prev => ({
-      ...prev,
-      studentIds: prev.studentIds.includes(id)
-        ? prev.studentIds.filter(s => s !== id)
-        : [...prev.studentIds, id]
-    }));
-  };
-
-  const TYPE_LABELS: Record<string, string> = {
-    personal: '个人课程',
-    group: '集体课程',
+  const getSelectedStudentNames = () => {
+    return students
+      .filter(s => form.studentIds.includes(s._id))
+      .map(s => s.name);
   };
 
   return (
@@ -134,14 +165,14 @@ export default function NewCoursePage() {
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="radio" name="type" value="personal"
                         checked={form.type === 'personal'}
-                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value, lessonPlanIds: [], lessonPlanTitles: [] }))}
+                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value, studentIds: [], lessonPlanIds: [], lessonPlanTitles: [] }))}
                         className="w-4 h-4 text-primary-600" />
                       <span className="text-sm text-gray-700">个人课程</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="radio" name="type" value="group"
                         checked={form.type === 'group'}
-                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value, lessonPlanIds: [], lessonPlanTitles: [] }))}
+                        onChange={e => setForm(prev => ({ ...prev, type: e.target.value, studentIds: [], lessonPlanIds: [], lessonPlanTitles: [] }))}
                         className="w-4 h-4 text-primary-600" />
                       <span className="text-sm text-gray-700">集体课程</span>
                     </label>
@@ -192,7 +223,7 @@ export default function NewCoursePage() {
                   关联教案（{form.type === 'personal' ? '个人' : '集体'}教案）
                 </label>
 
-                {/* 已选教案列表 */}
+                {/* 已选教案 */}
                 {form.lessonPlanTitles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     {form.lessonPlanTitles.map((title, i) => (
@@ -204,20 +235,12 @@ export default function NewCoursePage() {
                   </div>
                 )}
 
-                {/* 搜索教案 */}
                 <div className="relative">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={planKeyword}
-                      onChange={e => { setPlanKeyword(e.target.value); setShowPlanSearch(true); }}
-                      onFocus={() => setShowPlanSearch(true)}
-                      placeholder="输入教案标题关键词搜索..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
-                    />
-                  </div>
-
-                  {/* 搜索结果下拉 */}
+                  <input type="text" value={planKeyword}
+                    onChange={e => { setPlanKeyword(e.target.value); setShowPlanSearch(true); }}
+                    onFocus={() => setShowPlanSearch(true)}
+                    placeholder="输入教案标题关键词搜索..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm" />
                   {showPlanSearch && planKeyword.trim() && (
                     <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {planResults.length === 0 ? (
@@ -226,15 +249,11 @@ export default function NewCoursePage() {
                         planResults.map((plan: any) => {
                           const isSelected = form.lessonPlanIds.includes(plan._id);
                           return (
-                            <button
-                              key={plan._id}
-                              type="button"
-                              disabled={isSelected}
+                            <button key={plan._id} type="button" disabled={isSelected}
                               onClick={() => addLessonPlan(plan)}
                               className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
                                 isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-blue-50 text-gray-700'
-                              }`}
-                            >
+                              }`}>
                               <div className="flex items-center justify-between">
                                 <span>{plan.title}</span>
                                 <span className="text-xs text-gray-400">{isSelected ? '已添加' : '添加'}</span>
@@ -249,24 +268,69 @@ export default function NewCoursePage() {
                 <p className="text-xs text-gray-400 mt-1">搜索并选择与本课程关联的教案，支持添加多个</p>
               </div>
 
+              {/* 选择学生 - 模糊搜索 */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">选择学生 * ({form.studentIds.length} 人)</label>
-                {students.length === 0 ? (
-                  <p className="text-gray-400 text-sm">请先在"学生管理"中添加学生</p>
-                ) : (
-                  <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-3 border border-gray-200 rounded-lg">
-                    {students.map(s => (
-                      <button key={s.id} type="button" onClick={() => toggleStudent(s._id)}
-                        className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                          form.studentIds.includes(s._id)
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'bg-white text-gray-600 border-gray-300 hover:border-primary-300'
-                        }`}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  选择学生 * {form.type === 'personal'
+                    ? <span className="text-xs text-gray-400 font-normal">（个人课程，限选1人）</span>
+                    : <span className="text-xs text-gray-400 font-normal">（已选 {form.studentIds.length} 人）</span>
+                  }
+                </label>
+
+                {/* 已选学生 */}
+                {form.studentIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {students.filter(s => form.studentIds.includes(s._id)).map(s => (
+                      <span key={s._id} className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 text-sm rounded-lg border border-primary-200">
                         {s.name}{s.age ? `（${s.age}岁）` : ''}
-                      </button>
+                        <button type="button" onClick={() => removeStudent(s._id)} className="ml-1 text-primary-400 hover:text-red-500">&times;</button>
+                      </span>
                     ))}
                   </div>
                 )}
+
+                <div className="relative">
+                  <input type="text" value={studentKeyword}
+                    onChange={e => { setStudentKeyword(e.target.value); setShowStudentSearch(true); }}
+                    onFocus={() => setShowStudentSearch(true)}
+                    placeholder="输入学生姓名、家长姓名或电话搜索..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm" />
+
+                  {/* 点击外部关闭下拉 */}
+                  {showStudentSearch && studentKeyword.trim() && (
+                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {studentResults.length === 0 ? (
+                        <p className="px-4 py-3 text-sm text-gray-400">未找到匹配的学生</p>
+                      ) : (
+                        studentResults.map((s: any) => {
+                          const isSelected = form.studentIds.includes(s._id);
+                          const isDisabled = form.type === 'personal' && form.studentIds.length > 0 && !isSelected;
+                          return (
+                            <button key={s._id} type="button" disabled={isSelected || isDisabled}
+                              onClick={() => selectStudent(s)}
+                              className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
+                                isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' :
+                                isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
+                                'hover:bg-primary-50 text-gray-700'
+                              }`}>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <span className="font-medium">{s.name}</span>
+                                  {s.age ? <span className="text-gray-400 ml-1">（{s.age}岁）</span> : ''}
+                                  <span className="text-gray-400 ml-2 text-xs">{s.parentName || ''}</span>
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                  {isSelected ? '已选择' : isDisabled ? '已达上限' : '选择'}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
+                {students.length === 0 && <p className="text-xs text-red-500 mt-1">请先在"学生管理"中添加学生</p>}
               </div>
 
               <div className="flex items-center gap-3">

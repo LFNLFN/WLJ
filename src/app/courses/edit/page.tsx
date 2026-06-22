@@ -23,6 +23,11 @@ function EditForm() {
   const [planResults, setPlanResults] = useState<any[]>([]);
   const [showPlanSearch, setShowPlanSearch] = useState(false);
 
+  // 学生搜索
+  const [studentKeyword, setStudentKeyword] = useState('');
+  const [studentResults, setStudentResults] = useState<any[]>([]);
+  const [showStudentSearch, setShowStudentSearch] = useState(false);
+
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
     getStudents().then(data => setStudents(data));
@@ -58,6 +63,18 @@ function EditForm() {
     return () => clearTimeout(timer);
   }, [planKeyword, searchPlans]);
 
+  // 搜索学生
+  useEffect(() => {
+    if (!studentKeyword.trim()) { setStudentResults([]); return; }
+    const kw = studentKeyword.toLowerCase();
+    const filtered = students.filter(s =>
+      s.name.toLowerCase().includes(kw) ||
+      (s.parentName && s.parentName.toLowerCase().includes(kw)) ||
+      (s.phone && s.phone.includes(kw))
+    );
+    setStudentResults(filtered);
+  }, [studentKeyword, students]);
+
   const addLessonPlan = (plan: any) => {
     if (form.lessonPlanIds.includes(plan._id)) return;
     setForm(prev => ({
@@ -78,28 +95,42 @@ function EditForm() {
     }));
   };
 
+  const selectStudent = (student: any) => {
+    if (form.type === 'personal') {
+      setForm(prev => ({ ...prev, studentIds: [student._id] }));
+    } else {
+      if (form.studentIds.includes(student._id)) return;
+      setForm(prev => ({
+        ...prev,
+        studentIds: [...prev.studentIds, student._id],
+      }));
+    }
+    setStudentKeyword('');
+    setStudentResults([]);
+    setShowStudentSearch(false);
+  };
+
+  const removeStudent = (id: string) => {
+    setForm(prev => ({
+      ...prev,
+      studentIds: prev.studentIds.filter(s => s !== id),
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !form.name.trim() || !form.teacherId) return;
+    if (!id || !form.name.trim() || !form.teacherId || form.studentIds.length === 0) return;
     const teacher = teachers.find(t => t._id === form.teacherId)!;
     const selectedStudents = students.filter(s => form.studentIds.includes(s._id));
     saveCourse({
       _id: id, name: form.name.trim(), type: form.type,
       teacherId: form.teacherId, teacherName: teacher.name,
-      lessonPlanIds: form.lessonPlanIds,
-      lessonPlanTitles: form.lessonPlanTitles,
+      lessonPlanIds: form.lessonPlanIds, lessonPlanTitles: form.lessonPlanTitles,
       studentIds: form.studentIds, studentNames: selectedStudents.map(s => s.name),
       price: Number(form.price) || 0, classHour: Number(form.classHour) || 1,
       totalClasses: Number(form.totalClasses) || 10,
     });
     router.push('/courses');
-  };
-
-  const toggleStudent = (sid: string) => {
-    setForm(prev => ({
-      ...prev,
-      studentIds: prev.studentIds.includes(sid) ? prev.studentIds.filter(s => s !== sid) : [...prev.studentIds, sid]
-    }));
   };
 
   return (
@@ -134,7 +165,7 @@ function EditForm() {
           <select value={form.teacherId} onChange={e => setForm(prev => ({ ...prev, teacherId: e.target.value }))}
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white">
             <option value="">选择教师</option>
-            {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {teachers.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
           </select>
         </div>
         <div className="mb-4">
@@ -160,7 +191,6 @@ function EditForm() {
             ¥{Number(form.price || 0) * Number(form.totalClasses || 0)}
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-1">每节课费用 ¥{form.price || 0} × 总课次 {form.totalClasses || 0}</p>
       </div>
 
       {/* 关联教案 */}
@@ -208,17 +238,67 @@ function EditForm() {
         </div>
       </div>
 
+      {/* 选择学生 - 模糊搜索 */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">选择学生 ({form.studentIds.length} 人)</label>
-        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-3 border border-gray-200 rounded-lg">
-          {students.map(s => (
-            <button key={s.id} type="button" onClick={() => toggleStudent(s._id)}
-              className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                form.studentIds.includes(s._id) ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300'
-              }`}>{s.name}{s.age ? `（${s.age}岁）` : ''}</button>
-          ))}
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          选择学生 * {form.type === 'personal'
+            ? <span className="text-xs text-gray-400 font-normal">（个人课程，限选1人）</span>
+            : <span className="text-xs text-gray-400 font-normal">（已选 {form.studentIds.length} 人）</span>
+          }
+        </label>
+
+        {form.studentIds.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {students.filter(s => form.studentIds.includes(s._id)).map(s => (
+              <span key={s._id} className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 text-sm rounded-lg border border-primary-200">
+                {s.name}{s.age ? `（${s.age}岁）` : ''}
+                <button type="button" onClick={() => removeStudent(s._id)} className="ml-1 text-primary-400 hover:text-red-500">&times;</button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="relative">
+          <input type="text" value={studentKeyword}
+            onChange={e => { setStudentKeyword(e.target.value); setShowStudentSearch(true); }}
+            onFocus={() => setShowStudentSearch(true)}
+            placeholder="输入学生姓名、家长姓名或电话搜索..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm" />
+          {showStudentSearch && studentKeyword.trim() && (
+            <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {studentResults.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-gray-400">未找到匹配的学生</p>
+              ) : (
+                studentResults.map((s: any) => {
+                  const isSelected = form.studentIds.includes(s._id);
+                  const isDisabled = form.type === 'personal' && form.studentIds.length > 0 && !isSelected;
+                  return (
+                    <button key={s._id} type="button" disabled={isSelected || isDisabled}
+                      onClick={() => selectStudent(s)}
+                      className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
+                        isSelected ? 'bg-gray-50 text-gray-400 cursor-not-allowed' :
+                        isDisabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' :
+                        'hover:bg-primary-50 text-gray-700'
+                      }`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-medium">{s.name}</span>
+                          {s.age ? <span className="text-gray-400 ml-1">（{s.age}岁）</span> : ''}
+                          <span className="text-gray-400 ml-2 text-xs">{s.parentName || ''}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {isSelected ? '已选择' : isDisabled ? '已达上限' : '选择'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
       </div>
+
       <div className="flex items-center gap-3">
         <button type="submit" className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">💾 保存修改</button>
         <button type="button" onClick={() => router.back()} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">取消</button>
