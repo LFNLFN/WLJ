@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { saveLessonPlan } from '@/lib/api';
 
-export default function NewLessonPlanPage() {
+function NewLessonPlanForm() {
+  const searchParams = useSearchParams();
+  const initialTitle = searchParams.get('title') || '';
+  const initialContent = searchParams.get('content') || '';
   const router = useRouter();
   const [form, setForm] = useState({
-    title: '',
+    title: initialTitle,
     type: 'personal',
-    content: '',
+    content: initialContent ? decodeURIComponent(initialContent) : '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -119,5 +122,13 @@ export default function NewLessonPlanPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function NewLessonPlanPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-8">加载中...</div>}>
+      <NewLessonPlanForm />
+    </Suspense>
   );
 }

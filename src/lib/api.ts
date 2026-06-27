@@ -226,3 +226,19 @@ export async function saveLessonPlan(plan: any) {
 export async function deleteLessonPlan(id: string) {
   return request(`/lesson-plans/${id}`, { method: 'DELETE' });
 }
+
+// ==================== AI ====================
+
+export async function aiGenerate(messages: { role: string; content: string }[], temperature?: number, maxTokens?: number) {
+  return request('/ai/generate', {
+    method: 'POST',
+    body: JSON.stringify({ messages, temperature, maxTokens }),
+  });
+}
+
+export async function aiRAGSearch(query: string, maxResults?: number) {
+  return request('/ai/rag', {
+    method: 'POST',
+    body: JSON.stringify({ query, maxResults }),
+  });
+}
