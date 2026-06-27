@@ -64,6 +64,8 @@ async function initDb() {
         "evaluationDate" TEXT DEFAULT '', scores TEXT DEFAULT '[]',
         summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',
         status TEXT DEFAULT 'draft',
+        source TEXT DEFAULT '', "rawReportId" TEXT DEFAULT '', "rawData" TEXT DEFAULT '',
+        age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',
         "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
         "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
       );
@@ -93,7 +95,7 @@ async function initDb() {
       CREATE TABLE IF NOT EXISTS courses (id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentIds TEXT DEFAULT '[]', studentNames TEXT DEFAULT '[]', price REAL DEFAULT 0, classHour REAL DEFAULT 1, totalClasses INTEGER DEFAULT 1, createdAt TEXT DEFAULT (datetime('now')));
       CREATE TABLE IF NOT EXISTS class_records (id TEXT PRIMARY KEY, courseId TEXT DEFAULT '', courseName TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentId TEXT DEFAULT '', studentName TEXT DEFAULT '', date TEXT DEFAULT '', startTime TEXT DEFAULT '', endTime TEXT DEFAULT '', duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '', status TEXT DEFAULT 'completed', createdAt TEXT DEFAULT (datetime('now')));
       CREATE TABLE IF NOT EXISTS scale_templates (id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT "", description TEXT DEFAULT "", fields TEXT DEFAULT "[]", createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS student_scale_records (id TEXT PRIMARY KEY, studentId TEXT DEFAULT "", studentName TEXT DEFAULT "", scaleTemplateId TEXT DEFAULT "", scaleName TEXT DEFAULT "", category TEXT DEFAULT "", evaluator TEXT DEFAULT "", evaluationDate TEXT DEFAULT "", scores TEXT DEFAULT "[]", summary TEXT DEFAULT "", recommendations TEXT DEFAULT "", status TEXT DEFAULT "draft", createdAt TEXT DEFAULT (datetime('now')), updatedAt TEXT DEFAULT (datetime('now')));
+      CREATE TABLE IF NOT EXISTS student_scale_records (id TEXT PRIMARY KEY, studentId TEXT DEFAULT "", studentName TEXT DEFAULT "", scaleTemplateId TEXT DEFAULT "", scaleName TEXT DEFAULT "", category TEXT DEFAULT "", evaluator TEXT DEFAULT "", evaluationDate TEXT DEFAULT "", scores TEXT DEFAULT "[]", summary TEXT DEFAULT "", recommendations TEXT DEFAULT "", status TEXT DEFAULT "draft", source TEXT DEFAULT "", rawReportId TEXT DEFAULT "", rawData TEXT DEFAULT "", age INTEGER DEFAULT 0, grade TEXT DEFAULT "", gender TEXT DEFAULT "", createdAt TEXT DEFAULT (datetime('now')), updatedAt TEXT DEFAULT (datetime('now')));
     `);
     console.log('✅ SQLite 数据库已初始化, 路径:', dbPath);
   }
@@ -108,7 +110,7 @@ function generateId() {
 function parseRow(row) {
   if (!row) return null;
   const result = { ...row };
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach(f => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'rawData'].forEach(f => {
     if (typeof result[f] === 'string') {
       try { result[f] = JSON.parse(result[f]); } catch(e) { result[f] = []; }
     }
@@ -124,7 +126,7 @@ function parseRows(rows) {
 function prepareSaveData(body) {
   const data = { ...body };
   if (data._id) { data.id = data._id; delete data._id; }
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores'].forEach(f => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'rawData'].forEach(f => {
     if (data[f] && Array.isArray(data[f])) data[f] = JSON.stringify(data[f]);
   });
   return data;
@@ -393,4 +395,125 @@ initDb().then(() => {
 }).catch(err => {
   console.error('❌ 数据库初始化失败:', err);
   process.exit(1);
+});
+
+// ==================== 微信小程序数据同步 ====================
+
+const assessmentSync = require('./assessment-sync');
+
+// 接收小程序评估数据同步
+app.post('/api/weapp-sync', async (req, res) => {
+  try {
+    const { reports } = req.body;
+    
+    if (!reports || !Array.isArray(reports) || reports.length === 0) {
+      return res.status(400).json({ error: '缺少评估报告数据，请提供 reports 数组' });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const report of reports) {
+      try {
+        const record = assessmentSync.convertToStudentScaleRecord(report);
+
+        // 准备保存数据
+        const data = prepareSaveData(record);
+        const id = data.id || generateId();
+        const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
+
+        if (isPg) {
+          const cols = columns.map(c => `"${c}"`).join(',');
+          const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+          const result = await db.query(
+            `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+            [id, ...columns.map(k => data[k])]
+          );
+          results.push({ id: report.id, savedId: result.rows[0].id, success: true });
+        } else {
+          const values = columns.map(k => data[k]);
+          db.prepare(`INSERT INTO student_scale_records (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
+          results.push({ id: report.id, savedId: id, success: true });
+        }
+
+        console.log(`✅ 同步成功: ${record.studentName} 的 ${record.scaleName}`);
+      } catch (err) {
+        console.error(`❌ 同步失败 (${report.id}):`, err.message);
+        errors.push({ id: report.id, error: err.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      total: reports.length,
+      synced: results.length,
+      failed: errors.length,
+      results,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (err) {
+    res.status(500).json({ error: `请求处理失败: ${err.message}` });
+  }
+});
+
+// 同步单条评估记录（小程序直接调用）
+app.post('/api/weapp-sync/single', async (req, res) => {
+  try {
+    const report = req.body;
+    if (!report || !report.scaleId) {
+      return res.status(400).json({ error: '缺少评估报告数据' });
+    }
+
+    const record = assessmentSync.convertToStudentScaleRecord(report);
+    const data = prepareSaveData(record);
+    const id = data.id || generateId();
+    const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
+
+    if (isPg) {
+      const cols = columns.map(c => `"${c}"`).join(',');
+      const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+      const result = await db.query(
+        `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+        [id, ...columns.map(k => data[k])]
+      );
+      res.status(201).json({ success: true, savedId: result.rows[0].id, record: parseRow(result.rows[0]) });
+    } else {
+      const values = columns.map(k => data[k]);
+      db.prepare(`INSERT INTO student_scale_records (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
+      const saved = db.prepare(`SELECT * FROM student_scale_records WHERE id = ?`).get(id);
+      res.status(201).json({ success: true, savedId: id, record: parseRow(saved) });
+    }
+
+    console.log(`✅ 单条同步成功: ${record.studentName} 的 ${record.scaleName}`);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 同步状态查询
+app.get('/api/weapp-sync/status', async (req, res) => {
+  try {
+    let rows;
+    if (isPg) {
+      const result = await db.query(
+        `SELECT COUNT(*) as total FROM student_scale_records WHERE source = 'weapp_sensory'`
+      );
+      const synced = await db.query(
+        `SELECT * FROM student_scale_records WHERE source = 'weapp_sensory' ORDER BY "createdAt" DESC LIMIT 20`
+      );
+      rows = { total: parseInt(result.rows[0].total), records: parseRows(synced.rows) };
+    } else {
+      const total = db.prepare(`SELECT COUNT(*) as count FROM student_scale_records WHERE source = 'weapp_sensory'`).get().count;
+      const records = db.prepare(`SELECT * FROM student_scale_records WHERE source = 'weapp_sensory' ORDER BY createdAt DESC LIMIT 20`).all();
+      rows = { total, records: parseRows(records) };
+    }
+
+    res.json({
+      dbType: isPg ? 'postgresql' : 'sqlite',
+      syncedCount: rows.total,
+      recentSyncs: rows.records,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });

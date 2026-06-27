@@ -178,3 +178,44 @@ export interface RAGSearchResult {
   type: string;
   score: number;
 }
+
+// ==================== 微信小程序同步 ====================
+
+// 小程序同步的评估记录（扩展 StudentScaleRecord 字段）
+export interface SyncedScaleRecord extends StudentScaleRecord {
+  source: string;          // 来源标记: 'weapp_sensory'
+  rawReportId: string;     // 小程序原始报告ID
+  rawData: string;         // 小程序原始报告JSON
+  age: number;             // 年龄
+  grade: string;           // 年级
+  gender: string;          // 性别
+}
+
+// 同步请求
+export interface SyncRequest {
+  reports: any[];  // 小程序评估报告数组
+}
+
+// 同步结果
+export interface SyncResult {
+  id: string;        // 小程序报告ID
+  savedId: string;   // 本地数据库ID
+  success: boolean;
+}
+
+// 同步响应
+export interface SyncResponse {
+  success: boolean;
+  total: number;
+  synced: number;
+  failed: number;
+  results: SyncResult[];
+  errors?: { id: string; error: string }[];
+}
+
+// 同步状态
+export interface SyncStatus {
+  dbType: 'postgresql' | 'sqlite';
+  syncedCount: number;
+  recentSyncs: SyncedScaleRecord[];
+}

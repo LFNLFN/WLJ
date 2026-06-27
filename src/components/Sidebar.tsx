@@ -27,6 +27,7 @@ const subNavGroups = [
     items: [
       { href: '/scales', label: '量表模板' },
       { href: '/scales/records', label: '评估记录' },
+      { href: '/scales/sync', label: '数据同步' },
     ],
   },
 ];
