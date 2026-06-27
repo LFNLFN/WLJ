@@ -9,6 +9,7 @@ const navItems = [
   { href: '/teachers', label: '教师管理', icon: '👨‍🏫' },
   { href: '/students', label: '学生管理', icon: '👦' },
   { href: '/courses', label: '课程管理', icon: '📚' },
+  { href: '/', label: 'AI 辅助备课', icon: '🤖' },
   { href: '/lesson-plans', label: '教案中心', icon: '📖' },
 ];
 
