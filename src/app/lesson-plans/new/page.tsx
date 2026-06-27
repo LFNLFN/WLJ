@@ -8,13 +8,33 @@ import { saveLessonPlan } from '@/lib/api';
 
 function NewLessonPlanForm() {
   const searchParams = useSearchParams();
-  const initialTitle = searchParams.get('title') || '';
-  const initialContent = searchParams.get('content') || '';
   const router = useRouter();
+
+  // 从 localStorage 读取 AI 生成的内容（如果有）
+  const getInitialContent = () => {
+    if (typeof window !== 'undefined') {
+      const aiContent = localStorage.getItem('ai_generated_content');
+      const aiTitle = localStorage.getItem('ai_generated_title');
+      if (aiContent) {
+        // 读取后清除，避免刷新后还在
+        localStorage.removeItem('ai_generated_content');
+        localStorage.removeItem('ai_generated_title');
+        return { title: aiTitle || '', content: aiContent };
+      }
+    }
+    const urlTitle = searchParams.get('title') || '';
+    const urlContent = searchParams.get('content') || '';
+    return {
+      title: urlTitle,
+      content: urlContent ? decodeURIComponent(urlContent) : '',
+    };
+  };
+
+  const initial = getInitialContent();
   const [form, setForm] = useState({
-    title: initialTitle,
+    title: initial.title,
     type: 'personal',
-    content: initialContent ? decodeURIComponent(initialContent) : '',
+    content: initial.content,
   });
   const [saving, setSaving] = useState(false);
 
