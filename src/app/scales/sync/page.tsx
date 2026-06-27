@@ -89,8 +89,8 @@ export default function ScaleSyncPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <Card title="数据库类型" value={status?.dbType || '-'} icon="🗄️" color="bg-gray-50" />
               <Card title="已同步记录" value={status?.syncedCount ?? '-'} icon="📊" color="bg-blue-50" />
-              <Card title="评估量表" value="4 个" icon="📋" color="bg-purple-50" subtitle="感统+TML量表" />
-              <Card title="同步入口" value="小程序端" icon="📱" color="bg-green-50" subtitle="在历史记录页点击同步" />
+              <Card title="评估量表" value="4 个" icon="📋" color="bg-purple-50"  />
+              <Card title="同步入口" value="小程序端" icon="📱" color="bg-green-50"  />
             </div>
 
             {/* 操作说明 */}
