@@ -161,7 +161,13 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "subjects" TEXT DEFAULT \'[]\''); } catch(e) {}
   try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "content" TEXT DEFAULT \'\''); } catch(e) {}
   try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "source" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0'); } catch(e) {}
+  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT \'\''); } catch(e) {}
+  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT \'\''); } catch(e) {}
+
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanIds" TEXT DEFAULT \'[]\''); } catch(e) {}
   try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanTitles" TEXT DEFAULT \'[]\''); } catch(e) {}
@@ -203,7 +209,13 @@ export async function getDb(): Promise<Database.Database | Pool> {
   try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN subjects TEXT DEFAULT "[]"'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN content TEXT DEFAULT ""'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN updatedAt TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN source TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN rawReportId TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN rawData TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN age INTEGER DEFAULT 0'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN grade TEXT DEFAULT ""'); } catch(e) {}
+  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN gender TEXT DEFAULT ""'); } catch(e) {}
+
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanIds TEXT DEFAULT "[]"'); } catch(e) {}
   try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanTitles TEXT DEFAULT "[]"'); } catch(e) {}
