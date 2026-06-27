@@ -20,12 +20,24 @@ interface RAGResult {
 
 export default function AILessonPrepPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: '你好！我是 AI 备课助手。我可以帮你：\n\n1️⃣ **生成教案** — 输入主题，我帮你生成完整的教案\n2️⃣ **备课建议** — 输入课程内容，我给出教学建议\n3️⃣ **阶段计划** — 帮你规划课程阶段性教学计划\n4️⃣ **搜索已有教案** — 我会从你的教案库中检索相关内容作为参考\n\n请告诉我你需要什么帮助？',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // 从 sessionStorage 恢复对话（页面刷新不丢失，关闭标签页后丢失）
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('ai_chat_messages');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+      }
+    }
+    return [
+      {
+        role: 'assistant' as const,
+        content: '你好！我是 AI 备课助手。我可以帮你：\n\n1️⃣ **生成教案** — 输入主题，我帮你生成完整的教案\n2️⃣ **备课建议** — 输入课程内容，我给出教学建议\n3️⃣ **阶段计划** — 帮你规划课程阶段性教学计划\n4️⃣ **搜索已有教案** — 我会从你的教案库中检索相关内容作为参考\n\n请告诉我你需要什么帮助？',
+      },
+    ];
+  });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
@@ -55,6 +67,13 @@ export default function AILessonPrepPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // 对话持久化：切换页面时保存，关闭标签页后丢失
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('ai_chat_messages', JSON.stringify(messages));
+    }
   }, [messages]);
 
   const sendMessage = async () => {
