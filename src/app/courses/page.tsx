@@ -63,7 +63,7 @@ export default function CoursesPage() {
     },
     {
       key: 'price', label: '课时费',
-      render: (val: number) => <span className="font-medium">¥{val}</span>
+      render: (val: number) => <span className="font-medium">¥{Number(val).toFixed(2)}</span>
     },
     {
       key: 'classHour', label: '时长/课',
@@ -72,7 +72,7 @@ export default function CoursesPage() {
     { key: 'totalClasses', label: '总课次' },
     {
       key: 'totalPrice', label: '总费用',
-      render: (_: any, row: any) => <span className="font-medium text-primary-600">¥{(row.price || 0) * (row.totalClasses || 0)}</span>
+      render: (_: any, row: any) => <span className="font-medium text-primary-600">¥{((row.price || 0) * (row.totalClasses || 0)).toFixed(2)}</span>
     },
   ];
 
