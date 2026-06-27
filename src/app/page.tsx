@@ -1,35 +1,172 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import Card from '@/components/Card';
-import { getStats } from '@/lib/api';
-import type { ClassRecord } from '@/lib/types';
-import { formatDate } from '@/lib/utils';
+import { aiGenerate, aiRAGSearch } from '@/lib/api';
 
-export default function Dashboard() {
-  const [stats, setStats] = useState({
-    teachers: 0,
-    students: 0,
-    courses: 0,
-    records: 0,
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface RAGResult {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+}
+
+export default function HomePage() {
+  const router = useRouter();
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('ai_chat_messages');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch (e) {}
+      }
+    }
+    return [
+      {
+        role: 'assistant',
+        content: '你好！我是 AI 备课助手。我可以帮你：\n\n1️⃣ **生成教案** — 输入主题，我帮你生成完整的教案\n2️⃣ **备课建议** — 输入课程内容，我给出教学建议\n3️⃣ **阶段计划** — 帮你规划课程阶段性教学计划\n4️⃣ **搜索已有教案** — 我会从你的教案库中检索相关内容作为参考\n\n请告诉我你需要什么帮助？',
+      },
+    ];
   });
-  const [recentRecords, setRecentRecords] = useState<ClassRecord[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
+  const [configStatus, setConfigStatus] = useState<'checking' | 'ok' | 'error' | 'unknown'>('unknown');
 
   useEffect(() => {
-    getStats().then(data => {
-      setStats({
-        teachers: data.teachers,
-        students: data.students,
-        courses: data.courses,
-        records: data.records,
-      });
-      setRecentRecords(data.recentRecords || []);
-    }).catch(err => {
-      console.error('加载数据失败:', err);
-    });
+    checkConfig();
   }, []);
+
+  // 对话持久化
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('ai_chat_messages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  const checkConfig = async () => {
+    setConfigStatus('checking');
+    try {
+      const res = await aiGenerate([
+        { role: 'user', content: '返回"ok"' }
+      ], 0.1, 10);
+      if (res.content) {
+        setConfigStatus('ok');
+      } else {
+        setConfigStatus('error');
+      }
+    } catch (err) {
+      setConfigStatus('error');
+    }
+  };
+
+  // 提取 AI 回复中的核心内容
+  const extractCoreContent = (content: string): string => {
+    const patterns = [
+      /^(好的|好|好的，|没问题|当然可以|我来|我为您|我帮你|我这就|以下|这是)[^。]*[。：:]\s*/,
+      /^[^。]*?为你[^。]*?[。：:]\s*/,
+      /^[^。]*?如下[：:]\s*/,
+    ];
+    let cleaned = content;
+    for (const pattern of patterns) {
+      cleaned = cleaned.replace(pattern, '');
+    }
+    return cleaned.trim();
+  };
+
+  // 智能提取标题
+  const extractTitle = (text: string): string => {
+    const patterns = [
+      /(?:主题|课题|课程名称|教案名称|活动名称)[：:]\s*([^\n]+)/,
+      /^#+\s*(.+)$/m,
+      /^(?:【|《)(.+?)(?:】|》)/,
+    ];
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m) return m[1].trim();
+    }
+    const lines = text.split('\n').filter((l: string) => l.trim().length > 0 && !l.match(/^[#*\s]*$/));
+    if (lines.length > 0) {
+      return lines[0].trim().substring(0, 30).replace(/^[#*\s]+/, '').trim() || 'AI 生成教案';
+    }
+    return 'AI 生成教案';
+  };
+
+  const addToLessonPlan = (content: string) => {
+    const coreContent = extractCoreContent(content);
+    const defaultTitle = extractTitle(coreContent);
+    localStorage.setItem('ai_generated_content', coreContent);
+    localStorage.setItem('ai_generated_title', defaultTitle);
+    router.push('/lesson-plans/new?from=ai');
+  };
+
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || loading) return;
+
+    setInput('');
+    const userMsg: Message = { role: 'user', content: text };
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    try {
+      let ragContext = '';
+      try {
+        const ragRes = await aiRAGSearch(text, 3);
+        if (ragRes.results && ragRes.results.length > 0) {
+          ragContext = '\n\n从教案库中找到以下相关内容作为参考：\n' +
+            ragRes.results.map((r: RAGResult) =>
+              `【${r.type}】${r.title}\n${r.content}\n`
+            ).join('\n');
+        }
+      } catch (e) {}
+
+      const systemPrompt = `你是一位专业的特殊教育备课助手，帮助教师准备教案和课程内容。请根据用户的需求提供详细的备课建议。
+
+${ragContext ? `以下是教案库中检索到的相关内容，请参考这些内容来回答：\n${ragContext}` : ''}
+
+回答要求：
+1. 如果用户要求生成教案，请提供完整的教案结构（教学目标、教学内容、教学方法、教学步骤等）
+2. 如果用户要求备课建议，请针对具体内容给出详细建议
+3. 内容要具体、实用、可操作
+4. 适合中国特殊教育机构的实际教学场景`;
+
+      const aiRes = await aiGenerate([
+        { role: 'system', content: systemPrompt },
+        ...messages.filter(m => m.role === 'user').slice(-4).map(m => ({ role: 'user' as const, content: m.content })),
+        { role: 'user', content: text },
+      ]);
+
+      const assistantMsg: Message = {
+        role: 'assistant',
+        content: aiRes.content || '抱歉，我没有得到有效的回复，请稍后重试。',
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `❌ 请求失败：${err.message || '请检查 AI 配置是否正确'}`,
+      }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -37,62 +174,145 @@ export default function Dashboard() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card title="教师总数" value={stats.teachers} icon="👨‍🏫" color="bg-[#FFF0E0]" />
-            <Card title="学生总数" value={stats.students} icon="👦" color="bg-[#E8F5E9]" />
-            <Card title="课程总数" value={stats.courses} icon="📚" color="bg-[#E3F2FD]" />
-            <Card title="上课记录" value={stats.records} icon="📝" color="bg-[#FCE4EC]" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <a href="/teachers/new" className="flex items-center gap-3 bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-[#F08020] transition-all">
-              <span className="text-2xl">➕</span>
+          <div className="max-w-4xl mx-auto">
+            {/* 顶部标题区 */}
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="font-medium text-gray-800">添加教师</p>
-                <p className="text-sm text-gray-500">登记新的教师信息</p>
+                <h2 className="text-2xl font-bold text-gray-800">🤖 AI 辅助备课</h2>
+                <p className="text-sm text-gray-500 mt-1">基于大模型 + 教案库检索，快速生成备课内容</p>
               </div>
-            </a>
-            <a href="/students/new" className="flex items-center gap-3 bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-[#F08020] transition-all">
-              <span className="text-2xl">➕</span>
-              <div>
-                <p className="font-medium text-gray-800">添加学生</p>
-                <p className="text-sm text-gray-500">登记新的学生信息</p>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className={`w-2 h-2 rounded-full ${
+                    configStatus === 'ok' ? 'bg-green-500' :
+                    configStatus === 'error' ? 'bg-red-500' :
+                    configStatus === 'checking' ? 'bg-yellow-500 animate-pulse' : 'bg-gray-400'
+                  }`} />
+                  <span className="text-gray-500">
+                    {configStatus === 'ok' ? 'AI 已就绪' :
+                     configStatus === 'error' ? 'AI 未配置' :
+                     configStatus === 'checking' ? '检查中...' : '未知'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowConfig(!showConfig)}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  ⚙️ 配置
+                </button>
+                <button
+                  onClick={() => {
+                    sessionStorage.removeItem('ai_chat_messages');
+                    setMessages([{
+                      role: 'assistant',
+                      content: '你好！我是 AI 备课助手。我可以帮你：\n\n1️⃣ **生成教案** — 输入主题，我帮你生成完整的教案\n2️⃣ **备课建议** — 输入课程内容，我给出教学建议\n3️⃣ **阶段计划** — 帮你规划课程阶段性教学计划\n4️⃣ **搜索已有教案** — 我会从你的教案库中检索相关内容作为参考\n\n请告诉我你需要什么帮助？',
+                    }]);
+                  }}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  🗑️ 清空对话
+                </button>
               </div>
-            </a>
-            <a href="/courses/new" className="flex items-center gap-3 bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-[#F08020] transition-all">
-              <span className="text-2xl">➕</span>
-              <div>
-                <p className="font-medium text-gray-800">添加课程</p>
-                <p className="text-sm text-gray-500">创建新的课程计划</p>
-              </div>
-            </a>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">最近上课记录</h3>
-              <a href="/records" className="text-sm text-[#F08020] hover:text-[#D06010]">查看全部 →</a>
             </div>
-            {recentRecords.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">还没有上课记录</p>
-            ) : (
-              <div className="space-y-3">
-                {recentRecords.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center gap-3">
 
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{record.courseName}</p>
-                        <p className="text-xs text-gray-500">
-                          {record.studentName} · {record.teacherName}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm text-gray-500">{formatDate(record.date)}</span>
-                  </div>
-                ))}
+            {/* 配置面板 */}
+            {showConfig && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="text-sm font-medium text-yellow-800 mb-2">AI 配置说明</h4>
+                <div className="text-sm text-yellow-700 space-y-1">
+                  <p>在项目根目录的 <code className="bg-yellow-100 px-1 rounded">.env.local</code> 文件中配置以下环境变量：</p>
+                  <pre className="bg-yellow-100 p-2 rounded text-xs mt-2">
+{`# DeepSeek（推荐，中国大陆可直接访问）
+AI_API_KEY=sk-你的DeepSeekAPIKey
+AI_BASE_URL=https://api.deepseek.com
+AI_MODEL=deepseek-chat`}
+                  </pre>
+                  <p className="mt-2">配置完成后重启服务即可使用。</p>
+                </div>
               </div>
             )}
+
+            {/* 快捷操作 */}
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {[
+                { label: '📝 生成教案', prompt: '请帮我生成一份关于"认知能力训练"的教案，面向特殊教育儿童' },
+                { label: '📋 备课建议', prompt: '我正在准备一节"生活自理能力"课程，请给我备课建议' },
+                { label: '📅 阶段计划', prompt: '请帮我规划一个20课时的"社交技能训练"课程阶段计划' },
+                { label: '🔍 搜索参考', prompt: '搜索教案库中关于社交训练的内容作为参考' },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => setInput(item.prompt)}
+                  className="px-4 py-2 bg-white border border-gray-200 text-gray-600 text-sm rounded-lg hover:border-primary-300 hover:text-primary-600 transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 对话区域 */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="h-[500px] overflow-y-auto p-6 space-y-4">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-lg p-4 ${
+                      msg.role === 'user'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-gray-50 border border-gray-200 text-gray-700'
+                    }`}>
+                      <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                        {msg.content}
+                      </div>
+                      {msg.role === 'assistant' && idx > 0 && msg.content.length > 50 && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
+                          <button
+                            onClick={() => addToLessonPlan(msg.content)}
+                            className="text-xs text-primary-600 hover:text-primary-800"
+                          >
+                            📥 保存为教案
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="animate-pulse">●</span>
+                        <span className="animate-pulse" style={{ animationDelay: '0.2s' }}>●</span>
+                        <span className="animate-pulse" style={{ animationDelay: '0.4s' }}>●</span>
+                        <span className="ml-1">AI 正在思考...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 输入区域 */}
+              <div className="border-t border-gray-200 p-4">
+                <div className="flex gap-3">
+                  <textarea
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="输入你的备课需求，按 Enter 发送..."
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none text-sm"
+                    rows={2}
+                    disabled={loading}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={loading || !input.trim()}
+                    className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 self-end"
+                  >
+                    {loading ? '发送中...' : '发送'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">按 Shift+Enter 换行 | AI 生成内容仅供参考，请根据实际情况调整</p>
+              </div>
+            </div>
           </div>
         </main>
       </div>
