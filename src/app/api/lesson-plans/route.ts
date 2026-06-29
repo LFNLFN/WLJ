@@ -62,16 +62,16 @@ export async function POST(req: NextRequest) {
 
     if (isPg(db)) {
       const result = await db.query(
-        `INSERT INTO lesson_plans (id, title, type, content, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [id, title, type, content, now, now]
+        `INSERT INTO lesson_plans (id, title, type, content, "studentId", "studentName", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [id, title, type, content, body.studentId || '', body.studentName || '', now, now]
       );
       const row = result.rows[0] as any;
       const parsed = { ...row, _id: row.id };
       return NextResponse.json(parsed, { status: 201 });
     } else {
       db.prepare(
-        `INSERT INTO lesson_plans (id, title, type, content, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`
-      ).run(id, title, type, content, now, now);
+        `INSERT INTO lesson_plans (id, title, type, content, studentId, studentName, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(id, title, type, content, body.studentId || '', body.studentName || '', now, now);
       const row = db.prepare(`SELECT * FROM lesson_plans WHERE id = ?`).get(id) as any;
       const parsed = { ...row, _id: row.id };
       return NextResponse.json(parsed, { status: 201 });
