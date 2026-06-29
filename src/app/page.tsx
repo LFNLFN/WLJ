@@ -69,8 +69,9 @@ export default function HomePage() {
     }
   };
 
-  // 提取 AI 回复中的核心内容
+  // 提取 AI 回复中的核心内容，清理格式
   const extractCoreContent = (content: string): string => {
+    // 1. 去除开头介绍词
     const patterns = [
       /^(好的|好|好的，|没问题|当然可以|我来|我为您|我帮你|我这就|以下|这是)[^。]*[。：:]\s*/,
       /^[^。]*?为你[^。]*?[。：:]\s*/,
@@ -80,6 +81,15 @@ export default function HomePage() {
     for (const pattern of patterns) {
       cleaned = cleaned.replace(pattern, '');
     }
+    // 2. 去除 Markdown 标记符号（# * - ` >），保留文字
+    cleaned = cleaned.replace(/^[#*\s>]+/gm, '');
+    cleaned = cleaned.replace(/\*\*/g, '');
+    cleaned = cleaned.replace(/`/g, '');
+    // 3. 将 Markdown 列表符号替换为中文缩进
+    cleaned = cleaned.replace(/^-\s+/gm, '  • ');
+    cleaned = cleaned.replace(/^\d+\.\s+/gm, '  ');
+    // 4. 合并多个空行为两个换行
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
     return cleaned.trim();
   };
 
