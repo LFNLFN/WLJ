@@ -73,6 +73,11 @@ export default function LessonPlansPage() {
         </div>
       )
     },
+    { key: 'studentName', label: '关联学生',
+      render: (val: string) => val ? (
+        <span className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">{val}</span>
+      ) : <span className="text-gray-400">-</span>
+    },
     { key: 'createdAt', label: '创建时间',
       render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-'
     },

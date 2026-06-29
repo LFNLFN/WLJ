@@ -142,6 +142,8 @@ export interface LessonPlan {
   title: string;
   type: 'personal' | 'group';
   content: string;
+  studentId: string;
+  studentName: string;
   createdAt: string;
   updatedAt: string;
 }
