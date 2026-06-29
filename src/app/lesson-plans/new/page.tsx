@@ -48,9 +48,13 @@ function NewLessonPlanForm() {
     getStudents().then(setStudents).catch(() => {});
   }, []);
 
-  // 搜索学生
+  // 搜索学生：无关键词时显示最近20个，有关键词时筛选
   useEffect(() => {
-    if (!studentKeyword.trim()) { setStudentResults([]); return; }
+    if (!studentKeyword.trim()) {
+      // 显示最近20个学生
+      setStudentResults(students.slice(0, 20));
+      return;
+    }
     const kw = studentKeyword.toLowerCase();
     const filtered = students.filter(s =>
       s.name.toLowerCase().includes(kw) ||
@@ -172,7 +176,7 @@ function NewLessonPlanForm() {
                         placeholder="搜索学生姓名..."
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors text-sm"
                       />
-                      {showStudentSearch && studentKeyword.trim() && (
+                      {showStudentSearch && (
                         <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                           {studentResults.length === 0 ? (
                             <p className="px-4 py-3 text-sm text-gray-400">未找到匹配的学生</p>
