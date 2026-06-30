@@ -5,21 +5,27 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
-import { getStudents, getCourses, deleteStudent } from '@/lib/api';
+import { getStudents, getCourses, getTrainingPlans, getLessonPlans, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
+  const [trainingPlans, setTrainingPlans] = useState<any[]>([]);
+  const [lessonPlans, setLessonPlans] = useState<any[]>([]);
 
   const loadData = () => {
     Promise.all([
       getStudents(),
-      getCourses()
-    ]).then(([studentsData, coursesData]) => {
+      getCourses(),
+      getTrainingPlans(),
+      getLessonPlans()
+    ]).then(([studentsData, coursesData, plansData, lessonData]) => {
       setStudents(studentsData);
       setCourses(coursesData);
+      setTrainingPlans(plansData);
+      setLessonPlans(lessonData);
     }).catch(err => console.error('加载失败:', err));
   };
 
@@ -35,6 +41,22 @@ export default function StudentsPage() {
   const getStudentCourses = (studentId: string) => {
     return courses.filter((c: any) =>
       c.studentIds && c.studentIds.includes(studentId)
+    );
+  };
+
+  // 查找学生关联的训练计划
+  const getStudentTrainingPlans = (studentName: string) => {
+    if (!studentName) return [];
+    return trainingPlans.filter((p: any) =>
+      p.childName && p.childName.includes(studentName)
+    );
+  };
+
+  // 查找学生关联的教案
+  const getStudentLessonPlans = (studentName: string) => {
+    if (!studentName) return [];
+    return lessonPlans.filter((p: any) =>
+      p.studentName && p.studentName.includes(studentName)
     );
   };
 
@@ -126,6 +148,34 @@ export default function StudentsPage() {
                 onClick: goToNewAssessment,
                 color: 'text-green-600',
                 hoverColor: 'hover:bg-green-50',
+              },
+              {
+                label: '📋 训练计划',
+                onClick: (row: any) => {
+                  const studentPlans = getStudentTrainingPlans(row.name);
+                  const planIds = studentPlans.map((p: any) => p._id).join(',');
+                  if (planIds) {
+                    router.push(`/training-plans?ids=${planIds}`);
+                  } else {
+                    router.push(`/training-plan`);
+                  }
+                },
+                color: 'text-purple-600',
+                hoverColor: 'hover:bg-purple-50',
+              },
+              {
+                label: '📄 教案',
+                onClick: (row: any) => {
+                  const studentLP = getStudentLessonPlans(row.name);
+                  const lpIds = studentLP.map((p: any) => p._id).join(',');
+                  if (lpIds) {
+                    router.push(`/lesson-plans?ids=${lpIds}`);
+                  } else {
+                    router.push(`/lesson-plans`);
+                  }
+                },
+                color: 'text-orange-600',
+                hoverColor: 'hover:bg-orange-50',
               },
             ]}
           />

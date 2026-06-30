@@ -6,25 +6,39 @@ interface EditableNumberedListProps {
   label?: string;
 }
 
+/** 确保值是字符串 */
+function safeString(val: any): string {
+  if (typeof val === 'string') return val;
+  if (val === null || val === undefined) return '';
+  // 如果是对象，提取 content 字段或转 JSON
+  if (typeof val === 'object') {
+    if (val.content && typeof val.content === 'string') return val.content;
+    return JSON.stringify(val);
+  }
+  return String(val);
+}
+
 export default function EditableNumberedList({ items, onChange, label }: EditableNumberedListProps) {
+  const safeItems = items.map(safeString);
+
   const updateItem = (index: number, value: string) => {
-    const newItems = [...items];
+    const newItems = [...safeItems];
     newItems[index] = value;
     onChange(newItems);
   };
 
   const addItem = () => {
-    onChange([...items, '']);
+    onChange([...safeItems, '']);
   };
 
   const removeItem = (index: number) => {
-    onChange(items.filter((_, i) => i !== index));
+    onChange(safeItems.filter((_, i) => i !== index));
   };
 
   return (
     <div className="space-y-1">
       {label && <label className="text-xs text-gray-500">{label}</label>}
-      {items.map((item, idx) => (
+      {safeItems.map((item, idx) => (
         <div key={idx} className="flex items-start gap-1">
           <span className="text-xs text-gray-400 mt-2 w-5 shrink-0">{idx + 1}.</span>
           <textarea

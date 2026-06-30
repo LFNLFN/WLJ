@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
@@ -23,19 +23,30 @@ const TYPE_OPTIONS = [
   { value: 'group', label: '集体教案' },
 ];
 
-export default function LessonPlansPage() {
+function LessonPlansContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const idsParam = searchParams.get('ids');
+  const keywordParam = searchParams.get('keyword') || '';
+
   const [plans, setPlans] = useState<any[]>([]);
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState(keywordParam);
   const [typeFilter, setTypeFilter] = useState('');
 
   const loadData = useCallback((kw?: string, tp?: string) => {
-    getLessonPlans(kw, tp).then(setPlans).catch(err => console.error('加载失败:', err));
-  }, []);
+    getLessonPlans(kw, tp).then(allPlans => {
+      if (idsParam) {
+        const ids = idsParam.split(',').filter(Boolean);
+        setPlans(allPlans.filter((p: any) => ids.includes(p._id)));
+      } else {
+        setPlans(allPlans);
+      }
+    }).catch(err => console.error('加载失败:', err));
+  }, [idsParam]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(keywordParam, '');
+  }, [loadData, keywordParam]);
 
   const handleDelete = (plan: any) => {
     if (confirm(`确定要删除教案 "${plan.title}" 吗？`)) {
@@ -55,6 +66,8 @@ export default function LessonPlansPage() {
     setTypeFilter(tp);
     loadData(keyword, tp);
   };
+
+  const goBack = idsParam ? () => router.push('/students') : null;
 
   const columns = [
     { key: 'title', label: '标题' },
@@ -94,6 +107,9 @@ export default function LessonPlansPage() {
         <main className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
+              {goBack && (
+                <button onClick={goBack} className="text-gray-400 hover:text-gray-600 text-sm mr-2">← 返回学生管理</button>
+              )}
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -119,7 +135,6 @@ export default function LessonPlansPage() {
                 )}
               </div>
 
-              {/* 类型筛选标签 */}
               <div className="flex items-center gap-1 ml-4 border-l border-gray-200 pl-4">
                 {TYPE_OPTIONS.map(opt => (
                   <button
@@ -155,5 +170,13 @@ export default function LessonPlansPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function LessonPlansPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-gray-400">加载中...</div>}>
+      <LessonPlansContent />
+    </Suspense>
   );
 }

@@ -244,8 +244,7 @@ export interface TrainingStage {
 export interface TrainingModule {
   moduleTitle: string;
   initialAssessment: string[];
-  stageOne: TrainingStage;
-  stageTwo: TrainingStage;
+  stages: TrainingStage[];  // 改为动态阶段数组
 }
 
 export interface TrainingPlanSignatures {

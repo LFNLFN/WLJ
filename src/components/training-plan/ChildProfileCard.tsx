@@ -15,7 +15,6 @@ const fields: { key: keyof TrainingPlanChild; label: string }[] = [
   { key: 'cooperationLevel', label: '配合程度' },
   { key: 'languageEnvironment', label: '语言环境' },
   { key: 'assessmentDate', label: '测评日期' },
-  { key: 'recordNumber', label: '编号' },
 ];
 
 export default function ChildProfileCard({ child, onChange }: ChildProfileCardProps) {
