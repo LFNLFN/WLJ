@@ -1,24 +1,75 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import PlanHeader from '@/components/training-plan/PlanHeader';
 import ChildProfileCard from '@/components/training-plan/ChildProfileCard';
 import TrainingModulesTable from '@/components/training-plan/TrainingModulesTable';
 import SignatureFooter from '@/components/training-plan/SignatureFooter';
+import { getTrainingPlan, saveTrainingPlan } from '@/lib/api';
 import type { TrainingPlan, ExportConfig } from '@/lib/types';
 
-// 内联默认数据，避免动态 import 的复杂性
-import planData from '@/traning-plan-json/plans/huang-xingyao.training-plan.json';
+const emptyPlan: TrainingPlan = {
+  schemaVersion: '1.0.0',
+  documentType: 'children_training_stage_plan',
+  sourceFile: '',
+  organization: '未来家儿童能力发展中心',
+  planTitle: '训练阶段计划',
+  child: {
+    name: '', birthDate: '', age: '', diagnosis: '',
+    cooperationLevel: '', languageEnvironment: '', assessmentDate: '', recordNumber: '',
+  },
+  trainingModules: [],
+  notes: '',
+  signatures: { mainTeacher: '', reviewer: '' },
+};
 
-export default function TrainingPlanPage() {
+function TrainingPlanEditPage() {
   const router = useRouter();
-  const [plan, setPlan] = useState<TrainingPlan>(planData as unknown as TrainingPlan);
+  const searchParams = useSearchParams();
+  const planId = searchParams.get('id');
+
+  const [plan, setPlan] = useState<TrainingPlan>(emptyPlan);
+  const [planTitle, setPlanTitle] = useState('');
+  const [childName, setChildName] = useState('');
+  const [loading, setLoading] = useState(!!planId);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (planId) {
+      getTrainingPlan(planId).then(data => {
+        if (data && data.planData) {
+          setPlan(data.planData as TrainingPlan);
+          setPlanTitle(data.title || '');
+          setChildName(data.childName || '');
+        }
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    }
+  }, [planId]);
 
   const updatePlan = (updates: Partial<TrainingPlan>) => {
-    setPlan(prev => prev ? { ...prev, ...updates } : prev);
+    setPlan(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload: any = {
+        _id: planId || undefined,
+        title: childName ? `${childName} - ${plan.planTitle}` : plan.planTitle,
+        childName: plan.child.name || childName,
+        planData: plan,
+      };
+      await saveTrainingPlan(payload);
+      router.push('/training-plans');
+    } catch (err) {
+      alert('保存失败');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleExportExcel = async () => {
@@ -28,9 +79,21 @@ export default function TrainingPlanPage() {
       exportTrainingPlanToExcel(plan, config);
     } catch (err) {
       console.error('导出失败:', err);
-      alert('导出失败，请查看控制台');
+      alert('导出失败');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <div className="flex-1 flex items-center justify-center"><p className="text-gray-400">加载中...</p></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen">
@@ -41,27 +104,26 @@ export default function TrainingPlanPage() {
           <div className="max-w-5xl mx-auto">
             {/* 操作栏 */}
             <div className="flex items-center justify-between mb-6 no-print">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">训练阶段计划</h2>
-                <p className="text-sm text-gray-500 mt-1">{plan.child.name} - {plan.planTitle}</p>
+              <div className="flex items-center gap-4">
+                <button onClick={() => router.push('/training-plans')} className="text-gray-400 hover:text-gray-600">← 返回</button>
+                <h2 className="text-xl font-bold text-gray-800">{planId ? '编辑' : '新建'}训练阶段计划</h2>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-                >
+                <button onClick={handleExportExcel}
+                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                  📥 导出 Excel
+                </button>
+                <button onClick={() => window.print()}
+                  className="px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50 transition-colors">
                   🖨️ 导出 PDF
                 </button>
-                <button
-                  onClick={handleExportExcel}
-                  className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  📥 导出 Excel
+                <button onClick={handleSave} disabled={saving}
+                  className="px-6 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50">
+                  {saving ? '保存中...' : '💾 保存'}
                 </button>
               </div>
             </div>
 
-            {/* 可编辑页面 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 print:shadow-none print:border-none print:p-0">
               <PlanHeader
                 organization={plan.organization}
@@ -69,17 +131,8 @@ export default function TrainingPlanPage() {
                 onOrganizationChange={val => updatePlan({ organization: val })}
                 onPlanTitleChange={val => updatePlan({ planTitle: val })}
               />
-
-              <ChildProfileCard
-                child={plan.child}
-                onChange={child => updatePlan({ child })}
-              />
-
-              <TrainingModulesTable
-                modules={plan.trainingModules}
-                onChange={modules => updatePlan({ trainingModules: modules })}
-              />
-
+              <ChildProfileCard child={plan.child} onChange={child => updatePlan({ child })} />
+              <TrainingModulesTable modules={plan.trainingModules} onChange={modules => updatePlan({ trainingModules: modules })} />
               <SignatureFooter
                 mainTeacher={plan.signatures.mainTeacher}
                 reviewer={plan.signatures.reviewer}
@@ -93,5 +146,13 @@ export default function TrainingPlanPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function TrainingPlanEditPageWrapper() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-gray-400">加载中...</div>}>
+      <TrainingPlanEditPage />
+    </Suspense>
   );
 }

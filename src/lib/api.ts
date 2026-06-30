@@ -242,3 +242,30 @@ export async function aiRAGSearch(query: string, maxResults?: number) {
     body: JSON.stringify({ query, maxResults }),
   });
 }
+
+// ==================== 训练阶段计划 ====================
+
+export async function getTrainingPlans() {
+  return request('/training-plans');
+}
+
+export async function getTrainingPlan(id: string) {
+  return request(`/training-plans/${id}`);
+}
+
+export async function saveTrainingPlan(data: any) {
+  if (data._id || data.id) {
+    return request(`/training-plans/${data._id || data.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+  return request('/training-plans', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteTrainingPlan(id: string) {
+  return request(`/training-plans/${id}`, { method: 'DELETE' });
+}
