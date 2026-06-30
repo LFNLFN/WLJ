@@ -64,16 +64,28 @@ function TrainingPlanEditPage() {
             ...data.planData,
           }));
         } else if (data.content) {
-          // 尝试从文本中解析
-          // 如果 AI 返回了 JSON 代码块，尝试提取
           const jsonMatch = data.content.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/);
           if (jsonMatch) {
             try {
               const parsed = JSON.parse(jsonMatch[1]);
               if (parsed && parsed.trainingModules) {
                 setPlan(prev => ({ ...prev, ...parsed }));
+                return;
               }
             } catch (e) {}
+          }
+          const lines = data.content.split('\n').filter((l: string) => l.trim().length > 0);
+          if (lines.length > 0) {
+            const chunkSize = Math.max(1, Math.ceil(lines.length / 3));
+            setPlan(prev => ({
+              ...prev,
+              trainingModules: [{
+                moduleTitle: 'AI 生成训练计划',
+                initialAssessment: lines.slice(0, chunkSize),
+                stageOne: { title: '第一阶段计划', period: '1-3个月', items: lines.slice(chunkSize, chunkSize * 2) },
+                stageTwo: { title: '第二阶段计划', period: '3-6个月', items: lines.slice(chunkSize * 2) },
+              }],
+            }));
           }
         }
       } catch (e) {}
