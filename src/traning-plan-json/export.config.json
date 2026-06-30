@@ -1,0 +1,61 @@
+{
+  "exportVersion": "1.0.0",
+  "targetFormat": "xlsx",
+  "sheetName": "训练阶段计划",
+  "layout": {
+    "titleRows": [
+      {
+        "valuePath": "organization",
+        "mergeCells": "A1:G1",
+        "style": "center,bold"
+      },
+      {
+        "valuePath": "planTitle",
+        "mergeCells": "A2:G2",
+        "style": "center,bold"
+      }
+    ],
+    "profileRows": [
+      ["姓名", "child.name", "出生年月", "child.birthDate", "年龄", "child.age"],
+      ["诊断", "child.diagnosis", "配合程度", "child.cooperationLevel", "语言环境", "child.languageEnvironment"],
+      ["测评日期", "child.assessmentDate", "编号", "child.recordNumber"]
+    ],
+    "moduleTable": {
+      "startRow": 9,
+      "columns": [
+        {
+          "header": "训练模块",
+          "valuePath": "trainingModules[].moduleTitle"
+        },
+        {
+          "header": "初评情况",
+          "valuePath": "trainingModules[].initialAssessment",
+          "renderAs": "numberedText"
+        },
+        {
+          "header": "第一阶段（初、中阶）计划 1-3个月",
+          "valuePath": "trainingModules[].stageOne.items",
+          "renderAs": "numberedText"
+        },
+        {
+          "header": "第二阶段（高阶）计划 3-6个月",
+          "valuePath": "trainingModules[].stageTwo.items",
+          "renderAs": "numberedText"
+        }
+      ]
+    },
+    "footer": {
+      "notesPath": "notes",
+      "signatureFields": [
+        {
+          "label": "主授课老师",
+          "valuePath": "signatures.mainTeacher"
+        },
+        {
+          "label": "审核者",
+          "valuePath": "signatures.reviewer"
+        }
+      ]
+    }
+  }
+}

@@ -221,3 +221,65 @@ export interface SyncStatus {
   syncedCount: number;
   recentSyncs: SyncedScaleRecord[];
 }
+
+// ==================== 训练阶段计划 ====================
+
+export interface TrainingPlanChild {
+  name: string;
+  birthDate: string;
+  age: string;
+  diagnosis: string;
+  cooperationLevel: string;
+  languageEnvironment: string;
+  assessmentDate: string;
+  recordNumber: string;
+}
+
+export interface TrainingStage {
+  title: string;
+  period: string;
+  items: string[];
+}
+
+export interface TrainingModule {
+  moduleTitle: string;
+  initialAssessment: string[];
+  stageOne: TrainingStage;
+  stageTwo: TrainingStage;
+}
+
+export interface TrainingPlanSignatures {
+  mainTeacher: string;
+  reviewer: string;
+}
+
+export interface TrainingPlan {
+  schemaVersion: string;
+  documentType: string;
+  sourceFile: string;
+  organization: string;
+  planTitle: string;
+  child: TrainingPlanChild;
+  coreFeatures?: string[];
+  trainingModules: TrainingModule[];
+  notes: string;
+  signatures: TrainingPlanSignatures;
+}
+
+export interface ExportConfig {
+  exportVersion: string;
+  targetFormat: string;
+  sheetName: string;
+  layout: {
+    titleRows: { valuePath: string; mergeCells: string; style: string }[];
+    profileRows: (string | number)[][];
+    moduleTable: {
+      startRow: number;
+      columns: { header: string; valuePath: string; renderAs?: string }[];
+    };
+    footer: {
+      notesPath: string;
+      signatureFields: { label: string; valuePath: string }[];
+    };
+  };
+}

@@ -5,3 +5,25 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
+
+/* 打印样式 */
+@media print {
+  .no-print, .print-hidden {
+    display: none !important;
+  }
+  .print-area {
+    page-break-inside: avoid;
+  }
+  .print-break-inside {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  body {
+    background: white !important;
+    font-size: 12px;
+  }
+  @page {
+    margin: 15mm;
+    size: A4;
+  }
+}

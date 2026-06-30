@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "templateType": "children_training_stage_plan",
+  "description": "儿童感统-语言-专注力训练阶段计划模板",
+  "editable": true,
+  "supportsExcelExport": true,
+  "page": {
+    "framework": "nextjs",
+    "recommendedComponents": [
+      "PlanHeader",
+      "ChildProfileCard",
+      "AssessmentSummary",
+      "TrainingModuleTable",
+      "GuidanceSection",
+      "SignatureFooter"
+    ],
+    "layout": "printable_a4_landscape_or_responsive_table"
+  },
+  "fields": {
+    "organization": {
+      "type": "string",
+      "label": "机构名称",
+      "editable": true
+    },
+    "planTitle": {
+      "type": "string",
+      "label": "计划标题",
+      "editable": true
+    },
+    "child": {
+      "type": "object",
+      "editable": true,
+      "fields": {
+        "name": { "type": "string", "label": "姓名" },
+        "birthDate": { "type": "string", "label": "出生年月" },
+        "age": { "type": "string", "label": "年龄" },
+        "diagnosis": { "type": "string", "label": "诊断" },
+        "cooperationLevel": { "type": "string", "label": "配合程度" },
+        "languageEnvironment": { "type": "string", "label": "语言环境" },
+        "assessmentDate": { "type": "string", "label": "测评日期" },
+        "recordNumber": { "type": "string", "label": "编号" }
+      }
+    },
+    "trainingModules": {
+      "type": "array",
+      "label": "训练模块",
+      "editable": true,
+      "itemFields": {
+        "moduleTitle": "string",
+        "initialAssessment": "array<string>",
+        "stageOne": {
+          "title": "string",
+          "period": "string",
+          "items": "array<string>"
+        },
+        "stageTwo": {
+          "title": "string",
+          "period": "string",
+          "items": "array<string>"
+        }
+      }
+    },
+    "guidanceSections": {
+      "type": "array",
+      "label": "指导计划",
+      "editable": true
+    },
+    "notes": {
+      "type": "string",
+      "label": "备注",
+      "editable": true
+    },
+    "signatures": {
+      "type": "object",
+      "fields": {
+        "mainTeacher": "string",
+        "reviewer": "string"
+      }
+    }
+  }
+}
