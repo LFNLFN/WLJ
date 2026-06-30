@@ -124,8 +124,8 @@ export default function HomePage() {
     
     const coreContent = extractCoreContent(content);
     localStorage.setItem('ai_training_plan_data', JSON.stringify({
-      content: coreContent,
-      planData: planData,
+      content: coreContent || content,
+      planData: planData || { content: coreContent || content },
     }));
     router.push('/training-plan?from=ai');
   };
