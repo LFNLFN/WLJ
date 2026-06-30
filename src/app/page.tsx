@@ -111,6 +111,25 @@ export default function HomePage() {
     return 'AI 生成教案';
   };
 
+
+  const addToTrainingPlan = (content: string) => {
+    // 尝试从 AI 回复中提取结构化的 JSON 数据
+    let planData = null;
+    const jsonMatch = content.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/);
+    if (jsonMatch) {
+      try {
+        planData = JSON.parse(jsonMatch[1]);
+      } catch (e) {}
+    }
+    
+    const coreContent = extractCoreContent(content);
+    localStorage.setItem('ai_training_plan_data', JSON.stringify({
+      content: coreContent,
+      planData: planData,
+    }));
+    router.push('/training-plan?from=ai');
+  };
+
   const addToLessonPlan = (content: string) => {
     const coreContent = extractCoreContent(content);
     const defaultTitle = extractTitle(coreContent);
@@ -249,6 +268,7 @@ AI_MODEL=deepseek-chat`}
                 { label: '📋 备课建议', prompt: '我正在准备一节"生活自理能力"课程，请给我备课建议' },
                 { label: '📅 阶段计划', prompt: '请帮我规划一个20课时的"社交技能训练"课程阶段计划' },
                 { label: '🔍 搜索参考', prompt: '搜索教案库中关于社交训练的内容作为参考' },
+                { label: '📋 生成训练计划', prompt: '请帮我生成一份完整的训练阶段计划，包含初评情况、第一阶段和第二阶段的详细计划。儿童信息：姓名黄星瑶，年龄2岁10个月，诊断口吃（结巴）。请用JSON格式输出，包含organization, planTitle, child信息, trainingModules数组（每个模块包含moduleTitle, initialAssessment数组, stageOne和stageTwo各含items数组）。' },
               ].map((item) => (
                 <button
                   key={item.label}
@@ -280,6 +300,12 @@ AI_MODEL=deepseek-chat`}
                             className="text-xs text-primary-600 hover:text-primary-800"
                           >
                             📥 保存为教案
+                          </button>
+                          <button
+                            onClick={() => addToTrainingPlan(msg.content)}
+                            className="text-xs text-green-600 hover:text-green-800"
+                          >
+                            📋 保存为训练计划
                           </button>
                         </div>
                       )}

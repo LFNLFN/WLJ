@@ -50,6 +50,37 @@ function TrainingPlanEditPage() {
     }
   }, [planId]);
 
+  // 从 localStorage 读取 AI 生成的数据
+  useEffect(() => {
+    const stored = localStorage.getItem('ai_training_plan_data');
+    if (stored) {
+      localStorage.removeItem('ai_training_plan_data');
+      try {
+        const data = JSON.parse(stored);
+        if (data.planData && data.planData.trainingModules) {
+          // 有结构化的 JSON 数据
+          setPlan(prev => ({
+            ...prev,
+            ...data.planData,
+          }));
+        } else if (data.content) {
+          // 尝试从文本中解析
+          // 如果 AI 返回了 JSON 代码块，尝试提取
+          const jsonMatch = data.content.match(/\`\`\`json\n([\s\S]*?)\n\`\`\`/);
+          if (jsonMatch) {
+            try {
+              const parsed = JSON.parse(jsonMatch[1]);
+              if (parsed && parsed.trainingModules) {
+                setPlan(prev => ({ ...prev, ...parsed }));
+              }
+            } catch (e) {}
+          }
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+
   const updatePlan = (updates: Partial<TrainingPlan>) => {
     setPlan(prev => ({ ...prev, ...updates }));
   };
