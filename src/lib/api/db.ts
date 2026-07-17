@@ -12,8 +12,10 @@ interface DbConfig {
 }
 
 let dbConfig: DbConfig | null = null;
+let initialized = false;
+let initPromise: Promise<any> | null = null;
 
-// PostgreSQL 连接配置
+// PostgreSQL 连接配置（优化版）
 function getPgPool(): Pool {
   // 优先使用连接字符串
   const connStr = process.env.DATABASE_URL || process.env.POSTGRES_URL || 
@@ -22,6 +24,13 @@ function getPgPool(): Pool {
     return new Pool({
       connectionString: connStr,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // ===== 连接池优化 =====
+      max: 20,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,  // 连接超时 5 秒
+      maxUses: 7500,
+      allowExitOnIdle: true,
     });
   }
   // 支持独立的环境变量（PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD）
@@ -32,6 +41,11 @@ function getPgPool(): Pool {
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD || '',
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    // ===== 连接池优化 =====
+    max: 20,
+    min: 2,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   });
 }
 
@@ -149,53 +163,113 @@ const PG_CREATE_TABLES = `
   );
 `;
 
+// PostgreSQL 迁移语句（仅在必要时执行）
+const PG_MIGRATIONS = [
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS "birthDate" TEXT DEFAULT ''`,
+  `ALTER TABLE students ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0`,
+  `ALTER TABLE students DROP COLUMN IF EXISTS grade`,
+  `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "gender" TEXT DEFAULT ''`,
+  `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "phone" TEXT DEFAULT ''`,
+  `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "hireDate" TEXT DEFAULT ''`,
+  `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "rank" TEXT DEFAULT ''`,
+  `ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "subjects" TEXT DEFAULT '[]'`,
+  `ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "content" TEXT DEFAULT ''`,
+  `ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT ''`,
+  `ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT 'personal'`,
+  `ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "studentId" TEXT DEFAULT ''`,
+  `ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT ''`,
+  `ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "title" TEXT DEFAULT ''`,
+  `ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "childName" TEXT DEFAULT ''`,
+  `ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "planData" TEXT DEFAULT '{}'`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "source" TEXT DEFAULT ''`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT ''`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT ''`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''`,
+  `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''`,
+  `ALTER TABLE courses ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT 'personal'`,
+  `ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanIds" TEXT DEFAULT '[]'`,
+  `ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanTitles" TEXT DEFAULT '[]'`,
+  `ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stagePlanType" TEXT DEFAULT 'lesson'`,
+  `ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stages" TEXT DEFAULT '[]'`,
+];
+
+// SQLite 迁移语句
+const SQLITE_MIGRATIONS = [
+  `ALTER TABLE students ADD COLUMN birthDate TEXT DEFAULT ''`,
+  `ALTER TABLE students ADD COLUMN age INTEGER DEFAULT 0`,
+  `ALTER TABLE students DROP COLUMN grade`,
+  `ALTER TABLE teachers ADD COLUMN gender TEXT DEFAULT ""`,
+  `ALTER TABLE teachers ADD COLUMN phone TEXT DEFAULT ""`,
+  `ALTER TABLE teachers ADD COLUMN "hireDate" TEXT DEFAULT ""`,
+  `ALTER TABLE teachers ADD COLUMN rank TEXT DEFAULT ""`,
+  `ALTER TABLE teachers ADD COLUMN subjects TEXT DEFAULT "[]"`,
+  `ALTER TABLE lesson_plans ADD COLUMN content TEXT DEFAULT ""`,
+  `ALTER TABLE lesson_plans ADD COLUMN updatedAt TEXT DEFAULT ""`,
+  `ALTER TABLE lesson_plans ADD COLUMN type TEXT DEFAULT "personal"`,
+  `ALTER TABLE lesson_plans ADD COLUMN studentId TEXT DEFAULT ""`,
+  `ALTER TABLE lesson_plans ADD COLUMN studentName TEXT DEFAULT ""`,
+  `ALTER TABLE student_scale_records ADD COLUMN source TEXT DEFAULT ""`,
+  `ALTER TABLE student_scale_records ADD COLUMN rawReportId TEXT DEFAULT ""`,
+  `ALTER TABLE student_scale_records ADD COLUMN rawData TEXT DEFAULT ""`,
+  `ALTER TABLE student_scale_records ADD COLUMN age INTEGER DEFAULT 0`,
+  `ALTER TABLE student_scale_records ADD COLUMN grade TEXT DEFAULT ""`,
+  `ALTER TABLE student_scale_records ADD COLUMN gender TEXT DEFAULT ""`,
+  `ALTER TABLE courses ADD COLUMN type TEXT DEFAULT "personal"`,
+  `ALTER TABLE courses ADD COLUMN lessonPlanIds TEXT DEFAULT "[]"`,
+  `ALTER TABLE courses ADD COLUMN lessonPlanTitles TEXT DEFAULT "[]"`,
+  `ALTER TABLE courses ADD COLUMN stagePlanType TEXT DEFAULT "lesson"`,
+  `ALTER TABLE courses ADD COLUMN stages TEXT DEFAULT "[]"`,
+];
+
 export async function getDb(): Promise<Database.Database | Pool> {
-  if (dbConfig) {
+  // 如果已初始化，直接返回缓存的连接
+  if (dbConfig && initialized) {
     if (dbConfig.type === 'postgres') return dbConfig.pg!;
     return dbConfig.sqlite!;
   }
 
+  // 防止并发初始化
+  if (initPromise) return initPromise;
+
+  initPromise = _initDb();
+  return initPromise;
+}
+
+async function _initDb(): Promise<Database.Database | Pool> {
   const type = getDbType();
 
   if (type === 'postgres') {
     const pool = getPgPool();
+    
+    // 先设置 statement_timeout 防止迁移语句挂起
+    try {
+      await pool.query('SET statement_timeout = 30000', []);
+    } catch (e) {
+      // 忽略设置失败
+    }
+
     // 创建表
     await pool.query(PG_CREATE_TABLES);
-    // 数据库迁移: 为已有表添加新字段
-    try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS "birthDate" TEXT DEFAULT \'\''); } catch(e) {}
-    try { await pool.query('ALTER TABLE students ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0'); } catch(e) {}
-    try { await pool.query('ALTER TABLE students DROP COLUMN IF EXISTS grade'); } catch(e) {}
-  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "gender" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "phone" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "hireDate" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "rank" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE teachers ADD COLUMN IF NOT EXISTS "subjects" TEXT DEFAULT \'[]\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "content" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "studentId" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE lesson_plans ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "title" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "childName" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "planData" TEXT DEFAULT \'{}\''); } catch(e) {}  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "source" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0'); } catch(e) {}
-  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT \'\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT \'\''); } catch(e) {}
+    
+    // 并行执行迁移（减少串行等待）
+    const migrationPromises = PG_MIGRATIONS.map(sql => 
+      pool.query(sql).catch(() => {})  // 忽略单个迁移失败
+    );
+    await Promise.all(migrationPromises);
 
-  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "type" TEXT DEFAULT \'personal\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanIds" TEXT DEFAULT \'[]\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "lessonPlanTitles" TEXT DEFAULT \'[]\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stagePlanType" TEXT DEFAULT \'lesson\''); } catch(e) {}
-  try { await pool.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS "stages" TEXT DEFAULT \'[]\''); } catch(e) {}
+    // 重置 statement_timeout
+    try {
+      await pool.query('SET statement_timeout = 10000', []);
+    } catch (e) {}
 
     dbConfig = { type: 'postgres', pg: pool };
+    initialized = true;
     console.log('✅ PostgreSQL 数据库已连接');
     return pool;
   }
 
-  // SQLite 模式（本地开发用）
+  // SQLite 模式
   const volumePath = process.env.VOLUME_PATH || path.join(process.cwd(), 'server', 'db');
   const dbPath = process.env.DB_PATH || path.join(volumePath, 'data.db');
   const dbDir = path.dirname(dbPath);
@@ -212,33 +286,11 @@ export async function getDb(): Promise<Database.Database | Pool> {
 
   const sqliteDb = new Database(dbPath);
   sqliteDb.pragma('journal_mode = WAL');
-  
 
-  // 数据库迁移: 为已有表添加新字段
-  try { sqliteDb.exec('ALTER TABLE students ADD COLUMN birthDate TEXT DEFAULT \'\''); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE students ADD COLUMN age INTEGER DEFAULT 0'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE students DROP COLUMN grade'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN gender TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN phone TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN "hireDate" TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN rank TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE teachers ADD COLUMN subjects TEXT DEFAULT "[]"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN content TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN updatedAt TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN studentId TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE lesson_plans ADD COLUMN studentName TEXT DEFAULT ""'); } catch(e) {}  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN source TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN rawReportId TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN rawData TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN age INTEGER DEFAULT 0'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN grade TEXT DEFAULT ""'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE student_scale_records ADD COLUMN gender TEXT DEFAULT ""'); } catch(e) {}
-
-  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN type TEXT DEFAULT "personal"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanIds TEXT DEFAULT "[]"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN lessonPlanTitles TEXT DEFAULT "[]"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN stagePlanType TEXT DEFAULT "lesson"'); } catch(e) {}
-  try { sqliteDb.exec('ALTER TABLE courses ADD COLUMN stages TEXT DEFAULT "[]"'); } catch(e) {}
+  // SQLite 迁移
+  for (const sql of SQLITE_MIGRATIONS) {
+    try { sqliteDb.exec(sql); } catch (e) {}
+  }
 
   sqliteDb.exec(`
     CREATE TABLE IF NOT EXISTS teachers (
@@ -301,10 +353,10 @@ export async function getDb(): Promise<Database.Database | Pool> {
       createdAt TEXT DEFAULT (datetime('now')),
       updatedAt TEXT DEFAULT (datetime('now'))
     );
-
   `);
 
   dbConfig = { type: 'sqlite', sqlite: sqliteDb };
+  initialized = true;
   return sqliteDb;
 }
 

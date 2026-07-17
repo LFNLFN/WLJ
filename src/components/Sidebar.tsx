@@ -12,6 +12,7 @@ const navItems = [
   { href: '/', label: 'AI 辅助备课', icon: '🤖' },
   { href: '/lesson-plans', label: '教案中心', icon: '📖' },
   { href: '/training-plans', label: '训练阶段计划', icon: '📋' },
+  { href: '/evaluation', label: '感统评估', icon: '🧠' },
 ];
 
 const subNavGroups = [
