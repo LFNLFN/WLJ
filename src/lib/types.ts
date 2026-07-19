@@ -217,7 +217,7 @@ export interface SyncResponse {
 
 // 同步状态
 export interface SyncStatus {
-  dbType: 'postgresql' | 'sqlite';
+  dbType: 'postgresql';
   syncedCount: number;
   recentSyncs: SyncedScaleRecord[];
 }

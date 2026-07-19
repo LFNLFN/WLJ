@@ -1,12 +1,11 @@
 {
   "name": "wlj-server",
   "version": "1.0.0",
-  "description": "WLJ 课程管理系统 - 后端 API",
+  "description": "WLJ \u8bfe\u7a0b\u7ba1\u7406\u7cfb\u7edf - \u540e\u7aef API",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "pg": "^8.21.0"

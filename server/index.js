@@ -10,95 +10,65 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json());
 
-// ==================== 数据库选择（SQLite 或 PostgreSQL）====================
+// ==================== PostgreSQL 数据库 ====================
 const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 let db;
-let isPg = false;
+let isPg = true;
 
 async function initDb() {
-  if (DATABASE_URL) {
-    // PostgreSQL 模式（生产环境推荐）
-    const { Pool } = require('pg');
-    db = new Pool({
-      connectionString: DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-    });
-    isPg = true;
-    
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS teachers (
-        id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '', phone TEXT DEFAULT '',
-        "hireDate" TEXT DEFAULT '', rank TEXT DEFAULT '',
-        subjects TEXT DEFAULT '[]', "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-      CREATE TABLE IF NOT EXISTS students (
-        id TEXT PRIMARY KEY, name TEXT NOT NULL,
-        "parentName" TEXT DEFAULT '', "parentPhone" TEXT DEFAULT '', "birthDate" TEXT DEFAULT '',
-        age INTEGER DEFAULT 0,
-        "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-      CREATE TABLE IF NOT EXISTS courses (
-        id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '',
-        "teacherId" TEXT DEFAULT '', "teacherName" TEXT DEFAULT '',
-        "studentIds" TEXT DEFAULT '[]', "studentNames" TEXT DEFAULT '[]',
-        price REAL DEFAULT 0, "classHour" REAL DEFAULT 1, "totalClasses" INTEGER DEFAULT 1,
-        "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-      CREATE TABLE IF NOT EXISTS class_records (
-        id TEXT PRIMARY KEY, "courseId" TEXT DEFAULT '', "courseName" TEXT DEFAULT '',
-        "teacherId" TEXT DEFAULT '', "teacherName" TEXT DEFAULT '',
-        "studentId" TEXT DEFAULT '', "studentName" TEXT DEFAULT '',
-        date TEXT DEFAULT '', "startTime" TEXT DEFAULT '', "endTime" TEXT DEFAULT '',
-        duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '',
-        status TEXT DEFAULT 'completed', "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-      CREATE TABLE IF NOT EXISTS scale_templates (
-        id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT '',
-        description TEXT DEFAULT '', fields TEXT DEFAULT '[]',
-        "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-      CREATE TABLE IF NOT EXISTS student_scale_records (
-        id TEXT PRIMARY KEY, "studentId" TEXT DEFAULT '', "studentName" TEXT DEFAULT '',
-        "scaleTemplateId" TEXT DEFAULT '', "scaleName" TEXT DEFAULT '',
-        category TEXT DEFAULT '', evaluator TEXT DEFAULT '',
-        "evaluationDate" TEXT DEFAULT '', scores TEXT DEFAULT '[]',
-        summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',
-        status TEXT DEFAULT 'draft',
-        source TEXT DEFAULT '', "rawReportId" TEXT DEFAULT '', "rawData" TEXT DEFAULT '',
-        age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',
-        "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
-        "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-      );
-    `);
-    console.log('✅ PostgreSQL 数据库已连接');
-  } else {
-    // SQLite 模式（本地开发）
-    const Database = require('better-sqlite3');
-    const volumePath = process.env.VOLUME_PATH || path.join(__dirname, 'db');
-    const dbPath = process.env.DB_PATH || path.join(volumePath, 'data.db');
-    const dbDir = path.dirname(dbPath);
-    
-    if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-    
-    const oldDbPath = path.join(__dirname, 'db', 'data.db');
-    if (!fs.existsSync(dbPath) && fs.existsSync(oldDbPath)) {
-      console.log('📂 迁移旧数据库...');
-      fs.copyFileSync(oldDbPath, dbPath);
-    }
-    
-    db = new Database(dbPath);
-    db.pragma('journal_mode = WAL');
-    
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS teachers (id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '', phone TEXT DEFAULT '', "hireDate" TEXT DEFAULT '', rank TEXT DEFAULT '', subjects TEXT DEFAULT '[]', createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, name TEXT NOT NULL, parentName TEXT DEFAULT '', parentPhone TEXT DEFAULT '', birthDate TEXT DEFAULT '', age INTEGER DEFAULT 0, createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS courses (id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentIds TEXT DEFAULT '[]', studentNames TEXT DEFAULT '[]', price REAL DEFAULT 0, classHour REAL DEFAULT 1, totalClasses INTEGER DEFAULT 1, createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS class_records (id TEXT PRIMARY KEY, courseId TEXT DEFAULT '', courseName TEXT DEFAULT '', teacherId TEXT DEFAULT '', teacherName TEXT DEFAULT '', studentId TEXT DEFAULT '', studentName TEXT DEFAULT '', date TEXT DEFAULT '', startTime TEXT DEFAULT '', endTime TEXT DEFAULT '', duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '', status TEXT DEFAULT 'completed', createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS scale_templates (id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT "", description TEXT DEFAULT "", fields TEXT DEFAULT "[]", createdAt TEXT DEFAULT (datetime('now')));
-      CREATE TABLE IF NOT EXISTS student_scale_records (id TEXT PRIMARY KEY, studentId TEXT DEFAULT "", studentName TEXT DEFAULT "", scaleTemplateId TEXT DEFAULT "", scaleName TEXT DEFAULT "", category TEXT DEFAULT "", evaluator TEXT DEFAULT "", evaluationDate TEXT DEFAULT "", scores TEXT DEFAULT "[]", summary TEXT DEFAULT "", recommendations TEXT DEFAULT "", status TEXT DEFAULT "draft", source TEXT DEFAULT "", rawReportId TEXT DEFAULT "", rawData TEXT DEFAULT "", age INTEGER DEFAULT 0, grade TEXT DEFAULT "", gender TEXT DEFAULT "", createdAt TEXT DEFAULT (datetime('now')), updatedAt TEXT DEFAULT (datetime('now')));
-    `);
-    console.log('✅ SQLite 数据库已初始化, 路径:', dbPath);
-  }
+  const { Pool } = require('pg');
+  db = new Pool({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+  isPg = true;
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS teachers (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, gender TEXT DEFAULT '', phone TEXT DEFAULT '',
+      "hireDate" TEXT DEFAULT '', rank TEXT DEFAULT '',
+      subjects TEXT DEFAULT '[]', "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+    CREATE TABLE IF NOT EXISTS students (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL,
+      "parentName" TEXT DEFAULT '', "parentPhone" TEXT DEFAULT '', "birthDate" TEXT DEFAULT '',
+      age INTEGER DEFAULT 0,
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+    CREATE TABLE IF NOT EXISTS courses (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, subject TEXT DEFAULT '',
+      "teacherId" TEXT DEFAULT '', "teacherName" TEXT DEFAULT '',
+      "studentIds" TEXT DEFAULT '[]', "studentNames" TEXT DEFAULT '[]',
+      price REAL DEFAULT 0, "classHour" REAL DEFAULT 1, "totalClasses" INTEGER DEFAULT 1,
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+    CREATE TABLE IF NOT EXISTS class_records (
+      id TEXT PRIMARY KEY, "courseId" TEXT DEFAULT '', "courseName" TEXT DEFAULT '',
+      "teacherId" TEXT DEFAULT '', "teacherName" TEXT DEFAULT '',
+      "studentId" TEXT DEFAULT '', "studentName" TEXT DEFAULT '',
+      date TEXT DEFAULT '', "startTime" TEXT DEFAULT '', "endTime" TEXT DEFAULT '',
+      duration REAL DEFAULT 0, content TEXT DEFAULT '', homework TEXT DEFAULT '',
+      status TEXT DEFAULT 'completed', "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+    CREATE TABLE IF NOT EXISTS scale_templates (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT '',
+      description TEXT DEFAULT '', fields TEXT DEFAULT '[]',
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+    CREATE TABLE IF NOT EXISTS student_scale_records (
+      id TEXT PRIMARY KEY, "studentId" TEXT DEFAULT '', "studentName" TEXT DEFAULT '',
+      "scaleTemplateId" TEXT DEFAULT '', "scaleName" TEXT DEFAULT '',
+      category TEXT DEFAULT '', evaluator TEXT DEFAULT '',
+      "evaluationDate" TEXT DEFAULT '', scores TEXT DEFAULT '[]',
+      summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',
+      status TEXT DEFAULT 'draft',
+      source TEXT DEFAULT '', "rawReportId" TEXT DEFAULT '', "rawData" TEXT DEFAULT '',
+      age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+  `);
+  console.log('✅ PostgreSQL 数据库已连接');
 }
 
 // ==================== 辅助函数 ====================
@@ -142,21 +112,15 @@ function createCRUD(route, tableName, filterFields = []) {
       const params = [];
       for (const field of filterFields) {
         if (req.query[field]) {
-          conditions.push(isPg ? `"${field}" = $${params.length + 1}` : `${field} = ?`);
+          conditions.push(`"${field}" = $${params.length + 1}`);
           params.push(req.query[field]);
         }
       }
       if (conditions.length > 0) sql += ` WHERE ${conditions.join(' AND ')}`;
-      sql += isPg ? ` ORDER BY "createdAt" DESC` : ` ORDER BY createdAt DESC`;
+      sql += ` ORDER BY "createdAt" DESC`;
 
-      let rows;
-      if (isPg) {
-        const result = await db.query(sql, params);
-        rows = result.rows;
-      } else {
-        rows = db.prepare(sql).all(...params);
-      }
-      res.json(parseRows(rows));
+      const result = await db.query(sql, params);
+      res.json(parseRows(result.rows));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -164,13 +128,8 @@ function createCRUD(route, tableName, filterFields = []) {
 
   app.get(`/api/${route}/:id`, async (req, res) => {
     try {
-      let row;
-      if (isPg) {
-        const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [req.params.id]);
-        row = result.rows[0];
-      } else {
-        row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
-      }
+      const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [req.params.id]);
+      const row = result.rows[0];
       if (!row) return res.status(404).json({ error: '未找到' });
       res.json(parseRow(row));
     } catch (err) {
@@ -183,21 +142,14 @@ function createCRUD(route, tableName, filterFields = []) {
       const data = prepareSaveData(req.body);
       const id = data.id || generateId();
       const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
-      
-      if (isPg) {
-        const cols = columns.map(c => `"${c}"`).join(',');
-        const vals = columns.map((_, i) => `$${i + 1}`).join(',');
-        const result = await db.query(
-          `INSERT INTO ${tableName} (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
-          [id, ...columns.map(k => data[k])]
-        );
-        res.status(201).json(parseRow(result.rows[0]));
-      } else {
-        const values = columns.map(k => data[k]);
-        db.prepare(`INSERT INTO ${tableName} (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
-        const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(id);
-        res.status(201).json(parseRow(row));
-      }
+
+      const cols = columns.map(c => `"${c}"`).join(',');
+      const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+      const result = await db.query(
+        `INSERT INTO ${tableName} (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+        [id, ...columns.map(k => data[k])]
+      );
+      res.status(201).json(parseRow(result.rows[0]));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -207,34 +159,20 @@ function createCRUD(route, tableName, filterFields = []) {
     try {
       const data = prepareSaveData(req.body);
       const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id' && k !== 'createdAt');
-      
+
       if (columns.length === 0) {
-        if (isPg) {
-          const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [req.params.id]);
-          return res.json(parseRow(result.rows[0]));
-        } else {
-          const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
-          return res.json(parseRow(row));
-        }
+        const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [req.params.id]);
+        return res.json(parseRow(result.rows[0]));
       }
 
-      if (isPg) {
-        const setClause = columns.map((c, i) => `"${c}" = $${i + 1}`).join(',');
-        const values = columns.map(k => data[k]);
-        const result = await db.query(
-          `UPDATE ${tableName} SET ${setClause} WHERE id = $${columns.length + 1} RETURNING *`,
-          [...values, req.params.id]
-        );
-        if (!result.rows[0]) return res.status(404).json({ error: '未找到' });
-        res.json(parseRow(result.rows[0]));
-      } else {
-        const setClause = columns.map(k => `${k} = ?`).join(',');
-        const values = columns.map(k => data[k]);
-        db.prepare(`UPDATE ${tableName} SET ${setClause} WHERE id = ?`).run(...values, req.params.id);
-        const row = db.prepare(`SELECT * FROM ${tableName} WHERE id = ?`).get(req.params.id);
-        if (!row) return res.status(404).json({ error: '未找到' });
-        res.json(parseRow(row));
-      }
+      const setClause = columns.map((c, i) => `"${c}" = $${i + 1}`).join(',');
+      const values = columns.map(k => data[k]);
+      const result = await db.query(
+        `UPDATE ${tableName} SET ${setClause} WHERE id = $${columns.length + 1} RETURNING *`,
+        [...values, req.params.id]
+      );
+      if (!result.rows[0]) return res.status(404).json({ error: '未找到' });
+      res.json(parseRow(result.rows[0]));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -242,13 +180,8 @@ function createCRUD(route, tableName, filterFields = []) {
 
   app.delete(`/api/${route}/:id`, async (req, res) => {
     try {
-      if (isPg) {
-        const result = await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [req.params.id]);
-        if (result.rowCount === 0) return res.status(404).json({ error: '未找到' });
-      } else {
-        const result = db.prepare(`DELETE FROM ${tableName} WHERE id = ?`).run(req.params.id);
-        if (result.changes === 0) return res.status(404).json({ error: '未找到' });
-      }
+      const result = await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [req.params.id]);
+      if (result.rowCount === 0) return res.status(404).json({ error: '未找到' });
       res.json({ message: '删除成功' });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -275,48 +208,23 @@ initDb().then(() => {
         return res.status(400).json({ error: '学生列表不能为空' });
       }
 
-      if (isPg) {
-        const records = studentIds.map((sid, i) => ({
-          id: generateId(), courseId: courseId || '', courseName: courseName || '',
-          teacherId: teacherId || '', teacherName: teacherName || '',
-          studentId: sid || '', studentName: (studentNames && studentNames[i]) || '未知',
-          date: date || '', startTime: startTime || '', endTime: endTime || '',
-          duration: duration || 0, content: content || '', homework: homework || '',
-          status: status || 'completed',
-        }));
-        for (const r of records) {
-          await db.query(
-            `INSERT INTO class_records (id, "courseId", "courseName", "teacherId", "teacherName", "studentId", "studentName", date, "startTime", "endTime", duration, content, homework, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-            [r.id, r.courseId, r.courseName, r.teacherId, r.teacherName, r.studentId, r.studentName, r.date, r.startTime, r.endTime, r.duration, r.content, r.homework, r.status]
-          );
-        }
-        const ids = records.map(r => r.id);
-        const result = await db.query(`SELECT * FROM class_records WHERE id = ANY($1::text[])`, [ids]);
-        res.status(201).json(parseRows(result.rows));
-      } else {
-        const insert = db.prepare(`
-          INSERT INTO class_records (id, courseId, courseName, teacherId, teacherName, studentId, studentName, date, startTime, endTime, duration, content, homework, status, createdAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        `);
-        const savedIds = [];
-        const insertMany = db.transaction((items) => {
-          for (const item of items) {
-            insert.run(...Object.values(item));
-            savedIds.push(item.id);
-          }
-        });
-        const records = studentIds.map((sid, i) => ({
-          id: generateId(), courseId: courseId || '', courseName: courseName || '',
-          teacherId: teacherId || '', teacherName: teacherName || '',
-          studentId: sid || '', studentName: (studentNames && studentNames[i]) || '未知',
-          date: date || '', startTime: startTime || '', endTime: endTime || '',
-          duration: duration || 0, content: content || '', homework: homework || '',
-          status: status || 'completed',
-        }));
-        insertMany(records);
-        const saved = db.prepare(`SELECT * FROM class_records WHERE id IN (${savedIds.map(() => '?').join(',')})`).all(...savedIds);
-        res.status(201).json(parseRows(saved));
+      const records = studentIds.map((sid, i) => ({
+        id: generateId(), courseId: courseId || '', courseName: courseName || '',
+        teacherId: teacherId || '', teacherName: teacherName || '',
+        studentId: sid || '', studentName: (studentNames && studentNames[i]) || '未知',
+        date: date || '', startTime: startTime || '', endTime: endTime || '',
+        duration: duration || 0, content: content || '', homework: homework || '',
+        status: status || 'completed',
+      }));
+      for (const r of records) {
+        await db.query(
+          `INSERT INTO class_records (id, "courseId", "courseName", "teacherId", "teacherName", "studentId", "studentName", date, "startTime", "endTime", duration, content, homework, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+          [r.id, r.courseId, r.courseName, r.teacherId, r.teacherName, r.studentId, r.studentName, r.date, r.startTime, r.endTime, r.duration, r.content, r.homework, r.status]
+        );
       }
+      const ids = records.map(r => r.id);
+      const result = await db.query(`SELECT * FROM class_records WHERE id = ANY($1::text[])`, [ids]);
+      res.status(201).json(parseRows(result.rows));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -325,28 +233,20 @@ initDb().then(() => {
   // 仪表盘统计
   app.get('/api/stats', async (req, res) => {
     try {
-      let teachers, students, courses, records, recentRecords;
-      if (isPg) {
-        const [t, s, c, r, rr] = await Promise.all([
-          db.query('SELECT COUNT(*) as count FROM teachers'),
-          db.query('SELECT COUNT(*) as count FROM students'),
-          db.query('SELECT COUNT(*) as count FROM courses'),
-          db.query('SELECT COUNT(*) as count FROM class_records'),
-          db.query('SELECT * FROM class_records ORDER BY "createdAt" DESC LIMIT 5'),
-        ]);
-        teachers = t.rows[0].count;
-        students = s.rows[0].count;
-        courses = c.rows[0].count;
-        records = r.rows[0].count;
-        recentRecords = parseRows(rr.rows);
-      } else {
-        teachers = db.prepare('SELECT COUNT(*) as count FROM teachers').get().count;
-        students = db.prepare('SELECT COUNT(*) as count FROM students').get().count;
-        courses = db.prepare('SELECT COUNT(*) as count FROM courses').get().count;
-        records = db.prepare('SELECT COUNT(*) as count FROM class_records').get().count;
-        recentRecords = parseRows(db.prepare('SELECT * FROM class_records ORDER BY createdAt DESC LIMIT 5').all());
-      }
-      res.json({ teachers, students, courses, records, recentRecords });
+      const [t, s, c, r, rr] = await Promise.all([
+        db.query('SELECT COUNT(*) as count FROM teachers'),
+        db.query('SELECT COUNT(*) as count FROM students'),
+        db.query('SELECT COUNT(*) as count FROM courses'),
+        db.query('SELECT COUNT(*) as count FROM class_records'),
+        db.query('SELECT * FROM class_records ORDER BY "createdAt" DESC LIMIT 5'),
+      ]);
+      res.json({
+        teachers: t.rows[0].count,
+        students: s.rows[0].count,
+        courses: c.rows[0].count,
+        records: r.rows[0].count,
+        recentRecords: parseRows(rr.rows),
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -356,7 +256,7 @@ initDb().then(() => {
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'ok',
-      db: isPg ? 'postgresql' : 'sqlite',
+      db: 'postgresql',
       time: new Date().toISOString()
     });
   });
@@ -378,7 +278,7 @@ initDb().then(() => {
 
       app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 服务已启动: http://localhost:${PORT}`);
-        console.log(`📋 数据库: ${isPg ? 'PostgreSQL' : 'SQLite'}`);
+        console.log(`📋 数据库: PostgreSQL`);
       });
     }).catch(err => {
       console.error('❌ Next.js 启动失败:', err);
@@ -405,7 +305,7 @@ const assessmentSync = require('./assessment-sync');
 app.post('/api/weapp-sync', async (req, res) => {
   try {
     const { reports } = req.body;
-    
+
     if (!reports || !Array.isArray(reports) || reports.length === 0) {
       return res.status(400).json({ error: '缺少评估报告数据，请提供 reports 数组' });
     }
@@ -422,19 +322,13 @@ app.post('/api/weapp-sync', async (req, res) => {
         const id = data.id || generateId();
         const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
 
-        if (isPg) {
-          const cols = columns.map(c => `"${c}"`).join(',');
-          const vals = columns.map((_, i) => `$${i + 1}`).join(',');
-          const result = await db.query(
-            `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
-            [id, ...columns.map(k => data[k])]
-          );
-          results.push({ id: report.id, savedId: result.rows[0].id, success: true });
-        } else {
-          const values = columns.map(k => data[k]);
-          db.prepare(`INSERT INTO student_scale_records (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
-          results.push({ id: report.id, savedId: id, success: true });
-        }
+        const cols = columns.map(c => `"${c}"`).join(',');
+        const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+        const result = await db.query(
+          `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+          [id, ...columns.map(k => data[k])]
+        );
+        results.push({ id: report.id, savedId: result.rows[0].id, success: true });
 
         console.log(`✅ 同步成功: ${record.studentName} 的 ${record.scaleName}`);
       } catch (err) {
@@ -469,20 +363,13 @@ app.post('/api/weapp-sync/single', async (req, res) => {
     const id = data.id || generateId();
     const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
 
-    if (isPg) {
-      const cols = columns.map(c => `"${c}"`).join(',');
-      const vals = columns.map((_, i) => `$${i + 1}`).join(',');
-      const result = await db.query(
-        `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
-        [id, ...columns.map(k => data[k])]
-      );
-      res.status(201).json({ success: true, savedId: result.rows[0].id, record: parseRow(result.rows[0]) });
-    } else {
-      const values = columns.map(k => data[k]);
-      db.prepare(`INSERT INTO student_scale_records (id, ${columns.join(',')}) VALUES (?, ${columns.map(() => '?').join(',')})`).run(id, ...values);
-      const saved = db.prepare(`SELECT * FROM student_scale_records WHERE id = ?`).get(id);
-      res.status(201).json({ success: true, savedId: id, record: parseRow(saved) });
-    }
+    const cols = columns.map(c => `"${c}"`).join(',');
+    const vals = columns.map((_, i) => `$${i + 1}`).join(',');
+    const result = await db.query(
+      `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+      [id, ...columns.map(k => data[k])]
+    );
+    res.status(201).json({ success: true, savedId: result.rows[0].id, record: parseRow(result.rows[0]) });
 
     console.log(`✅ 单条同步成功: ${record.studentName} 的 ${record.scaleName}`);
   } catch (err) {
@@ -493,25 +380,17 @@ app.post('/api/weapp-sync/single', async (req, res) => {
 // 同步状态查询
 app.get('/api/weapp-sync/status', async (req, res) => {
   try {
-    let rows;
-    if (isPg) {
-      const result = await db.query(
-        `SELECT COUNT(*) as total FROM student_scale_records WHERE source = 'weapp_sensory'`
-      );
-      const synced = await db.query(
-        `SELECT * FROM student_scale_records WHERE source = 'weapp_sensory' ORDER BY "createdAt" DESC LIMIT 20`
-      );
-      rows = { total: parseInt(result.rows[0].total), records: parseRows(synced.rows) };
-    } else {
-      const total = db.prepare(`SELECT COUNT(*) as count FROM student_scale_records WHERE source = 'weapp_sensory'`).get().count;
-      const records = db.prepare(`SELECT * FROM student_scale_records WHERE source = 'weapp_sensory' ORDER BY createdAt DESC LIMIT 20`).all();
-      rows = { total, records: parseRows(records) };
-    }
+    const result = await db.query(
+      `SELECT COUNT(*) as total FROM student_scale_records WHERE source = 'weapp_sensory'`
+    );
+    const synced = await db.query(
+      `SELECT * FROM student_scale_records WHERE source = 'weapp_sensory' ORDER BY "createdAt" DESC LIMIT 20`
+    );
 
     res.json({
-      dbType: isPg ? 'postgresql' : 'sqlite',
-      syncedCount: rows.total,
-      recentSyncs: rows.records,
+      dbType: 'postgresql',
+      syncedCount: parseInt(result.rows[0].total),
+      recentSyncs: parseRows(synced.rows),
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

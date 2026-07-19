@@ -1,7 +1,7 @@
 {
   "name": "wlj",
   "version": "1.0.0",
-  "description": "未来家儿童能力发展中心 - 课程管理系统",
+  "description": "\u672a\u6765\u5bb6\u513f\u7ae5\u80fd\u529b\u53d1\u5c55\u4e2d\u5fc3 - \u8bfe\u7a0b\u7ba1\u7406\u7cfb\u7edf",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
@@ -9,13 +9,9 @@
     "start": "next start -H 0.0.0.0 -p 3001",
     "server": "node server/index.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "sync:remote": "node scripts/sync-to-remote.js",
-    "sync:local": "node scripts/sync-local-db.js",
-    "sync:scales": "node scripts/init-scales-remote.js",
-    "setup:pg": "node scripts/setup-postgresql.js"
+    "sync:scales": "node scripts/init-scales-remote.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.10.0",
     "docx": "^9.7.1",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
@@ -26,7 +22,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^20.0.0",
     "@types/pg": "^8.20.0",

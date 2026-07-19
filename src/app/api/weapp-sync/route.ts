@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, generateId, isPg } from '@/lib/api/crud';
+import { getDb, generateId } from '@/lib/api/crud';
 
 const scaleMap: Record<string, { name: string; category: string }> = {
   'sensory': { name: '感觉统合评估', category: '感统' },
@@ -80,16 +80,9 @@ async function saveRecord(record: any) {
   };
 
   const keys = Object.keys(fields);
-
-  if (isPg(db)) {
-    const cols = keys.map(c => `"${c}"`).join(',');
-    const vals = keys.map((_, i) => `$${i + 1}`).join(',');
-    await db.query(`INSERT INTO student_scale_records (${cols}) VALUES (${vals})`, Object.values(fields));
-  } else {
-    const cols = keys.join(',');
-    const ph = keys.map(() => '?').join(',');
-    db.prepare(`INSERT INTO student_scale_records (${cols}) VALUES (${ph})`).run(...Object.values(fields));
-  }
+  const cols = keys.map(c => `"${c}"`).join(',');
+  const vals = keys.map((_, i) => `$${i + 1}`).join(',');
+  await db.query(`INSERT INTO student_scale_records (${cols}) VALUES (${vals})`, Object.values(fields));
 
   return id;
 }
@@ -101,13 +94,10 @@ export async function POST(req: NextRequest) {
     let reports: any[] = [];
 
     if (Array.isArray(body)) {
-      // 直接传数组
       reports = body;
     } else if (body.reports && Array.isArray(body.reports)) {
-      // 传 { reports: [...] }
       reports = body.reports;
     } else if (body.scaleId) {
-      // 单个报告对象
       reports = [body];
     } else {
       return NextResponse.json(

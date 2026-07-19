@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/api/db'; import { isPg } from '@/lib/api/crud';
+import { getDb } from '@/lib/api/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,19 +15,11 @@ export async function POST(req: NextRequest) {
     const results: any[] = [];
 
     // 从 lesson_plans 表检索
-    let plans: any[];
-    if (isPg(db)) {
-      const res = await db.query(
-        `SELECT id, title, content FROM lesson_plans WHERE title ILIKE $1 OR content ILIKE $1 LIMIT $2`,
-        [`%${keyword}%`, maxResults]
-      );
-      plans = res.rows;
-    } else {
-      const stmt = db.prepare(
-        `SELECT id, title, content FROM lesson_plans WHERE title LIKE ? OR content LIKE ? LIMIT ?`
-      );
-      plans = stmt.all(`%${keyword}%`, `%${keyword}%`, maxResults);
-    }
+    const plansRes = await db.query(
+      `SELECT id, title, content FROM lesson_plans WHERE title ILIKE $1 OR content ILIKE $1 LIMIT $2`,
+      [`%${keyword}%`, maxResults]
+    );
+    const plans = plansRes.rows;
 
     plans.forEach((p: any) => {
       results.push({
@@ -40,19 +32,11 @@ export async function POST(req: NextRequest) {
     });
 
     // 也从 courses 表的阶段计划中检索
-    let courses: any[];
-    if (isPg(db)) {
-      const res = await db.query(
-        `SELECT id, name, stages FROM courses WHERE stages::text ILIKE $1 LIMIT $2`,
-        [`%${keyword}%`, maxResults]
-      );
-      courses = res.rows;
-    } else {
-      const stmt = db.prepare(
-        `SELECT id, name, stages FROM courses WHERE stages LIKE ? LIMIT ?`
-      );
-      courses = stmt.all(`%${keyword}%`, maxResults);
-    }
+    const coursesRes = await db.query(
+      `SELECT id, name, stages FROM courses WHERE stages::text ILIKE $1 LIMIT $2`,
+      [`%${keyword}%`, maxResults]
+    );
+    const courses = coursesRes.rows;
 
     courses.forEach((c: any) => {
       let stages: any[] = [];

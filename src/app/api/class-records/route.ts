@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHandlers, getDb, generateId, parseRows, isPg } from '@/lib/api/crud';
+import { createHandlers, getDb, generateId, parseRows } from '@/lib/api/crud';
 
 const baseHandlers = createHandlers('class_records');
 
@@ -44,32 +44,15 @@ async function handleBatchCreate(req: NextRequest) {
       status: 'completed',
     }));
 
-    if (isPg(db)) {
-      for (const r of records) {
-        await db.query(
-          `INSERT INTO class_records (id, "courseId", "courseName", "teacherId", "teacherName", "studentId", "studentName", date, "startTime", "endTime", duration, content, homework, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-          [r.id, r.courseId, r.courseName, r.teacherId, r.teacherName, r.studentId, r.studentName, r.date, r.startTime, r.endTime, r.duration, r.content, r.homework, r.status]
-        );
-      }
-      const ids = records.map((r: any) => r.id);
-      const result = await db.query(`SELECT * FROM class_records WHERE id = ANY($1::text[])`, [ids]);
-      return NextResponse.json(parseRows(result.rows), { status: 201 });
-    } else {
-      const insert = db.prepare(`
-        INSERT INTO class_records (id, courseId, courseName, teacherId, teacherName, studentId, studentName, date, startTime, endTime, duration, content, homework, status, createdAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `);
-      const savedIds: string[] = [];
-      const insertMany = db.transaction((items: any[]) => {
-        for (const item of items) {
-          insert.run(...Object.values(item));
-          savedIds.push(item.id);
-        }
-      });
-      insertMany(records);
-      const saved = db.prepare(`SELECT * FROM class_records WHERE id IN (${savedIds.map(() => '?').join(',')})`).all(...savedIds);
-      return NextResponse.json(parseRows(saved), { status: 201 });
+    for (const r of records) {
+      await db.query(
+        `INSERT INTO class_records (id, "courseId", "courseName", "teacherId", "teacherName", "studentId", "studentName", date, "startTime", "endTime", duration, content, homework, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        [r.id, r.courseId, r.courseName, r.teacherId, r.teacherName, r.studentId, r.studentName, r.date, r.startTime, r.endTime, r.duration, r.content, r.homework, r.status]
+      );
     }
+    const ids = records.map((r: any) => r.id);
+    const result = await db.query(`SELECT * FROM class_records WHERE id = ANY($1::text[])`, [ids]);
+    return NextResponse.json(parseRows(result.rows), { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
