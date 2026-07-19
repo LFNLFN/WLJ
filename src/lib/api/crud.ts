@@ -4,16 +4,13 @@ import { Pool } from 'pg';
 
 export { getDb, generateId, parseRow, parseRows, prepareSaveData, isPg };
 
-// 判断是否 PostgreSQL
+// 判断是否 PostgreSQL（更可靠的写法）
 function isPg(db: any): db is Pool {
   return db && 
          typeof db.query === 'function' && 
          typeof db.connect === 'function' && 
          typeof db.prepare !== 'function';
 }
-
-// 查询超时时间（毫秒）
-const QUERY_TIMEOUT = 10000;
 
 export function createHandlers(tableName: string, filterFields: string[] = []) {
   return {
@@ -38,24 +35,13 @@ export function createHandlers(tableName: string, filterFields: string[] = []) {
 
         let rows: any[];
         if (isPg(db)) {
-          // 设置查询超时
-          await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
           const result = await db.query(sql, params);
           rows = result.rows;
         } else {
-          rows = db.prepare(
-            sql.replace(/"([^"]+)"/g, '$1').replace(/\$\d+/g, '?')
-          ).all(...params);
+          rows = db.prepare(sql.replace(/"([^"]+)"/g, '$1').replace(/\$\d+/g, '?')).all(...params);
         }
         return NextResponse.json(parseRows(rows));
       } catch (err: any) {
-        // 区分超时错误和其他错误
-        if (err.code === '57014') {
-          return NextResponse.json(
-            { error: '数据库查询超时，请稍后重试' },
-            { status: 503 }
-          );
-        }
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
     },
@@ -69,7 +55,6 @@ export function createHandlers(tableName: string, filterFields: string[] = []) {
         const columns = Object.keys(data).filter(k => k !== 'id' && k !== '_id');
         
         if (isPg(db)) {
-          await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
           const cols = columns.map(c => `"${c}"`).join(',');
           const vals = columns.map((_, i) => `$${i + 2}`).join(',');
           const result = await db.query(
@@ -86,12 +71,6 @@ export function createHandlers(tableName: string, filterFields: string[] = []) {
           return NextResponse.json(parseRow(row), { status: 201 });
         }
       } catch (err: any) {
-        if (err.code === '57014') {
-          return NextResponse.json(
-            { error: '数据库操作超时，请稍后重试' },
-            { status: 503 }
-          );
-        }
         return NextResponse.json({ error: err.message }, { status: 500 });
       }
     },
@@ -103,7 +82,6 @@ export async function GET_byId(req: NextRequest, tableName: string, id: string) 
     const db = await getDb();
     let row: any;
     if (isPg(db)) {
-      await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
       const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [id]);
       row = result.rows[0];
     } else {
@@ -112,9 +90,6 @@ export async function GET_byId(req: NextRequest, tableName: string, id: string) 
     if (!row) return NextResponse.json({ error: '未找到' }, { status: 404 });
     return NextResponse.json(parseRow(row));
   } catch (err: any) {
-    if (err.code === '57014') {
-      return NextResponse.json({ error: '数据库查询超时' }, { status: 503 });
-    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -128,7 +103,6 @@ export async function PUT_byId(req: NextRequest, tableName: string, id: string) 
     
     if (columns.length === 0) {
       if (isPg(db)) {
-        await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
         const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [id]);
         return NextResponse.json(parseRow(result.rows[0]));
       } else {
@@ -138,7 +112,6 @@ export async function PUT_byId(req: NextRequest, tableName: string, id: string) 
     }
 
     if (isPg(db)) {
-      await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
       const setClause = columns.map((c, i) => `"${c}" = $${i + 1}`).join(',');
       const values = columns.map(k => data[k]);
       const result = await db.query(
@@ -156,9 +129,6 @@ export async function PUT_byId(req: NextRequest, tableName: string, id: string) 
       return NextResponse.json(parseRow(row));
     }
   } catch (err: any) {
-    if (err.code === '57014') {
-      return NextResponse.json({ error: '数据库更新超时' }, { status: 503 });
-    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -167,7 +137,6 @@ export async function DELETE_byId(req: NextRequest, tableName: string, id: strin
   try {
     const db = await getDb();
     if (isPg(db)) {
-      await db.query('SET statement_timeout = $1', [QUERY_TIMEOUT]);
       const result = await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [id]);
       if (result.rowCount === 0) return NextResponse.json({ error: '未找到' }, { status: 404 });
     } else {
@@ -176,9 +145,6 @@ export async function DELETE_byId(req: NextRequest, tableName: string, id: strin
     }
     return NextResponse.json({ message: '删除成功' });
   } catch (err: any) {
-    if (err.code === '57014') {
-      return NextResponse.json({ error: '数据库删除超时' }, { status: 503 });
-    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
