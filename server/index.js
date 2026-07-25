@@ -124,7 +124,7 @@ function createCRUD(route, tableName, filterFields = []) {
       res.json(parseRows(result.rows));
     } catch (err) {
       console.error(`获取 ${tableName} 列表失败:`, err.message);
-      res.json([]);
+      res.status(500).json({ error: err.message });
     }
   });
 
@@ -197,7 +197,9 @@ function createCRUD(route, tableName, filterFields = []) {
       res.status(500).json({ error: err.message });
     }
   });
-}// ==================== 初始化数据库并注册路由 ====================
+}
+
+// ==================== 初始化数据库并注册路由 ====================
 
 initDb().then(() => {
   // 注册 CRUD
