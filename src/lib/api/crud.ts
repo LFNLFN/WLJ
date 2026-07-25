@@ -33,7 +33,9 @@ export function createHandlers(tableName: string, filterFields: string[] = []) {
         const result = await db.query(sql, params);
         return NextResponse.json(parseRows(result.rows));
       } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        console.error(`获取 ${tableName} 列表失败:`, err.message);
+        // DB 失败时返回空数组，前端不会崩溃
+        return NextResponse.json([]);
       }
     },
 

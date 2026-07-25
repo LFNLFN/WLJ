@@ -105,6 +105,7 @@ function prepareSaveData(body) {
 // ==================== CRUD 工厂 ====================
 
 function createCRUD(route, tableName, filterFields = []) {
+  // 获取列表 - DB 失败时返回空数组 []，前端不会崩溃
   app.get(`/api/${route}`, async (req, res) => {
     try {
       let sql = `SELECT * FROM ${tableName}`;
@@ -122,10 +123,12 @@ function createCRUD(route, tableName, filterFields = []) {
       const result = await db.query(sql, params);
       res.json(parseRows(result.rows));
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error(`获取 ${tableName} 列表失败:`, err.message);
+      res.json([]);
     }
   });
 
+  // 获取单条
   app.get(`/api/${route}/:id`, async (req, res) => {
     try {
       const result = await db.query(`SELECT * FROM ${tableName} WHERE id = $1`, [req.params.id]);
@@ -133,10 +136,12 @@ function createCRUD(route, tableName, filterFields = []) {
       if (!row) return res.status(404).json({ error: '未找到' });
       res.json(parseRow(row));
     } catch (err) {
+      console.error(`获取 ${tableName} 详情失败:`, err.message);
       res.status(500).json({ error: err.message });
     }
   });
 
+  // 新增
   app.post(`/api/${route}`, async (req, res) => {
     try {
       const data = prepareSaveData(req.body);
@@ -151,10 +156,12 @@ function createCRUD(route, tableName, filterFields = []) {
       );
       res.status(201).json(parseRow(result.rows[0]));
     } catch (err) {
+      console.error(`创建 ${tableName} 失败:`, err.message);
       res.status(500).json({ error: err.message });
     }
   });
 
+  // 更新
   app.put(`/api/${route}/:id`, async (req, res) => {
     try {
       const data = prepareSaveData(req.body);
@@ -174,22 +181,23 @@ function createCRUD(route, tableName, filterFields = []) {
       if (!result.rows[0]) return res.status(404).json({ error: '未找到' });
       res.json(parseRow(result.rows[0]));
     } catch (err) {
+      console.error(`更新 ${tableName} 失败:`, err.message);
       res.status(500).json({ error: err.message });
     }
   });
 
+  // 删除
   app.delete(`/api/${route}/:id`, async (req, res) => {
     try {
       const result = await db.query(`DELETE FROM ${tableName} WHERE id = $1`, [req.params.id]);
       if (result.rowCount === 0) return res.status(404).json({ error: '未找到' });
       res.json({ message: '删除成功' });
     } catch (err) {
+      console.error(`删除 ${tableName} 失败:`, err.message);
       res.status(500).json({ error: err.message });
     }
   });
-}
-
-// ==================== 初始化数据库并注册路由 ====================
+}// ==================== 初始化数据库并注册路由 ====================
 
 initDb().then(() => {
   // 注册 CRUD
