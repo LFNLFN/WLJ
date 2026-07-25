@@ -44,7 +44,10 @@ export default function ScalesPage() {
 
   const loadData = () => {
     getScaleTemplates()
-      .then(setTemplates)
+      .then(data => {
+          if (Array.isArray(data)) setTemplates(data);
+          else { console.error("API返回格式错误:", data); setTemplates([]); }
+        })
       .catch(err => console.error('加载量表失败:', err));
   };
 

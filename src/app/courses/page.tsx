@@ -22,7 +22,10 @@ export default function CoursesPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
 
-  const loadData = () => getCourses().then(setCourses).catch(err => console.error('加载失败:', err));
+  const loadData = () => getCourses().then(data => {
+    if (Array.isArray(data)) setCourses(data);
+    else { console.error("API返回格式错误:", data); setCourses([]); }
+  }).catch(err => console.error('加载失败:', err));
 
   useEffect(() => { loadData(); }, []);
 

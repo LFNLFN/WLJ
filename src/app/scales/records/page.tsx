@@ -41,10 +41,16 @@ export default function ScaleRecordsPage() {
 
   const loadData = () => {
     getStudentScaleRecords()
-      .then(setRecords)
+      .then(data => {
+          if (Array.isArray(data)) setRecords(data);
+          else { console.error("API返回格式错误:", data); setRecords([]); }
+        })
       .catch(err => console.error('加载评估记录失败:', err));
     getStudents()
-      .then(setStudents)
+      .then(data => {
+          if (Array.isArray(data)) setStudents(data);
+          else { console.error("API返回格式错误:", data); setStudents([]); }
+        })
       .catch(console.error);
   };
 

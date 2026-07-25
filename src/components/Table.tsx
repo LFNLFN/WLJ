@@ -25,7 +25,10 @@ interface TableProps {
 export default function Table({ columns, data, onEdit, onDelete, rowKey, actions }: TableProps) {
   const hasActions = !!(onEdit || onDelete || (actions && actions.length > 0));
 
-  if (data.length === 0) {
+  // 防御性处理：确保 data 是数组
+  const safeData = Array.isArray(data) ? data : [];
+
+  if (safeData.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
         <p className="text-gray-400 text-lg mb-2">暂无数据</p>
@@ -56,7 +59,7 @@ export default function Table({ columns, data, onEdit, onDelete, rowKey, actions
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {data.map((row, idx) => {
+            {safeData.map((row, idx) => {
               const key = rowKey ? row[rowKey] : row.id;
               return (
               <tr key={key || idx} className="hover:bg-[#FFF5F0] transition-colors">

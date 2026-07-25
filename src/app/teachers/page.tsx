@@ -11,9 +11,24 @@ import type { Teacher } from '@/lib/types';
 export default function TeachersPage() {
   const router = useRouter();
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = () => {
-    getTeachers().then(setTeachers).catch(err => console.error('加载失败:', err));
+    getTeachers()
+      .then(data => {
+        // 确保 API 返回的是数组，否则兜底为空数组
+        if (Array.isArray(data)) {
+          setTeachers(data);
+        } else {
+          console.error('API 返回数据格式错误（期望数组）:', data);
+          setTeachers([]);
+          setError('数据格式异常，请稍后重试');
+        }
+      })
+      .catch(err => {
+        console.error('加载失败:', err);
+        setError('加载失败: ' + err.message);
+      });
   };
 
   useEffect(() => {
@@ -52,7 +67,13 @@ export default function TeachersPage() {
         <Header />
         <main className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-500">共 {teachers.length} 位教师</p>
+            <p className="text-gray-500">
+              {error ? (
+                <span className="text-red-500">{error}</span>
+              ) : (
+                `共 ${teachers.length} 位教师`
+              )}
+            </p>
             <button
               onClick={() => router.push('/teachers/new')}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
