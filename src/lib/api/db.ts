@@ -61,6 +61,21 @@ export function parseRow(row: any): any {
     }
   });
   result._id = row.id;
+  // 兼容全小写数据库列名 → 驼峰命名（student_scale_records 表使用全小写列名）
+  const camelCaseMap: Record<string, string> = {
+    studentname: 'studentName',
+    scalename: 'scaleName',
+    evaluationdate: 'evaluationDate',
+    rawreportid: 'rawReportId',
+    rawdata: 'rawData',
+    createdat: 'createdAt',
+    updatedat: 'updatedAt',
+  };
+  for (const [lower, camel] of Object.entries(camelCaseMap)) {
+    if (result[lower] !== undefined && result[camel] === undefined) {
+      result[camel] = result[lower];
+    }
+  }
   return result;
 }
 
