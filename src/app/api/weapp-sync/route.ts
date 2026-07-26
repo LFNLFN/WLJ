@@ -117,23 +117,9 @@ function convertReport(report: any) {
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 先检查表是否存在，如果存在但用错了引号导致大小写问题，直接重建
-  // 通过探测 status 列是否存在来判断表是否需要重建
-  try {
-    const testResult = await db.query("SELECT attname FROM pg_catalog.pg_attribute "
-      + "WHERE attrelid = 'student_scale_records'::regclass "
-      + "AND attname = 'status' AND attnum > 0 AND NOT attisdropped");
-    if (testResult.rows.length === 0) {
-      // 表存在但没有 status 列（大小写不匹配），重建
-      // 先获取所有数据（这里空表没有数据，直接重建）
-      await db.query("DROP TABLE IF EXISTS student_scale_records CASCADE");
-    }
-  } catch {
-    // 表不存在，会新建
-  }
-
-  // 创建表（使用全部小写无引号列名）
-  await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
+  // 先重建表（干净的全小写列名）
+  await db.query("DROP TABLE IF EXISTS student_scale_records CASCADE");
+  await db.query("CREATE TABLE student_scale_records ("
     + "id TEXT PRIMARY KEY,"
     + "studentname TEXT DEFAULT '',"
     + "scalename TEXT DEFAULT '',"
