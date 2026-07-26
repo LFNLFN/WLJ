@@ -8,7 +8,12 @@
 // ==================== 量表定义（与小程序端一致） ====================
 
 const SCALES = [
-  { id: 'sensory', name: '感觉统合评估', category: '感统' },
+  { id: 'sensory', name: '儿童感觉统合检查表', category: '感统' },
+  { id: 'sensory-4-5', name: '未来家感统系统发展评定量表 (4-5.5岁)', category: '感统' },
+  { id: 'attention', name: '未来家6-12岁注意力水平测评体系', category: '注意力' },
+  { id: 'attention-4-6', name: '未来家儿童注意力水平测评体系 (4-6岁)', category: '注意力' },
+  { id: 'attention-eval', name: '未来家注意力感统发展评定量表 (5.5-8岁)', category: '注意力' },
+  { id: 'autism', name: '自闭症儿童心理教育评核（第三版）', category: '行为' },
   { id: 'tml1', name: '症状与学习成绩评估表', category: '行为' },
   { id: 'tml2', name: '注意力缺陷-多动障碍(ADHD)评估量表', category: '注意力' },
   { id: 'tml3', name: '社交反应量表 (SRS)', category: '社交' },
@@ -294,7 +299,7 @@ function convertToStudentScaleRecord(report) {
   let recommendations = '';
 
   if (scaleId === 'sensory') {
-    // 感统评估：转换维度得分为 scores
+    // 感觉统合检查表（8维度）
     scores = DIMENSIONS.map(dim => {
       const score = report.scores?.[dim.id] || 3;
       const level = SCORE_LEVELS.find(l => l.value === Math.floor(score)) || SCORE_LEVELS[2];
@@ -305,10 +310,26 @@ function convertToStudentScaleRecord(report) {
         remark: level.label,
       };
     });
-    summary = `综合评分：${report.overallScore}分（${report.overallLevel}）`;
+    summary = `综合评分：${report.overallScore || report.overallLevel || '未知'}`;
     recommendations = report.overallAdvice || '';
+  } else if (['sensory-4-5', 'attention', 'attention-4-6', 'attention-eval', 'autism'].includes(scaleId)) {
+    // 其他评估量表：使用 results 或计算得分
+    const results = report.results || [];
+    if (results.length > 0) {
+      scores = results.map((r, idx) => ({
+        fieldId: r.id || `item_${idx}`,
+        fieldLabel: r.factorName || r.shortText || r.text || `维度${idx + 1}`,
+        value: r.score !== undefined ? r.score : (r.avgScore || 0),
+        remark: r.level || r.description || '',
+      }));
+    }
+    summary = `总分：${report.totalScore || 0}（${report.level || report.severity || '正常'}）`;
+    if (report.description) {
+      summary += ` - ${report.description}`;
+    }
+    recommendations = report.overallAdvice || report.description || '';
   } else {
-    // TML 量表：转换各题得分为 scores
+    // TML 量表（tml1, tml2, tml3）
     const itemsMap = { tml1: TML1_ITEMS, tml2: TML2_ITEMS, tml3: TML3_ITEMS };
     const items = itemsMap[scaleId] || [];
     const scoreOptions = TML_SCORE_OPTIONS[scaleId] || [];
