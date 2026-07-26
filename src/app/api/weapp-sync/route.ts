@@ -114,21 +114,20 @@ function convertReport(report: any) {
   return record;
 }
 
-async function getTableColumns(db: any): Promise<string[]> {
+// 自动修复缺失的列：插入失败时自动添加缺失列并重试
+async function ensureColumn(db: any, colName: string): Promise<void> {
   try {
-    const result = await db.query(
-      "SELECT column_name FROM information_schema.columns WHERE table_name = 'student_scale_records' ORDER BY ordinal_position"
-    );
-    return result.rows.map((r: any) => r.column_name);
-  } catch {
-    return [];
+    await db.query("ALTER TABLE student_scale_records ADD COLUMN \"" + colName + "\" TEXT DEFAULT ''");
+    console.log('✅ 自动添加缺失列:', colName);
+  } catch (e) {
+    // 列已存在或其他错误，忽略
   }
 }
 
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表存在，否则创建
+  // 确保表存在
   try {
     await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
   } catch {
@@ -144,15 +143,12 @@ async function saveRecord(record: any) {
       + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
       + ")");
   }
-  
-  // 动态获取实际列名，只插入存在的列
-  const existingCols = await getTableColumns(db);
-  
+
   const id = generateId();
   const now = new Date().toISOString();
 
-  // 所有可能的字段（使用小写列名兼容 PostgreSQL）
-  const allFields: Record<string, any> = {
+  // 尝试插入，缺失列时自动修复
+  const fields: Record<string, any> = {
     id,
     scalename: record.scaleName,
     studentname: record.studentName,
@@ -173,27 +169,35 @@ async function saveRecord(record: any) {
     updatedat: now,
   };
 
-  // 只插入表中实际存在的列
-  const fields: Record<string, any> = {};
-  for (const [key, val] of Object.entries(allFields)) {
-    if (existingCols.length === 0 || existingCols.includes(key)) {
-      fields[key] = val;
+  // 过滤掉 undefined 值
+  const cleanFields: Record<string, any> = {};
+  for (const [k, v] of Object.entries(fields)) {
+    if (v !== undefined && v !== null) {
+      cleanFields[k] = v;
     }
   }
 
-  if (Object.keys(fields).length === 0) {
-    throw new Error('表中没有任何可用列');
-  }
-
-  const keys = Object.keys(fields);
+  const keys = Object.keys(cleanFields);
   const cols = keys.join(',');
   const vals = keys.map((_, i) => '$' + (i + 1)).join(',');
-  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(fields));
-
+  
+  try {
+    await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
+  } catch (err: any) {
+    // 检查是否是缺失列错误
+    const match = err.message && err.message.match(/column "(.+?)" of relation/);
+    if (match) {
+      const missingCol = match[1];
+      await ensureColumn(db, missingCol);
+      // 重试插入（添加默认值）
+      await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
+    } else {
+      throw err;
+    }
+  }
+  
   return id;
 }
-
-// POST /api/weapp-sync — 支持批量 { reports: [...] }、数组、单条报告
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
