@@ -114,75 +114,58 @@ function convertReport(report: any) {
   return record;
 }
 
-// 确保表有正确的列（自动添加缺失的列）
-async function ensureTableHasColumns(db: any): Promise<void> {
-  const requiredCols = ['id', 'scalename', 'studentname', 'category', 'evaluator', 
-    'evaluationdate', 'scores', 'summary', 'recommendations', 'status', 'source',
-    'rawreportid', 'rawdata', 'age', 'grade', 'gender', 'createdat', 'updatedat'];
-  
-  // 获取现有列
-  let existingCols: string[] = [];
+// 直接用 SELECT * 探测列名，然后匹配插入
+async function getActualColumns(db: any): Promise<string[]> {
   try {
+    // 查询 pg_attribute 表获取列名（大小写不敏感）
     const result = await db.query(
-      "SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid = 'student_scale_records'::regclass "
-      + "AND attnum > 0 AND NOT attisdropped ORDER BY attnum"
+      "SELECT LOWER(attname) as colname FROM pg_catalog.pg_attribute "
+      + "WHERE attrelid IN ("
+      + "  SELECT oid FROM pg_catalog.pg_class WHERE LOWER(relname) = 'student_scale_records'"
+      + ") AND attnum > 0 AND NOT attisdropped ORDER BY attnum"
     );
-    existingCols = result.rows.map((r: any) => r.attname);
+    return result.rows.map((r: any) => r.colname);
   } catch {
-    // 表不存在，创建
+    // 如果 pg_catalog 查询失败，直接用 SELECT * LIMIT 0 探测
     try {
-      await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
-    } catch {
-      await createTable(db);
-      return;
-    }
-  }
-  
-  if (existingCols.length === 0) {
-    await createTable(db);
-    return;
-  }
-
-  // 用 pg_catalog 的大小写不敏感匹配检查每个必需列
-  const existingLower = existingCols.map((c: string) => c.toLowerCase());
-  
-  for (const col of requiredCols) {
-    if (!existingLower.includes(col.toLowerCase())) {
-      try {
-        await db.query("ALTER TABLE student_scale_records ADD COLUMN " + col + " TEXT DEFAULT ''");
-        console.log('✅ 添加列:', col);
-      } catch (e: any) {
-        console.warn('⚠️ 添加列失败:', col, e.message);
+      const result = await db.query("SELECT * FROM student_scale_records LIMIT 0");
+      if (result.fields) {
+        return result.fields.map((f: any) => f.name.toLowerCase());
       }
-    }
+    } catch (_) {}
+    return [];
   }
-}
-
-async function createTable(db: any): Promise<void> {
-  await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
-    + "id TEXT PRIMARY KEY, studentname TEXT DEFAULT '', scalename TEXT DEFAULT '',"
-    + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
-    + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
-    + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
-    + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
-    + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
-    + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
-    + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
-    + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
-    + ")");
 }
 
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表结构和列都存在
-  await ensureTableHasColumns(db);
-  
+  // 确保表存在
+  try {
+    await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
+  } catch {
+    await db.query("CREATE TABLE student_scale_records ("
+      + "id TEXT PRIMARY KEY, studentname TEXT DEFAULT '', scalename TEXT DEFAULT '',"
+      + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
+      + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
+      + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
+      + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
+      + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
+      + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
+      + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
+      + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
+      + ")");
+  }
+
   const id = generateId();
   const now = new Date().toISOString();
 
-  const fields: Record<string, any> = {
-    id,
+  // 获取实际列名
+  const existingCols = await getActualColumns(db);
+  
+  // 构建字段映射（列名以数据库实际为准）
+  const fieldMap: Record<string, any> = {
+    id: id,
     studentname: record.studentName,
     scalename: record.scaleName,
     category: record.category,
@@ -202,19 +185,26 @@ async function saveRecord(record: any) {
     updatedat: now,
   };
 
-  // 过滤掉 undefined 值
-  const cleanFields: Record<string, any> = {};
-  for (const [k, v] of Object.entries(fields)) {
-    if (v !== undefined && v !== null) {
-      cleanFields[k] = v;
+  // 只选择表中实际存在的列
+  const keys: string[] = [];
+  const values: any[] = [];
+  
+  for (const [key, val] of Object.entries(fieldMap)) {
+    if (val !== undefined && val !== null) {
+      if (existingCols.length === 0 || existingCols.includes(key)) {
+        keys.push(key);
+        values.push(val);
+      }
     }
   }
 
-  const keys = Object.keys(cleanFields);
+  if (keys.length === 0) {
+    throw new Error('没有可用列进行插入');
+  }
+
   const cols = keys.join(',');
-  const vals = keys.map((_, i) => '$' + (i + 1)).join(',');
-  
-  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
+  const placeholders = keys.map((_, i) => '$' + (i + 1)).join(',');
+  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + placeholders + ")", values);
   
   return id;
 }
