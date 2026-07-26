@@ -121,43 +121,43 @@ async function saveRecord(record: any) {
     // 确保 student_scale_records 表存在并具有正确的列
   await db.query(`CREATE TABLE IF NOT EXISTS student_scale_records (
     id TEXT PRIMARY KEY,
-    "studentId" TEXT DEFAULT '',
-    "studentName" TEXT DEFAULT '',
-    "scaleTemplateId" TEXT DEFAULT '',
-    "scaleName" TEXT DEFAULT '',
+    studentid TEXT DEFAULT '',
+    studentname TEXT DEFAULT '',
+    scaletemplateid TEXT DEFAULT '',
+    scalename TEXT DEFAULT '',
     category TEXT DEFAULT '',
     evaluator TEXT DEFAULT '',
-    "evaluationDate" TEXT DEFAULT '',
+    evaluationdate TEXT DEFAULT '',
     scores TEXT DEFAULT '[]',
     summary TEXT DEFAULT '',
     recommendations TEXT DEFAULT '',
     status TEXT DEFAULT 'draft',
     source TEXT DEFAULT '',
-    "rawReportId" TEXT DEFAULT '',
-    "rawData" TEXT DEFAULT '',
+    rawreportid TEXT DEFAULT '',
+    rawdata TEXT DEFAULT '',
     age INTEGER DEFAULT 0,
     grade TEXT DEFAULT '',
     gender TEXT DEFAULT '',
-    "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
-    "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+    updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
   )`);
   // 尝试添加可能缺失的列（兼容旧表）
   const migrations = [
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "scaleName" TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS scalename TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS studentname TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluator TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "evaluationDate" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluationdate TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS recommendations TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS rawreportid TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS rawdata TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''`,
     `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
   ];
   for (const sql of migrations) {
     try { await db.query(sql); } catch (_) {}
@@ -177,7 +177,7 @@ async function saveRecord(record: any) {
   };
 
   const keys = Object.keys(fields);
-  const cols = keys.map(c => `"${c}"`).join(',');
+  const cols = keys.join(',');
   const vals = keys.map((_, i) => `$${i + 1}`).join(',');
   await db.query(`INSERT INTO student_scale_records (${cols}) VALUES (${vals})`, Object.values(fields));
 
