@@ -21,21 +21,23 @@ const SCALES = [
 
 // 原始感统评估维度
 const DIMENSIONS = [
-  { id: 'vestibular', name: '前庭觉', icon: '🔄' },
-  { id: 'tactile', name: '触觉', icon: '🤲' },
-  { id: 'proprioceptive', name: '本体觉', icon: '💪' },
-  { id: 'visual', name: '视觉', icon: '👁️' },
-  { id: 'auditory', name: '听觉', icon: '👂' },
-  { id: 'olfactory', name: '嗅觉/味觉', icon: '👃' },
+  { id: '前庭平衡和大脑双侧分化', name: '前庭平衡和大脑双侧分化', category: '前庭' },
+  { id: '脑神经生理抑制状态', name: '脑神经生理抑制状态', category: '神经' },
+  { id: '触觉防御和脾气敏感状况', name: '触觉防御和脾气敏感状况', category: '触觉' },
+  { id: '发育期运动和日常操作运用', name: '发育期运动和日常操作运用', category: '运动' },
+  { id: '空间形态与视知觉', name: '空间形态与视知觉', category: '视觉' },
+  { id: '本体感 (重力不安全)', name: '本体感 (重力不安全)', category: '本体' },
+  { id: '学习、情绪与自我形象', name: '学习、情绪与自我形象', category: '情绪' },
+  { id: '心理承受压力及行为表现', name: '心理承受压力及行为表现', category: '行为' },
 ];
 
 // 评分等级
 const SCORE_LEVELS = [
-  { value: 1, label: '严重失调' },
-  { value: 2, label: '中度失调' },
+  { value: 5, label: '重度失调' },
+  { value: 4, label: '中度失调' },
   { value: 3, label: '轻度失调' },
-  { value: 4, label: '正常' },
-  { value: 5, label: '良好' },
+  { value: 2, label: '正常' },
+  { value: 1, label: '偏小' },
 ];
 
 // TML评分选项
@@ -300,18 +302,33 @@ function convertToStudentScaleRecord(report) {
 
   if (scaleId === 'sensory') {
     // 感觉统合检查表（8维度）
-    scores = DIMENSIONS.map(dim => {
-      const score = report.scores?.[dim.id] || 3;
-      const level = SCORE_LEVELS.find(l => l.value === Math.floor(score)) || SCORE_LEVELS[2];
-      return {
-        fieldId: dim.id,
-        fieldLabel: dim.name,
-        value: score,
-        remark: level.label,
-      };
-    });
-    summary = `综合评分：${report.overallScore || report.overallLevel || '未知'}`;
-    recommendations = report.overallAdvice || '';
+    // 优先使用 results 数组（小程序新版格式），其次使用 scores 对象
+    const results = report.results || [];
+    if (results.length >= 8) {
+      // 从 results 数组提取（小程序新版8维度评估）
+      scores = results.map((r, idx) => ({
+        fieldId: r.factorName || `dim_${idx}`,
+        fieldLabel: r.factorName || `维度${idx + 1}`,
+        value: r.avgScore || 0,
+        remark: r.level || r.description || '',
+      }));
+      summary = `综合评分：${report.overallScore || report.overallLevel || '未知'}`;
+      if (report.analysis) summary += ` | ${report.analysis}`;
+    } else {
+      // 从 scores 对象提取（其他格式）
+      scores = DIMENSIONS.map(dim => {
+        const score = report.scores?.[dim.id] || 3;
+        const level = SCORE_LEVELS.find(l => l.value === Math.floor(score)) || SCORE_LEVELS[2];
+        return {
+          fieldId: dim.id,
+          fieldLabel: dim.name,
+          value: score,
+          remark: level.label,
+        };
+      });
+      summary = `综合评分：${report.overallScore || report.overallLevel || '未知'}`;
+    }
+    recommendations = report.overallAdvice || report.suggestions || '';
   } else if (['sensory-4-5', 'attention', 'attention-4-6', 'attention-eval', 'autism'].includes(scaleId)) {
     // 其他评估量表：使用 results 或计算得分
     const results = report.results || [];
