@@ -117,9 +117,8 @@ function convertReport(report: any) {
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 先重建表（干净的全小写列名）
-  await db.query("DROP TABLE IF EXISTS student_scale_records CASCADE");
-  await db.query("CREATE TABLE student_scale_records ("
+  // 建表（如已存在则跳过，不删除数据）
+  await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
     + "id TEXT PRIMARY KEY,"
     + "studentname TEXT DEFAULT '',"
     + "scalename TEXT DEFAULT '',"

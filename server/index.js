@@ -68,6 +68,20 @@ async function initDb() {
       "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  // 迁移：补充 student_scale_records 可能缺失的列（兼容旧表结构）
+  try {
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "scaleName" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "studentId" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "scaleTemplateId" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "evaluationDate" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT ''`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`);
+    await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`);
+  } catch(e) {
+    console.log('迁移提示:', e.message);
+  }
   console.log('✅ PostgreSQL 数据库已连接');
 }
 
