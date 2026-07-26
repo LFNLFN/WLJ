@@ -53,6 +53,7 @@ function EditForm() {
   });
 
   const [scores, setScores] = useState<ScoreValue[]>([]);
+  const [rawData, setRawData] = useState<any>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -74,6 +75,11 @@ function EditForm() {
             status: record.status,
           });
           setScores(record.scores || []);
+          // 解析 rawData 中的题目详情
+          if (record.rawdata) {
+            const raw = typeof record.rawdata === 'string' ? JSON.parse(record.rawdata) : record.rawdata;
+            setRawData(raw);
+          }
         }
 
         const tmpls = await getScaleTemplates();
@@ -93,6 +99,111 @@ function EditForm() {
 
   const updateScore = (fieldId: string, value: string | number) => {
     setScores(prev => prev.map(s => (s.fieldId === fieldId ? { ...s, value } : s)));
+  };
+
+  // 渲染题目详情（支持 allResults / results / itemScores 等多种格式）
+  const renderQuestions = (raw: any) => {
+    // 收集所有题目数据
+    let items: any[] = [];
+
+    if (raw.allResults && Array.isArray(raw.allResults)) {
+      // 注意力等量表的逐题结果
+      items = raw.allResults.map((r: any, idx: number) => ({
+        index: idx + 1,
+        question: r.shortText || r.text || '',
+        answer: r.answer || '',
+        label: r.label || '',
+        score: r.score,
+      }));
+    } else if (raw.results && Array.isArray(raw.results)) {
+      // 感统评估的结果（按维度分组）
+      if (raw.results.length > 0 && raw.results[0].factorName) {
+        // 新版8维度格式
+        return (
+          <div className="space-y-4">
+            {raw.results.map((r: any, idx: number) => (
+              <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">{r.factorName || '维度' + (idx + 1)}</span>
+                  <span className="text-sm font-bold" style={{ color: (r.avgScore || 0) < 3 ? '#f56c6c' : '#67c23a' }}>
+                    {r.avgScore || 0} 分
+                  </span>
+                </div>
+                {r.level && <p className="text-xs text-gray-500 mt-1">{r.level}</p>}
+                {r.description && <p className="text-xs text-gray-500 mt-1">{r.description}</p>}
+              </div>
+            ))}
+          </div>
+        );
+      } else {
+        items = raw.results.map((r: any, idx: number) => ({
+          index: idx + 1,
+          question: r.shortText || r.text || r.factorName || '',
+          answer: r.answer || '',
+          label: r.label || r.description || '',
+          score: r.score ?? r.avgScore,
+        }));
+      }
+    } else if (raw.itemScores && Array.isArray(raw.itemScores)) {
+      // TML量表的逐题得分
+      items = raw.itemScores.map((r: any, idx: number) => ({
+        index: r.number || (idx + 1),
+        question: r.text || '',
+        answer: r.score !== null && r.score !== undefined ? String(r.score) : '未答',
+        label: '',
+        score: r.score,
+      }));
+    } else if (raw.answers && typeof raw.answers === 'object') {
+      // 最简格式：只有 answers 对象
+      items = Object.entries(raw.answers).map(([key, val], idx) => ({
+        index: idx + 1,
+        question: '',
+        answer: String(val),
+        label: '',
+        score: null,
+      }));
+    }
+
+    if (items.length === 0) {
+      return <p className="text-sm text-gray-400">无详细答题数据</p>;
+    }
+
+    return (
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {items.map((item, idx) => (
+          <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex items-start gap-2">
+              <span className="text-xs text-gray-400 font-mono min-w-[1.5rem]">{item.index}.</span>
+              <div className="flex-1 min-w-0">
+                {item.question && (
+                  <p className="text-sm text-gray-700 mb-1">{item.question}</p>
+                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {item.answer && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                      回答：{item.answer}
+                    </span>
+                  )}
+                  {item.label && (
+                    <span className="text-xs text-gray-500">{item.label}</span>
+                  )}
+                  {item.score !== null && item.score !== undefined && (
+                    <span className="text-xs px-2 py-0.5 rounded font-medium"
+                      style={{
+                        backgroundColor: (item.score as number) >= 3 ? '#fef0f0' : '#f0f9eb',
+                        color: (item.score as number) >= 3 ? '#f56c6c' : '#67c23a'
+                      }}
+                    >
+                      得分：{item.score}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,6 +305,35 @@ function EditForm() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* 答题详情（来自小程序 rawData） */}
+      {rawData && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">📝 答题详情</h3>
+          <div className="space-y-3">
+            {/* 总览信息 */}
+            <div className="flex flex-wrap gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+              {rawData.totalScore !== undefined && (
+                <span className="text-sm">总分：<strong>{rawData.totalScore}</strong> / {rawData.maxScore || '-'}</span>
+              )}
+              {rawData.percentage !== undefined && (
+                <span className="text-sm">得分率：<strong>{rawData.percentage}%</strong></span>
+              )}
+              {rawData.scoreDesc && (
+                <span className="text-sm">结论：<strong>{rawData.scoreDesc}</strong></span>
+              )}
+              {rawData.severity && (
+                <span className="text-sm">等级：<strong>{rawData.severity}</strong></span>
+              )}
+              {rawData.overallLevel && (
+                <span className="text-sm">等级：<strong>{rawData.overallLevel}</strong></span>
+              )}
+            </div>
+            {/* 逐题展示 */}
+            {renderQuestions(rawData)}
           </div>
         </div>
       )}

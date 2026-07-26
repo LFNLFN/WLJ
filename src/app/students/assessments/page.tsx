@@ -17,17 +17,17 @@ type StudentScaleRecord = {
   _id: string;
   id: string;
   studentId: string;
-  studentName: string;
+  studentname: string;
   scaleTemplateId: string;
-  scaleName: string;
+  scalename: string;
   category: string;
   evaluator: string;
-  evaluationDate: string;
+  evaluationdate: string;
   scores: ScaleScore[];
   summary: string;
   recommendations: string;
   status: 'draft' | 'completed';
-  createdAt: string;
+  createdat: string;
 };
 
 const categoryColors: Record<string, string> = {
@@ -254,7 +254,7 @@ export default function StudentAssessmentsPage() {
               <p className="text-sm text-gray-500">最近评估</p>
               <p className="text-sm font-medium text-gray-700 mt-1">
                 {allRecords.length > 0
-                  ? new Date(allRecords[0].evaluationDate).toLocaleDateString('zh-CN')
+                  ? new Date(allRecords[0].evaluationdate).toLocaleDateString('zh-CN')
                   : '暂无'}
               </p>
             </div>
@@ -318,7 +318,7 @@ export default function StudentAssessmentsPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className={`text-xs font-medium truncate ${isSelected ? 'text-[#F08020]' : 'text-gray-700'}`}>
-                                    {new Date(record.evaluationDate).toLocaleDateString('zh-CN')}
+                                    {new Date(record.evaluationdate).toLocaleDateString('zh-CN')}
                                   </p>
                                   <p className="text-[10px] text-gray-400 truncate">
                                     {record.evaluator || '未填评估人'}
@@ -381,13 +381,13 @@ export default function StudentAssessmentsPage() {
                         <div>
                           <span className="text-gray-400">评估日期：</span>
                           <span className="text-gray-700 font-medium">
-                            {new Date(selectedRecord.evaluationDate).toLocaleDateString('zh-CN')}
+                            {new Date(selectedRecord.evaluationdate).toLocaleDateString('zh-CN')}
                           </span>
                         </div>
                         <div>
                           <span className="text-gray-400">记录时间：</span>
                           <span className="text-gray-700 font-medium">
-                            {new Date(selectedRecord.createdAt).toLocaleDateString('zh-CN')}
+                            {new Date(selectedRecord.createdat).toLocaleDateString('zh-CN')}
                           </span>
                         </div>
                       </div>

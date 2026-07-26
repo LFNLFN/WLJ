@@ -12,6 +12,7 @@ type StudentScaleRecord = {
   _id: string;
   id: string;
   studentname: string;
+  studentId: string;
   scalename: string;
   category: string;
   evaluator: string;
@@ -84,17 +85,7 @@ export default function ScaleRecordsPage() {
       label: '评估日期',
       render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-',
     },
-    {
-      key: 'status',
-      label: '状态',
-      render: (val: string) => (
-        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-          val === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-        }`}>
-          {val === 'completed' ? '已完成' : '草稿'}
-        </span>
-      ),
-    },
+
     {
       key: 'createdat',
       label: '记录时间',
@@ -124,8 +115,7 @@ export default function ScaleRecordsPage() {
           {/* 统计卡片 */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <Card title="评估总次数" value={records.length} icon="📊" color="bg-purple-50" />
-            <Card title="已完成" value={records.filter(r => r.status === 'completed').length} icon="✅" color="bg-green-50" />
-            <Card title="草稿" value={records.filter(r => r.status === 'draft').length} icon="📝" color="bg-yellow-50" />
+
             <Card title="涉及学生" value={new Set(records.map(r => r.studentId)).size} icon="👦" color="bg-blue-50" />
           </div>
 

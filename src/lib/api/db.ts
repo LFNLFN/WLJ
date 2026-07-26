@@ -55,7 +55,7 @@ export function generateId(): string {
 export function parseRow(row: any): any {
   if (!row) return null;
   const result = { ...row };
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'lessonPlanIds', 'lessonPlanTitles', 'stages'].forEach((field) => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'lessonPlanIds', 'lessonPlanTitles', 'stages', 'rawdata'].forEach((field) => {
     if (typeof result[field] === 'string') {
       try { result[field] = JSON.parse(result[field]); } catch (e) { result[field] = []; }
     }
@@ -86,7 +86,7 @@ export function parseRows(rows: any[]): any[] {
 export function prepareSaveData(body: any): any {
   const data = { ...body };
   if (data._id) { data.id = data._id; delete data._id; }
-  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'lessonPlanIds', 'lessonPlanTitles', 'stages'].forEach((field) => {
+  ['subjects', 'studentIds', 'studentNames', 'fields', 'scores', 'lessonPlanIds', 'lessonPlanTitles', 'stages', 'rawdata'].forEach((field) => {
     if (data[field] && Array.isArray(data[field])) data[field] = JSON.stringify(data[field]);
   });
   return data;
