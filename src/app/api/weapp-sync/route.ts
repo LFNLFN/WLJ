@@ -114,44 +114,77 @@ function convertReport(report: any) {
   return record;
 }
 
-// 自动修复缺失的列：插入失败时自动添加缺失列并重试
-async function ensureColumn(db: any, colName: string): Promise<void> {
+// 确保表有正确的列（自动添加缺失的列）
+async function ensureTableHasColumns(db: any): Promise<void> {
+  const requiredCols = ['id', 'scalename', 'studentname', 'category', 'evaluator', 
+    'evaluationdate', 'scores', 'summary', 'recommendations', 'status', 'source',
+    'rawreportid', 'rawdata', 'age', 'grade', 'gender', 'createdat', 'updatedat'];
+  
+  // 获取现有列
+  let existingCols: string[] = [];
   try {
-    await db.query("ALTER TABLE student_scale_records ADD COLUMN \"" + colName + "\" TEXT DEFAULT ''");
-    console.log('✅ 自动添加缺失列:', colName);
-  } catch (e) {
-    // 列已存在或其他错误，忽略
+    const result = await db.query(
+      "SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid = 'student_scale_records'::regclass "
+      + "AND attnum > 0 AND NOT attisdropped ORDER BY attnum"
+    );
+    existingCols = result.rows.map((r: any) => r.attname);
+  } catch {
+    // 表不存在，创建
+    try {
+      await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
+    } catch {
+      await createTable(db);
+      return;
+    }
   }
+  
+  if (existingCols.length === 0) {
+    await createTable(db);
+    return;
+  }
+
+  // 用 pg_catalog 的大小写不敏感匹配检查每个必需列
+  const existingLower = existingCols.map((c: string) => c.toLowerCase());
+  
+  for (const col of requiredCols) {
+    if (!existingLower.includes(col.toLowerCase())) {
+      try {
+        await db.query("ALTER TABLE student_scale_records ADD COLUMN " + col + " TEXT DEFAULT ''");
+        console.log('✅ 添加列:', col);
+      } catch (e: any) {
+        console.warn('⚠️ 添加列失败:', col, e.message);
+      }
+    }
+  }
+}
+
+async function createTable(db: any): Promise<void> {
+  await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
+    + "id TEXT PRIMARY KEY, studentname TEXT DEFAULT '', scalename TEXT DEFAULT '',"
+    + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
+    + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
+    + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
+    + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
+    + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
+    + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
+    + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
+    + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
+    + ")");
 }
 
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表存在
-  try {
-    await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
-  } catch {
-    await db.query("CREATE TABLE student_scale_records ("
-      + "id TEXT PRIMARY KEY, scalename TEXT DEFAULT '', studentname TEXT DEFAULT '',"
-      + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
-      + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
-      + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
-      + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
-      + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
-      + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
-      + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
-      + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
-      + ")");
-  }
-
+  // 确保表结构和列都存在
+  await ensureTableHasColumns(db);
+  
   const id = generateId();
   const now = new Date().toISOString();
 
-  // 尝试插入，缺失列时自动修复
   const fields: Record<string, any> = {
     id,
-    scalename: record.scaleName,
     studentname: record.studentName,
+    scalename: record.scaleName,
     category: record.category,
     evaluator: record.evaluator,
     evaluationdate: record.evaluationDate,
@@ -181,24 +214,7 @@ async function saveRecord(record: any) {
   const cols = keys.join(',');
   const vals = keys.map((_, i) => '$' + (i + 1)).join(',');
   
-  // 循环重试：一次可能缺失多列
-  let maxRetries = 5;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
-      break; // 成功，跳出循环
-    } catch (err: any) {
-      if (attempt === maxRetries) throw err; // 重试耗尽
-      const match = err.message && err.message.match(/column "(.+?)" of relation/);
-      if (match) {
-        const missingCol = match[1];
-        await ensureColumn(db, missingCol);
-        // 继续循环重试
-      } else {
-        throw err; // 非缺失列错误，直接抛出
-      }
-    }
-  }
+  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
   
   return id;
 }
