@@ -114,29 +114,6 @@ function convertReport(report: any) {
   return record;
 }
 
-// 直接用 SELECT * 探测列名，然后匹配插入
-async function getActualColumns(db: any): Promise<string[]> {
-  try {
-    // 查询 pg_attribute 表获取列名（大小写不敏感）
-    const result = await db.query(
-      "SELECT LOWER(attname) as colname FROM pg_catalog.pg_attribute "
-      + "WHERE attrelid IN ("
-      + "  SELECT oid FROM pg_catalog.pg_class WHERE LOWER(relname) = 'student_scale_records'"
-      + ") AND attnum > 0 AND NOT attisdropped ORDER BY attnum"
-    );
-    return result.rows.map((r: any) => r.colname);
-  } catch {
-    // 如果 pg_catalog 查询失败，直接用 SELECT * LIMIT 0 探测
-    try {
-      const result = await db.query("SELECT * FROM student_scale_records LIMIT 0");
-      if (result.fields) {
-        return result.fields.map((f: any) => f.name.toLowerCase());
-      }
-    } catch (_) {}
-    return [];
-  }
-}
-
 async function saveRecord(record: any) {
   const db = await getDb();
   
@@ -144,7 +121,7 @@ async function saveRecord(record: any) {
   try {
     await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
   } catch {
-    await db.query("CREATE TABLE student_scale_records ("
+    await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
       + "id TEXT PRIMARY KEY, studentname TEXT DEFAULT '', scalename TEXT DEFAULT '',"
       + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
       + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
@@ -157,54 +134,54 @@ async function saveRecord(record: any) {
       + ")");
   }
 
+  // 不管表是否存在，暴力添加所有需要的列
+  // ALTER TABLE ADD COLUMN IF NOT EXISTS 在列已存在时不会报错
+  const colDefs = [
+    "ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft'",
+    "ADD COLUMN IF NOT EXISTS studentname TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS scalename TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS evaluator TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS evaluationdate TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS scores TEXT DEFAULT '[]'",
+    "ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS recommendations TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS rawreportid TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS rawdata TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0",
+    "ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''",
+    "ADD COLUMN IF NOT EXISTS createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')",
+    "ADD COLUMN IF NOT EXISTS updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')",
+  ];
+  for (const def of colDefs) {
+    try { await db.query("ALTER TABLE student_scale_records " + def); } catch (_) {}
+  }
+
   const id = generateId();
   const now = new Date().toISOString();
 
-  // 获取实际列名
-  const existingCols = await getActualColumns(db);
-  
-  // 构建字段映射（列名以数据库实际为准）
-  const fieldMap: Record<string, any> = {
-    id: id,
-    studentname: record.studentName,
-    scalename: record.scaleName,
-    category: record.category,
-    evaluator: record.evaluator,
-    evaluationdate: record.evaluationDate,
-    scores: JSON.stringify(record.scores || []),
-    summary: record.summary,
-    recommendations: record.recommendations,
-    status: record.status,
-    source: record.source,
-    rawreportid: record.rawReportId,
-    rawdata: record.rawData,
-    age: record.age,
-    grade: record.grade,
-    gender: record.gender,
-    createdat: now,
-    updatedat: now,
+  const fields: Record<string, any> = {
+    id, studentname: record.studentName, scalename: record.scaleName,
+    category: record.category, evaluator: record.evaluator,
+    evaluationdate: record.evaluationDate, scores: JSON.stringify(record.scores || []),
+    summary: record.summary, recommendations: record.recommendations,
+    status: record.status, source: record.source,
+    rawreportid: record.rawReportId, rawdata: record.rawData,
+    age: record.age, grade: record.grade, gender: record.gender,
+    createdat: now, updatedat: now,
   };
 
-  // 只选择表中实际存在的列
-  const keys: string[] = [];
-  const values: any[] = [];
-  
-  for (const [key, val] of Object.entries(fieldMap)) {
-    if (val !== undefined && val !== null) {
-      if (existingCols.length === 0 || existingCols.includes(key)) {
-        keys.push(key);
-        values.push(val);
-      }
-    }
+  const cleanFields: Record<string, any> = {};
+  for (const [k, v] of Object.entries(fields)) {
+    if (v !== undefined && v !== null) cleanFields[k] = v;
   }
 
-  if (keys.length === 0) {
-    throw new Error('没有可用列进行插入');
-  }
-
+  const keys = Object.keys(cleanFields);
   const cols = keys.join(',');
   const placeholders = keys.map((_, i) => '$' + (i + 1)).join(',');
-  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + placeholders + ")", values);
+  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + placeholders + ")", Object.values(cleanFields));
   
   return id;
 }
