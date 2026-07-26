@@ -117,47 +117,42 @@ function convertReport(report: any) {
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表存在
+  // 先检查表是否存在，如果存在但用错了引号导致大小写问题，直接重建
+  // 通过探测 status 列是否存在来判断表是否需要重建
   try {
-    await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
+    const testResult = await db.query("SELECT attname FROM pg_catalog.pg_attribute "
+      + "WHERE attrelid = 'student_scale_records'::regclass "
+      + "AND attname = 'status' AND attnum > 0 AND NOT attisdropped");
+    if (testResult.rows.length === 0) {
+      // 表存在但没有 status 列（大小写不匹配），重建
+      // 先获取所有数据（这里空表没有数据，直接重建）
+      await db.query("DROP TABLE IF EXISTS student_scale_records CASCADE");
+    }
   } catch {
-    await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
-      + "id TEXT PRIMARY KEY, studentname TEXT DEFAULT '', scalename TEXT DEFAULT '',"
-      + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
-      + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
-      + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
-      + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
-      + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
-      + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
-      + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
-      + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
-      + ")");
+    // 表不存在，会新建
   }
 
-  // 不管表是否存在，暴力添加所有需要的列
-  // ALTER TABLE ADD COLUMN IF NOT EXISTS 在列已存在时不会报错
-  const colDefs = [
-    "ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'draft'",
-    "ADD COLUMN IF NOT EXISTS studentname TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS scalename TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS evaluator TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS evaluationdate TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS scores TEXT DEFAULT '[]'",
-    "ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS recommendations TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS rawreportid TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS rawdata TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0",
-    "ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''",
-    "ADD COLUMN IF NOT EXISTS createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')",
-    "ADD COLUMN IF NOT EXISTS updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')",
-  ];
-  for (const def of colDefs) {
-    try { await db.query("ALTER TABLE student_scale_records " + def); } catch (_) {}
-  }
+  // 创建表（使用全部小写无引号列名）
+  await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
+    + "id TEXT PRIMARY KEY,"
+    + "studentname TEXT DEFAULT '',"
+    + "scalename TEXT DEFAULT '',"
+    + "category TEXT DEFAULT '',"
+    + "evaluator TEXT DEFAULT '',"
+    + "evaluationdate TEXT DEFAULT '',"
+    + "scores TEXT DEFAULT '[]',"
+    + "summary TEXT DEFAULT '',"
+    + "recommendations TEXT DEFAULT '',"
+    + "status TEXT DEFAULT 'draft',"
+    + "source TEXT DEFAULT '',"
+    + "rawreportid TEXT DEFAULT '',"
+    + "rawdata TEXT DEFAULT '',"
+    + "age INTEGER DEFAULT 0,"
+    + "grade TEXT DEFAULT '',"
+    + "gender TEXT DEFAULT '',"
+    + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
+    + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
+    + ")");
 
   const id = generateId();
   const now = new Date().toISOString();
