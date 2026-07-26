@@ -116,6 +116,33 @@ function convertReport(report: any) {
 
 async function saveRecord(record: any) {
   const db = await getDb();
+  
+  // 确保表结构存在（兼容首次部署和表结构变更）
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS student_scale_records (
+      id TEXT PRIMARY KEY,
+      "studentId" TEXT DEFAULT '',
+      "studentName" TEXT DEFAULT '',
+      "scaleTemplateId" TEXT DEFAULT '',
+      "scaleName" TEXT DEFAULT '',
+      category TEXT DEFAULT '',
+      evaluator TEXT DEFAULT '',
+      "evaluationDate" TEXT DEFAULT '',
+      scores TEXT DEFAULT '[]',
+      summary TEXT DEFAULT '',
+      recommendations TEXT DEFAULT '',
+      status TEXT DEFAULT 'draft',
+      source TEXT DEFAULT '',
+      "rawReportId" TEXT DEFAULT '',
+      "rawData" TEXT DEFAULT '',
+      age INTEGER DEFAULT 0,
+      grade TEXT DEFAULT '',
+      gender TEXT DEFAULT '',
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    )
+  `);
+
   const id = generateId();
   const now = new Date().toISOString();
 
