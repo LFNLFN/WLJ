@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudents, getScaleTemplates, saveStudentScaleRecord } from '@/lib/api';
+import { getStudents, getScaleTemplates, saveStudent, saveStudentScaleRecord } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 type ScaleField = {
@@ -59,6 +59,11 @@ export default function NewScaleRecordPage() {
     recommendations: '',
     status: 'completed' as 'draft' | 'completed',
   });
+
+  // 新建学生
+  const [showNewStudent, setShowNewStudent] = useState(false);
+  const [newStudent, setNewStudent] = useState({ name: '', age: '', gender: '', parentName: '', parentPhone: '' });
+  const [savingNewStudent, setSavingNewStudent] = useState(false);
 
   const [scores, setScores] = useState<ScoreValue[]>([]);
 
@@ -151,6 +156,32 @@ export default function NewScaleRecordPage() {
   };
 
   const isSrsScale = (name: string) => name.includes('社交反应量表') || name.includes('SRS');
+
+  const handleSaveNewStudent = async () => {
+    if (!newStudent.name.trim()) return;
+    setSavingNewStudent(true);
+    try {
+      const saved = await saveStudent({
+        name: newStudent.name.trim(),
+        age: parseInt(newStudent.age) || 0,
+        gender: newStudent.gender,
+        parentName: newStudent.parentName,
+        parentPhone: newStudent.parentPhone,
+      });
+      // 重新加载学生列表
+      const updatedStudents = await getStudents();
+      setStudents(updatedStudents);
+      // 自动选中新学生
+      const newId = (saved as any)._id || (saved as any).id;
+      setForm(prev => ({ ...prev, studentId: newId, studentName: newStudent.name.trim() }));
+      setShowNewStudent(false);
+      setNewStudent({ name: '', age: '', gender: '', parentName: '', parentPhone: '' });
+    } catch (err: any) {
+      alert('保存学生失败: ' + (err.message || ''));
+    } finally {
+      setSavingNewStudent(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
