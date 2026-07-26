@@ -110,7 +110,7 @@ function EditForm() {
       // 注意力等量表的逐题结果
       items = raw.allResults.map((r: any, idx: number) => ({
         index: idx + 1,
-        question: r.shortText || r.text || '',
+        question: r.text || r.shortText || '',
         answer: r.answer || '',
         label: r.label || '',
         score: r.score,
@@ -138,7 +138,7 @@ function EditForm() {
       } else {
         items = raw.results.map((r: any, idx: number) => ({
           index: idx + 1,
-          question: r.shortText || r.text || r.factorName || '',
+          question: r.text || r.shortText || r.factorName || '',
           answer: r.answer || '',
           label: r.label || r.description || '',
           score: r.score ?? r.avgScore,
