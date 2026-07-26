@@ -181,18 +181,22 @@ async function saveRecord(record: any) {
   const cols = keys.join(',');
   const vals = keys.map((_, i) => '$' + (i + 1)).join(',');
   
-  try {
-    await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
-  } catch (err: any) {
-    // 检查是否是缺失列错误
-    const match = err.message && err.message.match(/column "(.+?)" of relation/);
-    if (match) {
-      const missingCol = match[1];
-      await ensureColumn(db, missingCol);
-      // 重试插入（添加默认值）
+  // 循环重试：一次可能缺失多列
+  let maxRetries = 5;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
       await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(cleanFields));
-    } else {
-      throw err;
+      break; // 成功，跳出循环
+    } catch (err: any) {
+      if (attempt === maxRetries) throw err; // 重试耗尽
+      const match = err.message && err.message.match(/column "(.+?)" of relation/);
+      if (match) {
+        const missingCol = match[1];
+        await ensureColumn(db, missingCol);
+        // 继续循环重试
+      } else {
+        throw err; // 非缺失列错误，直接抛出
+      }
     }
   }
   
