@@ -114,72 +114,81 @@ function convertReport(report: any) {
   return record;
 }
 
+async function getTableColumns(db: any): Promise<string[]> {
+  try {
+    const result = await db.query(
+      "SELECT column_name FROM information_schema.columns WHERE table_name = 'student_scale_records' ORDER BY ordinal_position"
+    );
+    return result.rows.map((r: any) => r.column_name);
+  } catch {
+    return [];
+  }
+}
+
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表结构存在（CREATE TABLE IF NOT EXISTS + ALTER TABLE 兼容已存在的旧表）
-    // 确保 student_scale_records 表存在并具有正确的列
-  await db.query(`CREATE TABLE IF NOT EXISTS student_scale_records (
-    id TEXT PRIMARY KEY,
-    studentid TEXT DEFAULT '',
-    studentname TEXT DEFAULT '',
-    scaletemplateid TEXT DEFAULT '',
-    scalename TEXT DEFAULT '',
-    category TEXT DEFAULT '',
-    evaluator TEXT DEFAULT '',
-    evaluationdate TEXT DEFAULT '',
-    scores TEXT DEFAULT '[]',
-    summary TEXT DEFAULT '',
-    recommendations TEXT DEFAULT '',
-    status TEXT DEFAULT 'draft',
-    source TEXT DEFAULT '',
-    rawreportid TEXT DEFAULT '',
-    rawdata TEXT DEFAULT '',
-    age INTEGER DEFAULT 0,
-    grade TEXT DEFAULT '',
-    gender TEXT DEFAULT '',
-    createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
-    updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
-  )`);
-  // 尝试添加可能缺失的列（兼容旧表）
-  const migrations = [
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS scalename TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS studentname TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluator TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluationdate TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS recommendations TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS rawreportid TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS rawdata TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
-    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')`,
-  ];
-  for (const sql of migrations) {
-    try { await db.query(sql); } catch (_) {}
+  // 确保表存在，否则创建
+  try {
+    await db.query("SELECT 1 FROM student_scale_records LIMIT 1");
+  } catch {
+    await db.query("CREATE TABLE student_scale_records ("
+      + "id TEXT PRIMARY KEY, scalename TEXT DEFAULT '', studentname TEXT DEFAULT '',"
+      + "category TEXT DEFAULT '', evaluator TEXT DEFAULT '',"
+      + "evaluationdate TEXT DEFAULT '', scores TEXT DEFAULT '[]',"
+      + "summary TEXT DEFAULT '', recommendations TEXT DEFAULT '',"
+      + "status TEXT DEFAULT 'draft', source TEXT DEFAULT '',"
+      + "rawreportid TEXT DEFAULT '', rawdata TEXT DEFAULT '',"
+      + "age INTEGER DEFAULT 0, grade TEXT DEFAULT '', gender TEXT DEFAULT '',"
+      + "createdat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),"
+      + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
+      + ")");
   }
+  
+  // 动态获取实际列名，只插入存在的列
+  const existingCols = await getTableColumns(db);
+  
   const id = generateId();
   const now = new Date().toISOString();
 
-  const fields: Record<string, any> = {
-    id, studentName: record.studentName, scaleName: record.scaleName,
-    category: record.category, evaluator: record.evaluator,
-    evaluationDate: record.evaluationDate, scores: JSON.stringify(record.scores),
-    summary: record.summary, recommendations: record.recommendations,
-    status: record.status, createdAt: now, updatedAt: now,
-    source: record.source, rawReportId: record.rawReportId,
-    rawData: record.rawData, age: record.age, grade: record.grade,
+  // 所有可能的字段（使用小写列名兼容 PostgreSQL）
+  const allFields: Record<string, any> = {
+    id,
+    scalename: record.scaleName,
+    studentname: record.studentName,
+    category: record.category,
+    evaluator: record.evaluator,
+    evaluationdate: record.evaluationDate,
+    scores: JSON.stringify(record.scores || []),
+    summary: record.summary,
+    recommendations: record.recommendations,
+    status: record.status,
+    source: record.source,
+    rawreportid: record.rawReportId,
+    rawdata: record.rawData,
+    age: record.age,
+    grade: record.grade,
     gender: record.gender,
+    createdat: now,
+    updatedat: now,
   };
+
+  // 只插入表中实际存在的列
+  const fields: Record<string, any> = {};
+  for (const [key, val] of Object.entries(allFields)) {
+    if (existingCols.length === 0 || existingCols.includes(key)) {
+      fields[key] = val;
+    }
+  }
+
+  if (Object.keys(fields).length === 0) {
+    throw new Error('表中没有任何可用列');
+  }
 
   const keys = Object.keys(fields);
   const cols = keys.join(',');
-  const vals = keys.map((_, i) => `$${i + 1}`).join(',');
-  await db.query(`INSERT INTO student_scale_records (${cols}) VALUES (${vals})`, Object.values(fields));
+  const vals = keys.map((_, i) => '$' + (i + 1)).join(',');
+  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + vals + ")", Object.values(fields));
 
   return id;
 }
