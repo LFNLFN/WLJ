@@ -41,12 +41,12 @@ function EditForm() {
 
   const [form, setForm] = useState({
     studentId: '',
-    studentName: '',
+    studentname: '',
     scaleTemplateId: '',
-    scaleName: '',
+    scalename: '',
     category: '',
     evaluator: '',
-    evaluationDate: '',
+    evaluationdate: '',
     summary: '',
     recommendations: '',
     status: 'completed' as 'draft' | 'completed',
@@ -63,12 +63,12 @@ function EditForm() {
         if (record) {
           setForm({
             studentId: record.studentId,
-            studentName: record.studentName,
+            studentname: record.studentname,
             scaleTemplateId: record.scaleTemplateId,
-            scaleName: record.scaleName,
+            scalename: record.scalename,
             category: record.category,
             evaluator: record.evaluator,
-            evaluationDate: record.evaluationDate,
+            evaluationdate: record.evaluationdate,
             summary: record.summary,
             recommendations: record.recommendations,
             status: record.status,
@@ -123,12 +123,12 @@ function EditForm() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">学生</label>
-            <input type="text" value={form.studentName} readOnly
+            <input type="text" value={form.studentname} readOnly
               className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">量表</label>
-            <input type="text" value={form.scaleName} readOnly
+            <input type="text" value={form.scalename} readOnly
               className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500" />
           </div>
           <div>
@@ -144,8 +144,8 @@ function EditForm() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">评估日期</label>
-            <input type="date" value={form.evaluationDate}
-              onChange={e => setForm(prev => ({ ...prev, evaluationDate: e.target.value }))}
+            <input type="date" value={form.evaluationdate}
+              onChange={e => setForm(prev => ({ ...prev, evaluationdate: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent" />
           </div>
           <div>

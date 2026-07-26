@@ -49,12 +49,12 @@ export default function NewScaleRecordPage() {
 
   const [form, setForm] = useState({
     studentId: searchParams.get('studentId') || '',
-    studentName: '',
+    studentname: '',
     scaleTemplateId: searchParams.get('templateId') || '',
-    scaleName: '',
+    scalename: '',
     category: '',
     evaluator: '',
-    evaluationDate: new Date().toISOString().split('T')[0],
+    evaluationdate: new Date().toISOString().split('T')[0],
     summary: '',
     recommendations: '',
     status: 'completed' as 'draft' | 'completed',
@@ -73,7 +73,7 @@ export default function NewScaleRecordPage() {
       const sid = searchParams.get('studentId');
       if (sid) {
         const student = data.find((s: any) => ((s as any)._id || (s as any).id) === sid);
-        if (student) setForm(prev => ({ ...prev, studentName: student.name }));
+        if (student) setForm(prev => ({ ...prev, studentname: student.name }));
       }
     }).catch(console.error);
 
@@ -92,7 +92,7 @@ export default function NewScaleRecordPage() {
     setForm(prev => ({
       ...prev,
       scaleTemplateId: template._id || template.id,
-      scaleName: template.name,
+      scalename: template.name,
       category: template.category,
     }));
     // 初始化评分表
@@ -110,7 +110,7 @@ export default function NewScaleRecordPage() {
     setForm(prev => ({
       ...prev,
       studentId,
-      studentName: student?.name || '',
+      studentname: student?.name || '',
     }));
   };
 
@@ -121,7 +121,7 @@ export default function NewScaleRecordPage() {
     } else {
       setSelectedTemplate(null);
       setScores([]);
-      setForm(prev => ({ ...prev, scaleTemplateId: '', scaleName: '', category: '' }));
+      setForm(prev => ({ ...prev, scaleTemplateId: '', scalename: '', category: '' }));
     }
   };
 
@@ -173,7 +173,7 @@ export default function NewScaleRecordPage() {
       setStudents(updatedStudents);
       // 自动选中新学生
       const newId = (saved as any)._id || (saved as any).id;
-      setForm(prev => ({ ...prev, studentId: newId, studentName: newStudent.name.trim() }));
+      setForm(prev => ({ ...prev, studentId: newId, studentname: newStudent.name.trim() }));
       setShowNewStudent(false);
       setNewStudent({ name: '', age: '', gender: '', parentName: '', parentPhone: '' });
     } catch (err: any) {
@@ -196,12 +196,12 @@ export default function NewScaleRecordPage() {
 
     const record = {
       studentId: form.studentId,
-      studentName: form.studentName,
+      studentname: form.studentname,
       scaleTemplateId: form.scaleTemplateId,
-      scaleName: form.scaleName,
+      scalename: form.scalename,
       category: form.category,
       evaluator: form.evaluator.trim(),
-      evaluationDate: form.evaluationDate,
+      evaluationdate: form.evaluationdate,
       scores,
       summary: form.summary.trim(),
       recommendations: form.recommendations.trim(),
@@ -260,8 +260,8 @@ export default function NewScaleRecordPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">评估日期 *</label>
                     <input
                       type="date"
-                      value={form.evaluationDate}
-                      onChange={e => setForm(prev => ({ ...prev, evaluationDate: e.target.value }))}
+                      value={form.evaluationdate}
+                      onChange={e => setForm(prev => ({ ...prev, evaluationdate: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent"
                     />
                   </div>

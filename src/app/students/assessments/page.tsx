@@ -127,7 +127,7 @@ export default function StudentAssessmentsPage() {
 
   // 按量表名称分组
   const scaleGroups = allRecords.reduce<Record<string, StudentScaleRecord[]>>((acc, record) => {
-    const key = record.scaleName;
+    const key = record.scalename;
     if (!acc[key]) acc[key] = [];
     acc[key].push(record);
     return acc;
@@ -350,7 +350,7 @@ export default function StudentAssessmentsPage() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-semibold text-gray-800">
-                            {selectedRecord.scaleName}
+                            {selectedRecord.scalename}
                           </h3>
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                             categoryColors[selectedRecord.category] || 'bg-gray-100 text-gray-700'
@@ -394,7 +394,7 @@ export default function StudentAssessmentsPage() {
                     </div>
 
                     {/* SRS 评估结果 */}
-                    {selectedRecord && isSrsScale(selectedRecord.scaleName) && selectedRecord.scores && selectedRecord.scores.length > 0 && (() => {
+                    {selectedRecord && isSrsScale(selectedRecord.scalename) && selectedRecord.scores && selectedRecord.scores.length > 0 && (() => {
                       const result = calculateSrsResult(selectedRecord.scores);
                       if (!result) return null;
                       const levelColors: Record<string, string> = {

@@ -11,16 +11,14 @@ import { getStudentScaleRecords, deleteStudentScaleRecord, getStudents } from '@
 type StudentScaleRecord = {
   _id: string;
   id: string;
-  studentId: string;
-  studentName: string;
-  scaleTemplateId: string;
-  scaleName: string;
+  studentname: string;
+  scalename: string;
   category: string;
   evaluator: string;
-  evaluationDate: string;
+  evaluationdate: string;
   summary: string;
   status: 'draft' | 'completed';
-  createdAt: string;
+  createdat: string;
 };
 
 const categoryColors: Record<string, string> = {
@@ -57,7 +55,7 @@ export default function ScaleRecordsPage() {
   useEffect(() => { loadData(); }, []);
 
   const handleDelete = (record: StudentScaleRecord) => {
-    if (confirm(`确定要删除 ${record.studentName} 的「${record.scaleName}」评估记录吗？`)) {
+    if (confirm(`确定要删除 ${record.studentname} 的「${record.scalename}」评估记录吗？`)) {
       deleteStudentScaleRecord(record._id || record.id)
         .then(loadData)
         .catch(err => alert('删除失败'));
@@ -69,8 +67,8 @@ export default function ScaleRecordsPage() {
     : records;
 
   const columns = [
-    { key: 'studentName', label: '学生姓名' },
-    { key: 'scaleName', label: '量表名称' },
+    { key: 'studentname', label: '学生姓名' },
+    { key: 'scalename', label: '量表名称' },
     {
       key: 'category',
       label: '类别',
@@ -82,7 +80,7 @@ export default function ScaleRecordsPage() {
     },
     { key: 'evaluator', label: '评估人' },
     {
-      key: 'evaluationDate',
+      key: 'evaluationdate',
       label: '评估日期',
       render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-',
     },
@@ -98,7 +96,7 @@ export default function ScaleRecordsPage() {
       ),
     },
     {
-      key: 'createdAt',
+      key: 'createdat',
       label: '记录时间',
       render: (val: string) => new Date(val).toLocaleDateString('zh-CN'),
     },
