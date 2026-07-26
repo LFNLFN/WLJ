@@ -117,7 +117,7 @@ function convertReport(report: any) {
 async function saveRecord(record: any) {
   const db = await getDb();
   
-  // 确保表结构存在（兼容首次部署和表结构变更）
+  // 确保表结构存在（CREATE TABLE IF NOT EXISTS + ALTER TABLE 兼容已存在的旧表）
   await db.query(`
     CREATE TABLE IF NOT EXISTS student_scale_records (
       id TEXT PRIMARY KEY,
@@ -142,6 +142,27 @@ async function saveRecord(record: any) {
       "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     )
   `);
+  // 兼容已存在但缺少列的旧表
+  const columnMigrations = [
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "scaleName" TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS category TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluator TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "evaluationDate" TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS recommendations TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS source TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawReportId" TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "rawData" TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS age INTEGER DEFAULT 0',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS grade TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS gender TEXT DEFAULT ''',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')',
+    'ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')',
+  ];
+  for (const sql of columnMigrations) {
+    try { await db.query(sql); } catch (_) { /* 列已存在，忽略错误 */ }
+  }
 
   const id = generateId();
   const now = new Date().toISOString();
