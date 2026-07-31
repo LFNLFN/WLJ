@@ -34,6 +34,7 @@ const levelMap: Record<number, string> = {
 
 function convertReport(report: any) {
   const { scaleId, formData, answers, createTime } = report;
+  const userId = report.userId || '';
   const scaleInfo = scaleMap[scaleId] || { name: '未知量表', category: '其他' };
   const studentName = formData?.name || '未知';
   const evaluator = formData?.evaluator || '';
@@ -94,6 +95,7 @@ function convertReport(report: any) {
   }
 
   const record = {
+    userId,
     studentName,
     scaleName: scaleInfo.name,
     category: scaleInfo.category,
@@ -120,6 +122,7 @@ async function saveRecord(record: any) {
   // 建表（如已存在则跳过，不删除数据）
   await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
     + "id TEXT PRIMARY KEY,"
+    + "userid TEXT DEFAULT '',"
     + "studentname TEXT DEFAULT '',"
     + "scalename TEXT DEFAULT '',"
     + "category TEXT DEFAULT '',"
@@ -143,7 +146,7 @@ async function saveRecord(record: any) {
   const now = new Date().toISOString();
 
   const fields: Record<string, any> = {
-    id, studentname: record.studentName, scalename: record.scaleName,
+    id, userid: record.userId || '', studentname: record.studentName, scalename: record.scaleName,
     category: record.category, evaluator: record.evaluator,
     evaluationdate: record.evaluationDate, scores: JSON.stringify(record.scores || []),
     summary: record.summary, recommendations: record.recommendations,

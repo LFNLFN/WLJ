@@ -8,6 +8,7 @@ async function ensureTable() {
     // 1. 建表（如已存在则跳过）
     await db.query("CREATE TABLE IF NOT EXISTS student_scale_records ("
       + "id TEXT PRIMARY KEY,"
+      + "userid TEXT DEFAULT '',"
       + "studentname TEXT DEFAULT '',"
       + "scalename TEXT DEFAULT '',"
       + "category TEXT DEFAULT '',"
@@ -28,6 +29,7 @@ async function ensureTable() {
       + ")");
     // 2. 迁移：补充可能缺失的列（兼容旧表）
     const migrations = [
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS userid TEXT DEFAULT ''`,
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS studentname TEXT DEFAULT ''`,
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS scalename TEXT DEFAULT ''`,
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS evaluationdate TEXT DEFAULT ''`,
@@ -52,7 +54,7 @@ async function ensureTable() {
   }
 }
 
-const handlers = createHandlers('student_scale_records', ['studentname']);
+const handlers = createHandlers('student_scale_records', ['studentname', 'userid']);
 
 export async function GET(req: NextRequest) {
   await ensureTable();
