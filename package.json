@@ -9,7 +9,8 @@
     "start": "next start -H 0.0.0.0 -p 3001",
     "server": "node server/index.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "sync:scales": "node scripts/init-scales-remote.js"
+    "sync:scales": "node scripts/init-scales-remote.js",
+    "migrate:scale-records": "node scripts/migrate-student-scale-records.js"
   },
   "dependencies": {
     "docx": "^9.7.1",
