@@ -153,6 +153,34 @@ function EditForm() {
         label: '',
         score: r.score,
       }));
+    } else if (raw.part2Answers && typeof raw.part2Answers === 'object') {
+      // MCH-FS 喂养困难问卷
+      const qTexts = [
+        '你觉得你在喂养孩子过程中有困难吗？',
+        '你对孩子的喂养及进食感到担心吗？',
+        '你孩子的食欲如何？',
+        '你孩子每餐从什么时候开始拒绝进食？',
+        '你孩子每餐进食需要多少分钟？',
+        '你孩子进餐时表现如何（哭闹、玩玩具、看电视等）？',
+        '你孩子是否对进食某类食物有恶心、呕吐的现象？',
+        '你孩子是否有嘴中含着食物但不吞咽的现象？',
+        '你孩子在进食时是否需要逗引或追着喂？',
+        '你强迫孩子进食吗？',
+        '你孩子的咀嚼（或吮吸）能力如何？',
+        '你孩子的生长状况如何？',
+        '孩子的进食情况对你和孩子之间关系的影响如何？',
+        '孩子的进食情况对家庭成员之间关系的影响如何？'
+      ];
+      items = Object.entries(raw.part2Answers).map(([key, val]) => {
+        const idx = parseInt(key, 10) - 1;
+        return {
+          index: key,
+          question: qTexts[idx] || '题目' + key,
+          answer: val + '分',
+          label: '',
+          score: parseInt(String(val), 10),
+        };
+      });
     } else if (raw.answers && typeof raw.answers === 'object') {
       // 最简格式：只有 answers 对象
       items = Object.entries(raw.answers).map(([key, val], idx) => ({
