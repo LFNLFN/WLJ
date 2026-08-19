@@ -10,6 +10,7 @@ import { getStudents, saveStudent, deleteStudent } from '@/lib/api';
 import JSZip from 'jszip';
 import { Document as DocxDocument, Packer, Paragraph as DocxParagraph, TextRun, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, AlignmentType, WidthType } from 'docx';
 import type { Student } from '@/lib/types';
+import { loadTemplates, buildArchivePrintDocument } from '@/lib/rehabilitation/print';
 
 // 智障儿童康复档案扩展字段
 interface RehabilitationRecord {
@@ -350,6 +351,35 @@ export default function MentalRetardationPage() {
     }
   };
 
+
+  // ===== 打印 / 导出 PDF（基于 pdf-export-debug 迁移的模板渲染） =====
+  const printArchive = async (record: RehabilitationRecord) => {
+    try {
+      const templates = await loadTemplates();
+      // 旧档案只有列表页字段时，映射到模板字段
+      const fields: Record<string, unknown> = { ...record };
+      if (!fields.name) fields.name = record.studentName;
+      if (!fields.gender && record.gender) fields.gender = record.gender;
+      const html = buildArchivePrintDocument(
+        fields,
+        templates,
+        `康复训练档案_${record.studentName || '未命名'}`
+      );
+      const win = window.open('', '_blank');
+      if (!win) {
+        alert('浏览器拦截了弹出窗口，请允许本网站的弹窗后重试');
+        return;
+      }
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      const triggerPrint = () => { win.focus(); win.print(); };
+      win.onload = triggerPrint;
+      setTimeout(triggerPrint, 1000);
+    } catch (err) {
+      alert('打印/导出失败: ' + (err instanceof Error ? err.message : '未知错误'));
+    }
+  };
 
   const clearAllSearch = () => {
     setSearchName('');
@@ -813,6 +843,7 @@ export default function MentalRetardationPage() {
               actions={[
                 { label: '📄 导出', onClick: exportToWord, color: 'text-green-600', hoverColor: 'hover:bg-green-50' },
                 { label: '📁 上传文件', onClick: (row: any) => handleUploadClick(row), color: 'text-blue-600', hoverColor: 'hover:bg-blue-50' },
+                { label: '🖨 打印/PDF', onClick: (row: any) => printArchive(row), color: 'text-orange-600', hoverColor: 'hover:bg-orange-50' },
               ]}
             />
           )}

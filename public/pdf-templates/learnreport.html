@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>学习进度报告表</title>
+  <style>
+    @page{
+      size: A4 portrait;
+      margin: 14mm 16mm 14mm;
+    }
+
+    .tpl-learnreport *{
+      box-sizing: border-box;
+    }
+
+    .tpl-learnreport{
+      margin: 0;
+      font-family: "SimSun", "宋体", serif;
+      color: #000;
+      font-size: 14px;
+    }
+
+    .tpl-learnreport .page{
+      position: relative;
+      min-height: 263mm;
+      width: 100%;
+    }
+
+    .tpl-learnreport .page-break{
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .tpl-learnreport .title{
+      margin: 3mm 0 2mm;
+      text-align: center;
+      font-size: 23px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .tpl-learnreport .term{
+      margin-bottom: 6mm;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .tpl-learnreport .line{
+      display: inline-block;
+      min-width: 35mm;
+      height: 5mm;
+      border-bottom: 1px solid #000;
+      vertical-align: bottom;
+    }
+
+    .tpl-learnreport table{
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .tpl-learnreport td,.tpl-learnreport th{
+      border: 1px solid #000;
+      padding: 2px 3px;
+      text-align: center;
+      vertical-align: middle;
+      font-weight: normal;
+      word-break: break-all;
+    }
+
+    .tpl-learnreport .info-table td{
+      height: 11mm;
+    }
+
+    .tpl-learnreport .label{
+      width: 11%;
+    }
+
+    .tpl-learnreport .blank{
+      background: #fff;
+    }
+
+    .tpl-learnreport .progress-table{
+      margin-top: 0;
+    }
+
+    .tpl-learnreport .progress-table th{
+      height: 10mm;
+    }
+
+    .tpl-learnreport .progress-table .category{
+      font-size: 16px;
+    }
+
+    .tpl-learnreport .progress-table .write-row td{
+      height: 7.2mm;
+    }
+
+    .tpl-learnreport .vertical-text{
+      display: inline-block;
+      line-height: 1.4;
+      letter-spacing: 2px;
+    }
+
+    .tpl-learnreport .page-number{
+      position: absolute;
+      bottom: 1mm;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .tpl-learnreport .parent-box{
+      height: 210mm;
+      margin-top: 10mm;
+      border: 1px solid #000;
+      position: relative;
+      padding: 10mm 10mm 10mm 24mm;
+    }
+
+    .tpl-learnreport .parent-label{
+      position: absolute;
+      top: 50%;
+      left: 7mm;
+      transform: translateY(-50%);
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 3px;
+      font-size: 16px;
+    }
+
+    .tpl-learnreport .signature{
+      margin-top: 7mm;
+      text-align: right;
+      font-size: 16px;
+    }
+
+    @media print{
+      .tpl-learnreport .page{
+        min-height: 263mm;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="tpl-learnreport">
+
+  <!-- 第19页：学习进度报告表首页 -->
+  <section class="page page-break">
+    <h1 class="title">学习进度报告表</h1>
+    <div class="term">（<span class="line"></span>学年　<span class="line"></span>学期）</div>
+
+    <table class="info-table">
+      <tr>
+        <td class="label">姓　名</td>
+        <td></td>
+        <td class="label">年　龄</td>
+        <td></td>
+        <td class="label">班　别</td>
+        <td></td>
+        <td class="label">训练日期</td>
+        <td>　　年　月　日</td>
+      </tr>
+      <tr>
+        <td class="label">评估老师</td>
+        <td colspan="2"></td>
+        <td class="label">个训老师</td>
+        <td colspan="2"></td>
+        <td class="label">评估日期</td>
+        <td>　　年　月　日</td>
+      </tr>
+    </table>
+
+    <table class="progress-table">
+      <colgroup>
+        <col style="width:22mm">
+        <col style="width:42mm">
+        <col style="width:62mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+      </colgroup>
+      <tr>
+        <th class="category" rowspan="2">评估项目</th>
+        <th class="content" rowspan="2" colspan="2">评估内容</th>
+        <th class="score" colspan="4">评估结果</th>
+      </tr>
+      <tr>
+        <th class="score">3</th>
+        <th class="score">2</th>
+        <th class="score">1</th>
+        <th class="score">0</th>
+      </tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="6"><span class="vertical-text">粗大运动</span></td>
+        <td class="item" rowspan="6"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="6"><span class="vertical-text">精细动作</span></td>
+        <td class="item" rowspan="6"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="5"><span class="vertical-text">语言</span></td>
+        <td class="item" rowspan="5"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+
+    <div class="page-number">19</div>
+  </section>
+
+  <!-- 第20页 -->
+  <section class="page page-break">
+    <table class="progress-table">
+      <colgroup>
+        <col style="width:22mm">
+        <col style="width:42mm">
+        <col style="width:62mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+      </colgroup>
+      <tr class="write-row">
+        <td class="category" rowspan="7"><span class="vertical-text">动作</span></td>
+        <td class="item" rowspan="7"></td><td class="content"></td><td class="score"></td><td class="score"></td><td class="score"></td><td class="score"></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="7"><span class="vertical-text">感觉</span></td>
+        <td class="item" rowspan="7"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="7"><span class="vertical-text">认知</span></td>
+        <td class="item" rowspan="7"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="6"><span class="vertical-text">语言交往</span></td>
+        <td class="item" rowspan="6"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="4"><span class="vertical-text">社会</span></td>
+        <td class="item" rowspan="4"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+
+    <div class="page-number">20</div>
+  </section>
+
+  <!-- 第21页 -->
+  <section class="page page-break">
+    <table class="progress-table">
+      <colgroup>
+        <col style="width:22mm">
+        <col style="width:42mm">
+        <col style="width:62mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+        <col style="width:12mm">
+      </colgroup>
+      <tr class="write-row">
+        <td class="category" rowspan="7"><span class="vertical-text">技能</span></td>
+        <td class="item" rowspan="7"></td><td class="content"></td><td class="score"></td><td class="score"></td><td class="score"></td><td class="score"></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="8"><span class="vertical-text">生活自理</span></td>
+        <td class="item" rowspan="8"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr class="write-row">
+        <td class="category" rowspan="8"><span class="vertical-text">感觉统合</span></td>
+        <td class="item" rowspan="8"></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="write-row"><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+      <tr>
+        <td class="category"><span class="vertical-text">备注</span></td>
+        <td colspan="6" style="height: 37mm; text-align:left; padding:5mm;">
+          3——该项目已能独立完成<br>
+          2——该项目在老师提示或辅助下可完成<br>
+          1——该项目在老师帮助下可完成<br>
+          0——该项目已不能独立完成
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- 家长意见页（末页：min-height 留余量，避免产生尾页空白） -->
+  <section class="page" style="min-height:240mm;">
+    <div class="parent-box">
+      <div class="parent-label">家长意见及期望</div>
+    </div>
+
+    <div class="signature">
+      家长签名：<span class="line" style="min-width:42mm;"></span><br><br>
+      <span style="margin-right:8mm;">年　　月　　日</span>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

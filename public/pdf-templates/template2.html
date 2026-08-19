@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>智障儿童学习能力评估表</title>
+<style>
+    @page{ size: A4 portrait; margin: 12mm 14mm; }
+
+    .tpl-assess *{ box-sizing: border-box; }
+
+    .tpl-assess{
+      margin: 0;
+      color: #000;
+      font-family: "SimSun", "宋体", serif;
+      font-size: 10px;
+    }
+
+    .tpl-assess .page{
+      position: relative;
+      width: 100%;
+      min-height: 267mm;
+    }
+
+    .tpl-assess .page-break{
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .tpl-assess .title{
+      margin: 1mm 0 3mm;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .tpl-assess table{
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .tpl-assess td,.tpl-assess th{
+      border: 1px solid #000;
+      padding: 1px 2px;
+      text-align: center;
+      vertical-align: middle;
+      font-weight: normal;
+      line-height: 1.25;
+      word-break: break-all;
+    }
+
+    .tpl-assess .info-table td{ height: 8mm; font-size: 11px; }
+
+    .tpl-assess .category{ width: 10%; }
+    .tpl-assess .item{ width: 74%; text-align: left; padding-left: 3px; }
+    .tpl-assess .score{ width: 4%; }
+
+    .tpl-assess .assessment-table td{ height: 5.2mm; }
+    .tpl-assess .assessment-table .section td{ height: 7mm; }
+    .tpl-assess .assessment-table .blank td{ height: 5.2mm; }
+
+    .tpl-assess .vertical{
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 2px;
+      font-size: 13px;
+    }
+
+    .tpl-assess .note{
+      font-size: 11px;
+      line-height: 1.7;
+      padding: 2mm;
+      text-align: left;
+    }
+
+    .tpl-assess .summary-box td{
+      height: 52mm;
+      font-size: 14px;
+    }
+
+    .tpl-assess .page-number{
+      position: absolute;
+      bottom: 1mm;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+<div class="tpl-assess">
+<section class="page page-break">
+    <h1 class="title">智障儿童学习能力评估表</h1>
+
+    <table class="info-table">
+      <tr>
+        <td>姓名</td><td>{{name}}</td>
+        <td>性别</td><td>{{gender}}</td>
+        <td>出生日期</td><td>{{birthDate}}</td>
+      </tr>
+      <tr>
+        <td>评估老师</td><td>{{assessmentTeacher}}</td>
+        <td>评估日期</td><td>{{assessmentDate}}</td>
+        <td colspan="2">评估结果：3　2　1　0</td>
+      </tr>
+    </table>
+
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="15"><span class="vertical">1．粗大运动</span></td>
+        <td>1.1　抬头：能抬头并保持片刻</td>
+        <td>{{#if s_1_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.2　翻身：能由仰卧翻至俯卧</td><td>{{#if s_1_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.3　坐：能独立坐稳</td><td>{{#if s_1_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.4　爬：能手膝爬行</td><td>{{#if s_1_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.5　站立：能扶站或独立站立</td><td>{{#if s_1_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.6　行走：能独立行走</td><td>{{#if s_1_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.7　跑：能向前跑</td><td>{{#if s_1_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.8　跳：能双脚跳起</td><td>{{#if s_1_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.9　上下楼梯：能在帮助下上下楼梯</td><td>{{#if s_1_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.10　踢球：能踢静止的球</td><td>{{#if s_1_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.11　拍球：能拍球数次</td><td>{{#if s_1_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.12　接球：能接住抛来的球</td><td>{{#if s_1_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.13　投球：能向前投球</td><td>{{#if s_1_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.14　平衡：能在平衡木上行走</td><td>{{#if s_1_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>1.15　协调：能完成简单协调动作</td><td>{{#if s_1_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_1_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_1_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_1_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+    </table>
+
+    <div class="page-number">6</div>
+  </section>
+
+<section class="page page-break">
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="16"><span class="vertical">2．精细动作</span></td>
+        <td>2.1　拼插玩具：能把玩具插入相应的孔洞内</td>
+        <td>{{#if s_2_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.2　搭积木：能搭起积木，叠高积木</td><td>{{#if s_2_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.3　串珠：能把珠子穿入绳子</td><td>{{#if s_2_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.4　拧瓶盖：能拧开、拧紧瓶盖</td><td>{{#if s_2_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.5　折纸：能按要求折纸</td><td>{{#if s_2_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.6　剪纸：能使用剪刀剪纸</td><td>{{#if s_2_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.7　涂画：能涂色、画线条</td><td>{{#if s_2_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.8　捏塑：能用橡皮泥捏出简单形状</td><td>{{#if s_2_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.9　穿脱衣服：能自己穿、脱衣服</td><td>{{#if s_2_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.10　系扣：能扣、解纽扣</td><td>{{#if s_2_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.11　用勺：能用勺进食</td><td>{{#if s_2_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.12　用筷子：能用筷子夹取食物</td><td>{{#if s_2_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.13　拿笔：能正确握笔</td><td>{{#if s_2_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.14　描画：能描画简单图形</td><td>{{#if s_2_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.15　写画：能模仿画横线、竖线、圆形</td><td>{{#if s_2_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>2.16　操作玩具：能完成简单的手部操作活动</td><td>{{#if s_2_16 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_2_16 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_2_16 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_2_16 == '0'}}√{{else}}　{{/if}}</td></tr>
+
+      <tr>
+        <td rowspan="18"><span class="vertical">3．感觉知觉</span></td>
+        <td>3.1　视觉追踪：能注视和追视物体</td>
+        <td>{{#if s_3_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.2　视觉辨别：能辨别不同的颜色、形状和大小</td><td>{{#if s_3_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.3　视觉记忆：能记住简单图形或物品</td><td>{{#if s_3_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.4　听觉反应：对声音有反应</td><td>{{#if s_3_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.5　听觉辨别：能辨别不同的声音</td><td>{{#if s_3_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.6　听觉记忆：能记住简单的声音信息</td><td>{{#if s_3_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.7　触觉反应：能对触摸作出反应</td><td>{{#if s_3_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.8　触觉辨别：能辨别不同质地的物品</td><td>{{#if s_3_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.9　前庭觉：对平衡、旋转活动有反应</td><td>{{#if s_3_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>3.10　本体觉：能感知身体姿势和动作</td><td>{{#if s_3_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_3_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_3_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_3_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr class="blank"><td></td><td></td><td></td><td></td><td></td></tr>
+    </table>
+
+    <div class="page-number">7</div>
+  </section>
+
+<section class="page page-break">
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="25"><span class="vertical">4．认知</span></td>
+        <td>4.1　物品认知：能认识常见物品</td>
+        <td>{{#if s_4_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.2　颜色认知：能辨别红、黄、蓝、绿等颜色</td><td>{{#if s_4_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.3　形状认知：能辨别圆形、方形、三角形等</td><td>{{#if s_4_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.4　大小比较：能辨别大、小</td><td>{{#if s_4_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.5　长短比较：能辨别长、短</td><td>{{#if s_4_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.6　多少比较：能辨别多、少</td><td>{{#if s_4_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.7　大小规律：能按大小规律排列物品</td><td>{{#if s_4_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.8　分类：能按颜色、形状、大小分类</td><td>{{#if s_4_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.9　配对：能进行相同物品配对</td><td>{{#if s_4_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.10　数概念：能认识1—10数字</td><td>{{#if s_4_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.11　点数：能点数物品数量</td><td>{{#if s_4_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.12　时间概念：能理解早、晚、日、夜</td><td>{{#if s_4_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.13　空间概念：能理解上、下、前、后、里、外</td><td>{{#if s_4_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.14　身体部位：能指出身体各部位</td><td>{{#if s_4_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.15　家庭成员：能认识家庭成员</td><td>{{#if s_4_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.16　动物认知：能认识常见动物</td><td>{{#if s_4_16 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_16 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_16 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_16 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.17　交通工具认知：能认识常见交通工具</td><td>{{#if s_4_17 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_17 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_17 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_17 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.18　蔬菜水果认知：能认识常见蔬菜、水果</td><td>{{#if s_4_18 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_18 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_18 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_18 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.19　职业认知：能认识简单职业</td><td>{{#if s_4_19 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_19 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_19 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_19 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.20　季节认知：能认识春夏秋冬</td><td>{{#if s_4_20 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_20 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_20 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_20 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.21　图形拼合：能完成简单拼图</td><td>{{#if s_4_21 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_21 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_21 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_21 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.22　顺序排列：能按顺序排列图片</td><td>{{#if s_4_22 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_22 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_22 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_22 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.23　记忆：能记忆简单图像或物品</td><td>{{#if s_4_23 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_23 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_23 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_23 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.24　解决问题：能完成简单问题解决任务</td><td>{{#if s_4_24 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_24 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_24 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_24 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>4.25　注意力：能维持一定时间的注意</td><td>{{#if s_4_25 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_4_25 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_4_25 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_4_25 == '0'}}√{{else}}　{{/if}}</td></tr>
+    </table>
+
+    <div class="page-number">8</div>
+  </section>
+
+<section class="page page-break">
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="28"><span class="vertical">5．语言交往</span></td>
+        <td>5.1　听声音：能对声音作出反应</td>
+        <td>{{#if s_5_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.2　听指令：能听懂简单指令</td><td>{{#if s_5_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.3　理解词语：能理解常用词语</td><td>{{#if s_5_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.4　理解句子：能理解简单句子</td><td>{{#if s_5_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.5　表达需要：能用动作、表情表达需要</td><td>{{#if s_5_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.6　发音：能发出声音或模仿发音</td><td>{{#if s_5_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.7　说词语：能说出常用词语</td><td>{{#if s_5_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.8　说短句：能说出两至三个字的短句</td><td>{{#if s_5_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.9　回答问题：能回答简单问题</td><td>{{#if s_5_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.10　主动交谈：能主动与人交谈</td><td>{{#if s_5_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.11　称呼：会称呼熟悉的人</td><td>{{#if s_5_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.12　自我介绍：能说出自己的姓名</td><td>{{#if s_5_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.13　问候：会使用简单礼貌用语</td><td>{{#if s_5_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.14　对话：能与成人进行简单对话</td><td>{{#if s_5_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.15　复述：能复述简单词句</td><td>{{#if s_5_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.16　讲述：能讲述简单事情</td><td>{{#if s_5_16 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_16 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_16 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_16 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.17　看图说话：能根据图片进行表达</td><td>{{#if s_5_17 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_17 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_17 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_17 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.18　儿歌：能念简单儿歌</td><td>{{#if s_5_18 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_18 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_18 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_18 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.19　故事：能听简单故事</td><td>{{#if s_5_19 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_19 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_19 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_19 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.20　阅读：能翻阅图书并看图</td><td>{{#if s_5_20 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_20 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_20 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_20 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.21　书写：能模仿写画</td><td>{{#if s_5_21 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_21 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_21 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_21 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.22　交往意愿：愿意与他人接触</td><td>{{#if s_5_22 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_22 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_22 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_22 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.23　轮流等待：能在游戏中轮流等待</td><td>{{#if s_5_23 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_23 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_23 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_23 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.24　分享：愿意分享玩具或食物</td><td>{{#if s_5_24 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_24 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_24 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_24 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.25　合作：能与同伴合作完成活动</td><td>{{#if s_5_25 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_25 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_25 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_25 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.26　遵守规则：能遵守简单游戏规则</td><td>{{#if s_5_26 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_26 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_26 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_26 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.27　情绪表达：能表达高兴、生气等情绪</td><td>{{#if s_5_27 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_27 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_27 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_27 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>5.28　情绪控制：在提醒下能调整情绪</td><td>{{#if s_5_28 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_5_28 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_5_28 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_5_28 == '0'}}√{{else}}　{{/if}}</td></tr>
+    </table>
+
+    <div class="page-number">9</div>
+  </section>
+
+<section class="page page-break">
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="23"><span class="vertical">6．社会技能</span></td>
+        <td>6.1　能辨别自己的姓名</td>
+        <td>{{#if s_6_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.2　能说出自己的年龄</td><td>{{#if s_6_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.3　能说出自己的性别</td><td>{{#if s_6_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.4　能说出父母的姓名</td><td>{{#if s_6_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.5　能认识家庭成员</td><td>{{#if s_6_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.6　能认识老师和同伴</td><td>{{#if s_6_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.7　会与人打招呼</td><td>{{#if s_6_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.8　会说“请”“谢谢”“再见”</td><td>{{#if s_6_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.9　能等待轮流</td><td>{{#if s_6_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.10　能遵守课堂规则</td><td>{{#if s_6_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.11　能遵守游戏规则</td><td>{{#if s_6_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.12　能参与集体活动</td><td>{{#if s_6_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.13　能接受成人安排</td><td>{{#if s_6_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.14　能完成简单任务</td><td>{{#if s_6_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.15　能主动寻求帮助</td><td>{{#if s_6_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.16　能帮助他人</td><td>{{#if s_6_16 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_16 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_16 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_16 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.17　能辨别危险行为</td><td>{{#if s_6_17 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_17 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_17 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_17 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.18　能在成人提醒下注意安全</td><td>{{#if s_6_18 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_18 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_18 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_18 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.19　能表达自己的意愿</td><td>{{#if s_6_19 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_19 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_19 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_19 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.20　能适应环境变化</td><td>{{#if s_6_20 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_20 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_20 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_20 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.21　能进行简单的角色游戏</td><td>{{#if s_6_21 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_21 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_21 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_21 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.22　能与同伴共同游戏</td><td>{{#if s_6_22 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_22 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_22 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_22 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>6.23　能在集体活动中表现适当</td><td>{{#if s_6_23 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_6_23 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_6_23 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_6_23 == '0'}}√{{else}}　{{/if}}</td></tr>
+    </table>
+
+    <div class="page-number">10</div>
+  </section>
+
+<section class="page">
+    <table class="assessment-table">
+      <colgroup>
+        <col class="category">
+        <col class="item">
+        <col class="score"><col class="score"><col class="score"><col class="score">
+      </colgroup>
+
+      <tr>
+        <td rowspan="27"><span class="vertical">7．生活自理</span></td>
+        <td>7.1　进食：能自己进食</td>
+        <td>{{#if s_7_1 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_1 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_1 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_1 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.2　喝水：能自己用杯子喝水</td><td>{{#if s_7_2 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_2 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_2 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_2 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.3　洗手：能在提醒下洗手</td><td>{{#if s_7_3 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_3 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_3 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_3 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.4　擦嘴：能自己擦嘴</td><td>{{#if s_7_4 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_4 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_4 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_4 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.5　如厕：有大小便需求时能表示</td><td>{{#if s_7_5 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_5 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_5 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_5 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.6　如厕后：能在帮助下清洁身体</td><td>{{#if s_7_6 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_6 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_6 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_6 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.7　穿鞋：能穿、脱鞋子</td><td>{{#if s_7_7 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_7 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_7 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_7 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.8　穿袜：能穿、脱袜子</td><td>{{#if s_7_8 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_8 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_8 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_8 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.9　穿上衣：能穿、脱上衣</td><td>{{#if s_7_9 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_9 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_9 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_9 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.10　穿裤子：能穿、脱裤子</td><td>{{#if s_7_10 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_10 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_10 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_10 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.11　扣扣子：能扣、解纽扣</td><td>{{#if s_7_11 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_11 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_11 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_11 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.12　拉拉链：能拉、开拉链</td><td>{{#if s_7_12 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_12 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_12 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_12 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.13　整理衣物：能整理自己的衣物</td><td>{{#if s_7_13 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_13 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_13 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_13 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.14　刷牙：能自己刷牙</td><td>{{#if s_7_14 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_14 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_14 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_14 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.15　洗脸：能自己洗脸</td><td>{{#if s_7_15 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_15 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_15 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_15 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.16　梳头：能自己梳头</td><td>{{#if s_7_16 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_16 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_16 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_16 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.17　洗澡：能在帮助下洗澡</td><td>{{#if s_7_17 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_17 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_17 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_17 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.18　整理玩具：能收拾玩具</td><td>{{#if s_7_18 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_18 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_18 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_18 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.19　收拾书包：能整理书包</td><td>{{#if s_7_19 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_19 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_19 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_19 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.20　做简单家务：能协助扫地、擦桌子</td><td>{{#if s_7_20 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_20 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_20 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_20 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.21　安全：知道不能随便跟陌生人走</td><td>{{#if s_7_21 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_21 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_21 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_21 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.22　安全：知道不玩危险物品</td><td>{{#if s_7_22 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_22 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_22 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_22 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.23　安全：知道不触碰危险电器</td><td>{{#if s_7_23 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_23 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_23 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_23 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.24　外出：能在成人陪同下外出</td><td>{{#if s_7_24 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_24 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_24 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_24 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.25　乘车：能遵守乘车规则</td><td>{{#if s_7_25 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_25 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_25 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_25 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.26　购物：能在帮助下购买物品</td><td>{{#if s_7_26 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_26 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_26 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_26 == '0'}}√{{else}}　{{/if}}</td></tr>
+      <tr><td>7.27　生活习惯：能按时作息</td><td>{{#if s_7_27 == '3'}}√{{else}}　{{/if}}</td><td>{{#if s_7_27 == '2'}}√{{else}}　{{/if}}</td><td>{{#if s_7_27 == '1'}}√{{else}}　{{/if}}</td><td>{{#if s_7_27 == '0'}}√{{else}}　{{/if}}</td></tr>
+    </table>
+
+    <table style="margin-top:4mm;">
+      <tr>
+        <td style="width:10%;"><span class="vertical">备注</span></td>
+        <td class="note">
+          3—表示能独立完成　　2—表示在语言提示下可完成<br>
+          1—表示在触体帮助下可完成　　0—表示不能完成
+        </td>
+      </tr>
+      <tr>
+        <td><span class="vertical">综合评估意见</span></td>
+        <td style="height:43mm;"></td>
+      </tr>
+    </table>
+
+    <div class="page-number">11</div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>附件复印件</title>
+  <style>
+    .tpl-attach *{ box-sizing: border-box; }
+
+    @page{
+      size: A4 portrait;
+      margin: 15mm 18mm;
+    }
+
+    .tpl-attach{
+      margin: 0;
+      color: #111;
+      font-family: "SimSun", "宋体", serif;
+      background: #eee;
+    }
+
+    .tpl-attach .page{
+      width: 210mm;
+      min-height: 297mm;
+      margin: 12px auto;
+      padding: 16mm 20mm 18mm;
+      position: relative;
+      background: #fff;
+    }
+
+    .tpl-attach .attachment-title{
+      margin: 0 0 12mm;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .tpl-attach .document-name{
+      margin: 0 0 8mm;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .tpl-attach .copy-box{
+      min-height: 220mm;
+      border: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .tpl-attach .two-copy-boxes{
+      min-height: 220mm;
+      border: 1px solid #222;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+    }
+
+    .tpl-attach .copy-item{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+    }
+
+    .tpl-attach .copy-item + .copy-item{
+      border-top: 1px solid #222;
+    }
+
+    .tpl-attach .page-number{
+      position: absolute;
+      right: 20mm;
+      bottom: 9mm;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    /* 不同附件之间分页 */
+    .tpl-attach .page-break{
+      break-after: page;
+      page-break-after: always;
+    }
+
+    @media print{
+      .tpl-attach{ background: #fff; }
+
+      .tpl-attach .page{
+        width: auto;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="tpl-attach">
+
+  <!-- 附件一 -->
+  <section class="page page-break">
+    <h2 class="attachment-title">【附件一】</h2>
+    <h1 class="document-name">儿童出生医学证明</h1>
+
+    <div class="copy-box">出生证复印件</div>
+
+    <p class="page-number">24</p>
+  </section>
+
+  <!-- 附件二 -->
+  <section class="page page-break">
+    <h2 class="attachment-title">【附件二】</h2>
+    <h1 class="document-name">常住人口登记卡</h1>
+
+    <div class="two-copy-boxes">
+      <div class="copy-item">户主/监护人口登记复印件</div>
+      <div class="copy-item">儿童户口簿复印件</div>
+    </div>
+
+    <p class="page-number">25</p>
+  </section>
+
+  <!-- 附件三 -->
+  <section class="page page-break">
+    <h2 class="attachment-title">【附件三】</h2>
+    <h1 class="document-name">监护人身份证</h1>
+
+    <div class="two-copy-boxes">
+      <div class="copy-item">父亲身份证复印件</div>
+      <div class="copy-item">母亲身份证复印件</div>
+    </div>
+
+    <p class="page-number">26</p>
+  </section>
+
+  <!-- 附件四 -->
+  <section class="page page-break">
+    <h2 class="attachment-title">【附件四】</h2>
+    <h1 class="document-name">儿童健康证明</h1>
+
+    <div class="copy-box">体检复印件</div>
+
+    <p class="page-number">27</p>
+  </section>
+
+  <!-- 附件五 -->
+  <section class="page page-break">
+    <h2 class="attachment-title">【附件五】</h2>
+    <h1 class="document-name">智障医学诊断书</h1>
+
+    <div class="copy-box">医院诊断复印件</div>
+
+    <p class="page-number">28</p>
+  </section>
+
+  <!-- 附件六 -->
+  <section class="page">
+    <h2 class="attachment-title">【附件六】</h2>
+    <h1 class="document-name">残疾证</h1>
+
+    <div class="copy-box">残疾证复印件</div>
+
+    <p class="page-number">29</p>
+  </section>
+
+</div>
+</body>
+</html>

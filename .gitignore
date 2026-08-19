@@ -39,3 +39,6 @@ server/data.db
 server/data.db
 server/data.db-shm
 server/data.db-wal
+
+# 临时 PDF 调试页（调试完成后移除或合并）
+/pdf-export-debug/

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>智障儿童入学登记表</title>
+  <style>
+    @page{
+      size: A4 portrait;
+      margin: 12mm 10mm;
+    }
+
+    .tpl-register *{ box-sizing: border-box; }
+
+    .tpl-register{
+      margin: 0;
+      color: #000;
+      font-family: "SimSun", "宋体", serif;
+      font-size: 10.5pt;
+    }
+
+    .tpl-register .page{
+      position: relative;
+      width: 100%;
+      max-width: 190mm;
+      margin: 0 auto 8mm;
+    }
+
+    .tpl-register .page-break{
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .tpl-register h1{
+      font-size: 16pt;
+      text-align: center;
+      letter-spacing: 2px;
+      margin: 0 0 4mm;
+      font-weight: bold;
+    }
+
+    .tpl-register .archive{
+      text-align: right;
+      margin-bottom: 2mm;
+    }
+
+    .tpl-register .archive .line{
+      display: inline-block;
+      min-width: 34mm;
+      border-bottom: 1px solid #000;
+      height: 5mm;
+      vertical-align: bottom;
+    }
+
+    .tpl-register table{
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    .tpl-register td, .tpl-register th{
+      border: 1px solid #000;
+      padding: 2mm 1mm;
+      text-align: center;
+      vertical-align: middle;
+      word-break: break-all;
+      height: 9mm;
+    }
+
+    .tpl-register .vt{
+      width: 7mm;
+      letter-spacing: 3px;
+      line-height: 1.15;
+    }
+
+    .tpl-register .lbl{
+      width: 22mm;
+    }
+
+    .tpl-register .lft{
+      text-align: left;
+      padding-left: 2mm;
+    }
+
+    .tpl-register .h20{ height: 20mm; }
+    .tpl-register .h28{ height: 28mm; }
+
+    .tpl-register .photo img{
+      max-width: 22mm;
+      max-height: 20mm;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+
+    .tpl-register .sign{
+      margin-top: 4mm;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .tpl-register .pno{
+      text-align: center;
+      margin-top: 3mm;
+    }
+
+    .tpl-register .note{
+      line-height: 2;
+      text-align: left;
+      padding: 2mm;
+    }
+  </style>
+</head>
+<body>
+<div class="tpl-register">
+
+  <!-- 第4页 -->
+  <section class="page page-break">
+    <h1>智障儿童入学登记表</h1>
+    <div class="archive">档案编号：<span class="line">{{fileNumber}}</span></div>
+
+    <table>
+      <colgroup>
+        <col style="width:7mm"><col style="width:22mm"><col><col style="width:20mm">
+        <col><col style="width:28mm"><col><col style="width:26mm">
+      </colgroup>
+
+      <!-- 儿童信息 -->
+      <tr>
+        <td class="vt" rowspan="7">儿童信息</td>
+        <td class="lbl">姓　名</td><td>{{name}}</td>
+        <td>性　别</td><td>{{gender}}</td>
+        <td>出生日期</td><td>{{birthYear}}　年　{{birthMonth}}　月　{{birthDay}}　日</td>
+        <td rowspan="2" class="photo">{{#if photo}}<img src="{{photo}}" alt="照片" />{{else}}贴照片{{/if}}</td>
+      </tr>
+      <tr>
+        <td>临床诊断</td><td colspan="3">{{diagnosis}}</td>
+        <td>入学时间</td><td>{{enrollTime}}</td>
+      </tr>
+      <tr>
+        <td>户籍<br>所在地</td><td colspan="3">{{hukouLocation}}</td>
+        <td>家庭电话</td><td colspan="2">{{familyPhone}}</td>
+      </tr>
+      <tr>
+        <td>现居住<br>地　址</td><td colspan="6">{{currentAddress}}</td>
+      </tr>
+      <tr>
+        <td>父亲姓名</td><td>{{fatherName}}</td>
+        <td>年　龄</td><td>{{fatherAge}}</td>
+        <td>文化<br>程度</td><td>{{fatherEducation}}</td><td rowspan="2">联系<br>电话</td>
+      </tr>
+      <tr>
+        <td>母亲姓名</td><td>{{motherName}}</td>
+        <td></td><td>{{motherAge}}</td>
+        <td>工作<br>单位<br>及职务</td><td>{{motherWork}}</td>
+      </tr>
+      <tr>
+        <td>其他成员</td><td colspan="6">{{otherMembers}}</td>
+      </tr>
+
+      <!-- 家庭情况 -->
+      <tr>
+        <td class="vt" rowspan="5">家庭情况</td>
+        <td>家庭模式</td>
+        <td class="lft" colspan="6">大家庭（{{#if familyMode == '大家庭'}}√{{else}}　{{/if}}）　核心家庭（{{#if familyMode == '核心家庭'}}√{{else}}　{{/if}}）　单亲家庭（{{#if familyMode == '单亲家庭'}}√{{else}}　{{/if}}）　寄养家庭（{{#if familyMode == '寄养家庭'}}√{{else}}　{{/if}}）</td>
+      </tr>
+      <tr>
+        <td>居住社区</td>
+        <td class="lft" colspan="6">花园、小区（{{#if community == '花园、小区'}}√{{else}}　{{/if}}）　独家居住（{{#if community == '独家居住'}}√{{else}}　{{/if}}）　租住房（{{#if community == '租住房'}}√{{else}}　{{/if}}）</td>
+      </tr>
+      <tr>
+        <td>教养方式</td>
+        <td class="lft" colspan="6">教育型（{{#if parentingStyle == '教育型'}}√{{else}}　{{/if}}）　娇宠型（{{#if parentingStyle == '娇宠型'}}√{{else}}　{{/if}}）　放任自流型（{{#if parentingStyle == '放任自流型'}}√{{else}}　{{/if}}）</td>
+      </tr>
+      <tr>
+        <td>语言环境</td>
+        <td class="lft" colspan="6">普通话（{{#if language == '普通话'}}√{{else}}　{{/if}}）　广州话（{{#if language == '广州话'}}√{{else}}　{{/if}}）　地方方言（{{#if language == '地方方言'}}√{{else}}　{{/if}}）</td>
+      </tr>
+      <tr>
+        <td>抚养/<br>带养人</td>
+        <td class="lft" colspan="6">父母（{{#if caregiver == '父母'}}√{{else}}　{{/if}}）　爷爷奶奶（{{#if caregiver == '爷爷奶奶'}}√{{else}}　{{/if}}）　外公外婆（{{#if caregiver == '外公外婆'}}√{{else}}　{{/if}}）　保姆（{{#if caregiver == '保姆'}}√{{else}}　{{/if}}）</td>
+      </tr>
+
+      <!-- 儿童自身状况介绍 -->
+      <tr>
+        <td class="vt" rowspan="8">儿童自身状况介绍</td>
+        <td rowspan="2">妊娠史</td>
+        <td>母妊娠年龄</td><td>{{pregnancyAge}}</td>
+        <td>胎教情况</td><td>{{prenatalEducation}}</td>
+        <td colspan="2">先兆流产：{{threatenedAbortion}}</td>
+      </tr>
+      <tr>
+        <td>心理状态</td><td>{{pregnancyPsychology}}</td>
+        <td>生理状况</td><td>{{pregnancyPhysiology}}</td>
+        <td colspan="2">环境状况：{{pregnancyEnvironment}}</td>
+      </tr>
+      <tr>
+        <td rowspan="2">分娩史</td>
+        <td>足　　月</td><td>{{fullTerm}}</td>
+        <td>产　程</td><td>{{laborProcess}}</td>
+        <td colspan="2">分娩方式：{{deliveryMode}}</td>
+      </tr>
+      <tr>
+        <td>早产或过期</td><td>{{premature}}</td>
+        <td>窒　息</td><td>{{asphyxia}}</td>
+        <td colspan="2">出生体重：{{birthWeight}}</td>
+      </tr>
+      <tr>
+        <td rowspan="4">生长<br>发育史</td>
+        <td>母乳喂养</td><td>{{breastfeeding}}</td>
+        <td>人工喂养</td><td>{{formulaFeeding}}</td>
+        <td colspan="2">高热抽搐：{{febrileConvulsion}}</td>
+      </tr>
+      <tr>
+        <td>会抬头时间</td><td>{{headTime}}</td>
+        <td>会翻身时间</td><td>{{turnTime}}</td>
+        <td colspan="2">会爬行时间：{{crawlTime}}</td>
+      </tr>
+      <tr>
+        <td>会笑时间</td><td>{{smileTime}}</td>
+        <td>会坐时间</td><td>{{sitTime}}</td>
+        <td colspan="2">会走时间：{{walkTime}}</td>
+      </tr>
+      <tr>
+        <td>会发音时间</td><td>{{vocalTime}}</td>
+        <td>说单词时间</td><td>{{wordTime}}</td>
+        <td colspan="2">说词语时间：{{phraseTime}}</td>
+      </tr>
+    </table>
+
+    <div class="pno">4</div>
+  </section>
+
+  <!-- 第5页 -->
+  <section class="page">
+    <table>
+      <colgroup>
+        <col style="width:8mm"><col style="width:30mm"><col style="width:16mm"><col>
+      </colgroup>
+
+      <tr><td colspan="3" class="lft">既往病史<br>（心脏病、癫痫等）</td><td>{{medicalHistory}}</td></tr>
+      <tr><td colspan="3" class="lft">特殊的饮食习惯</td><td>{{dietHabit}}</td></tr>
+      <tr>
+        <td colspan="2" rowspan="2" class="lft">最喜欢<br>的活动</td>
+        <td>室　内</td><td>{{indoorActivity}}</td>
+      </tr>
+      <tr><td>室　外</td><td>{{outdoorActivity}}</td></tr>
+      <tr><td colspan="3" class="lft">特殊的睡眠时间</td><td>{{sleepTime}}</td></tr>
+      <tr><td colspan="3" class="lft">最爱看的电视节目</td><td>{{tvProgram}}</td></tr>
+      <tr><td colspan="3" class="lft">独处时常做事情</td><td>{{aloneActivity}}</td></tr>
+      <tr><td colspan="3" class="lft">最常玩的玩具</td><td>{{favoriteToy}}</td></tr>
+      <tr><td colspan="3" class="lft">语言表达能力</td><td>{{languageAbility}}</td></tr>
+      <tr><td colspan="3" class="lft">经常一起玩的玩伴</td><td>{{playmate}}</td></tr>
+      <tr><td colspan="2" class="lft">数　　数</td><td>认知/认字能力</td><td>{{literacy}}</td></tr>
+      <tr><td colspan="2" class="lft">吃　　饭</td><td>穿 衣 服</td><td>{{dressing}}</td></tr>
+      <tr><td colspan="3" class="lft">大 　小 　便</td><td>{{toilet}}</td></tr>
+
+      <tr>
+        <td class="vt" rowspan="3">特殊行为</td>
+        <td colspan="2" class="lft">伤害自己/他人</td><td>{{selfHarm}}</td>
+      </tr>
+      <tr><td colspan="2" class="lft">逃　　跑</td><td>{{runaway}}</td></tr>
+      <tr><td colspan="2" class="lft">其　　他</td><td>{{otherBehavior}}</td></tr>
+
+      <tr><td colspan="3" class="lft h20">智障成因</td><td>{{cause}}</td></tr>
+      <tr><td colspan="3" class="lft h28">目前主要康复情况</td><td>{{currentRehab}}</td></tr>
+      <tr><td colspan="3" class="lft h20">既往康复教育情况</td><td>{{rehabHistory}}</td></tr>
+
+      <tr>
+        <td class="vt">说明</td>
+        <td colspan="3" class="note">
+          本人{{parentSign}}是智障（自闭症）孩子{{name}}之父（母），
+          如实反映了孩子病情和行为状况。如有隐瞒，愿承担相应责任。
+        </td>
+      </tr>
+    </table>
+
+    <div class="sign">
+      <span>填表时间：{{fillTime}}</span>
+      <span>填表人：{{fillPerson}}</span>
+      <span>注册日期：{{date}}</span>
+      <span>审核人：{{reviewer}}</span>
+    </div>
+
+    <div class="pno">5</div>
+  </section>
+
+</div>
+</body>
+</html>

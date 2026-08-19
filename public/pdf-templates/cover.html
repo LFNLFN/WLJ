@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>广州市智障幼儿康复训练档案</title>
+  <style>
+    .tpl-cover * { box-sizing: border-box; }
+
+    .tpl-cover {
+      margin: 0;
+      background: #eee;
+      font-family: "KaiTi", "STKaiti", "SimSun", serif;
+    }
+
+    .tpl-cover .cover {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      padding: 22mm 25mm;
+      color: #111;
+      background-color: #f5f3ea;
+      /* 可替换为纸张纹理图片 */
+      background-image:
+        radial-gradient(rgba(90, 80, 55, .08) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(255,255,255,.45), rgba(180,170,140,.12));
+      background-size: 7px 7px, 100% 100%;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .2);
+      position: relative;
+    }
+
+    .tpl-cover .archive-no {
+      text-align: right;
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
+
+    .tpl-cover .title {
+      margin-top: 40mm;
+      text-align: center;
+      font-size: 34px;
+      font-weight: bold;
+      line-height: 1.45;
+      letter-spacing: 8px;
+    }
+
+    .tpl-cover .subtitle {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 12px;
+    }
+
+    .tpl-cover .edition {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 18px;
+      letter-spacing: 4px;
+    }
+
+    .tpl-cover .info {
+      width: 65%;
+      margin: 38mm auto 0;
+      font-size: 18px;
+      line-height: 2.25;
+    }
+
+    .tpl-cover .line {
+      display: inline-block;
+      min-width: 170px;
+      border-bottom: 1px solid #111;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .tpl-cover .short-line {
+      display: inline-block;
+      min-width: 38px;
+      border-bottom: 1px solid #111;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .tpl-cover .organization {
+      position: absolute;
+      right: 25mm;
+      bottom: 25mm;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.9;
+      letter-spacing: 2px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .tpl-cover .cover {
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="tpl-cover">
+    <main class="cover">
+      <div class="archive-no">
+        档案编号：<span class="line">{{fileNumber}}</span>
+      </div>
+
+      <div class="title">广州市智障幼儿</div>
+      <div class="subtitle">康复训练档案</div>
+      <div class="edition">（试用版）</div>
+
+      <section class="info">
+        <div>儿童姓名：<span class="line">{{name}}</span></div>
+
+        <div>
+          出生日期：
+          <span class="short-line">{{birthYear}}</span> 年
+          <span class="short-line">{{birthMonth}}</span> 月
+          <span class="short-line">{{birthDay}}</span> 日
+        </div>
+
+        <div>康复训练号：<span class="line">{{trainingNumber}}</span></div>
+        <div>康复机构：<span class="line">{{institution}}</span></div>
+
+        <div>
+          建档日期：
+          <span class="short-line">{{archiveYear}}</span> 年
+          <span class="short-line">{{archiveMonth}}</span> 月
+          <span class="short-line">{{archiveDay}}</span> 日
+        </div>
+      </section>
+
+      <footer class="organization">
+        <div>广州市残疾人康复中心</div>
+        <div>广东省残疾人康复中心</div>
+        <div>二〇〇〇年五月</div>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

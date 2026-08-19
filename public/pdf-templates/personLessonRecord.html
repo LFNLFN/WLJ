@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>个别教学记录卡</title>
+  <style>
+    @page{
+      size: A4 portrait;
+      margin: 15mm 16mm 14mm;
+    }
+
+    .tpl-personlesson *{
+      box-sizing: border-box;
+    }
+
+    .tpl-personlesson{
+      margin: 0;
+      color: #000;
+      font-family: "SimSun", "宋体", serif;
+      font-size: 15px;
+    }
+
+    .tpl-personlesson .page{
+      position: relative;
+      width: 100%;
+      min-height: 262mm;
+    }
+
+    .tpl-personlesson .page-break{
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .tpl-personlesson .title{
+      margin: 2mm 0 7mm;
+      text-align: center;
+      font-size: 23px;
+      font-weight: bold;
+      letter-spacing: 3px;
+    }
+
+    .tpl-personlesson table{
+      width: 100%;
+      max-width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .tpl-personlesson td{
+      border: 1px solid #000;
+      padding: 3px 5px;
+      text-align: center;
+      vertical-align: middle;
+      word-break: break-all;
+    }
+
+    .tpl-personlesson .label{
+      width: 12%;
+    }
+
+    .tpl-personlesson .info-table td{
+      height: 12mm;
+    }
+
+    .tpl-personlesson .content-table td{
+      height: 52mm;
+    }
+
+    .tpl-personlesson .vertical{
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 2px;
+      margin: auto;
+    }
+
+    .tpl-personlesson .write-area{
+      text-align: left;
+      vertical-align: top;
+      padding: 6px 8px;
+    }
+
+    .tpl-personlesson .page-number{
+      position: absolute;
+      bottom: 1mm;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .tpl-personlesson .category-table .category{
+      width: 14%;
+      font-size: 16px;
+    }
+
+    .tpl-personlesson .category-table td{
+      height: 40mm;
+    }
+
+    .tpl-personlesson .category-table .large-row td{ height: 43mm; }
+
+    .tpl-personlesson .feedback-table .other-row td{
+      height: 50mm;
+    }
+
+    .tpl-personlesson .feedback-table .feedback-row td{
+      height: 107mm;
+    }
+
+    .tpl-personlesson .signature-row{
+      position: absolute;
+      bottom: 10mm;
+      right: 5mm;
+      font-size: 17px;
+    }
+
+    .tpl-personlesson .signature-line{
+      display: inline-block;
+      width: 46mm;
+      height: 6mm;
+      border-bottom: 1px solid #000;
+      vertical-align: bottom;
+    }
+
+    @media print{
+      .tpl-personlesson .page{
+        min-height: 262mm;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="tpl-personlesson">
+
+  <!-- 第17页 -->
+  <section class="page page-break">
+    <h1 class="title">个别教学记录卡</h1>
+
+    <table class="info-table">
+      <colgroup>
+        <col style="width:12%">
+        <col style="width:22%">
+        <col style="width:12%">
+        <col style="width:20%">
+        <col style="width:12%">
+        <col style="width:22%">
+      </colgroup>
+
+      <tr>
+        <td class="label">姓　名</td>
+        <td></td>
+        <td class="label">性别</td>
+        <td></td>
+        <td class="label">出生年月</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="label">训练日期</td>
+        <td colspan="3"></td>
+        <td class="label">任教老师</td>
+        <td></td>
+      </tr>
+    </table>
+
+    <table class="content-table">
+      <colgroup>
+        <col style="width:12%">
+        <col style="width:88%">
+      </colgroup>
+
+      <tr>
+        <td class="label">教学目标</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr>
+        <td class="label">项目</td>
+        <td class="write-area">教学内容及儿童表现</td>
+      </tr>
+      <tr>
+        <td class="label">生活自理</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr>
+        <td class="label">感觉统合</td>
+        <td class="write-area"></td>
+      </tr>
+    </table>
+
+    <div class="page-number">17</div>
+  </section>
+
+  <!-- 第18页 -->
+  <section class="page page-break">
+    <table class="category-table">
+      <colgroup>
+        <col style="width:14%">
+        <col style="width:86%">
+      </colgroup>
+
+      <tr class="large-row">
+        <td class="category">认知</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr class="large-row">
+        <td class="category">语言<br>交往</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr class="large-row">
+        <td class="category">社会<br>技能</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr class="large-row">
+        <td class="category">美术<br>手工</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr class="large-row">
+        <td class="category">游戏<br>音乐</td>
+        <td class="write-area"></td>
+      </tr>
+      <tr class="large-row">
+        <td class="category">课间操</td>
+        <td class="write-area"></td>
+      </tr>
+    </table>
+
+    <div class="page-number">18</div>
+  </section>
+
+  <!-- 家长反馈意见页（末页：min-height 留余量，避免产生尾页空白） -->
+  <section class="page" style="min-height:240mm;">
+    <table class="feedback-table">
+      <colgroup>
+        <col style="width:12%">
+        <col style="width:88%">
+      </colgroup>
+
+      <tr class="other-row">
+        <td class="label">其它</td>
+        <td class="write-area"></td>
+      </tr>
+
+      <tr class="feedback-row">
+        <td class="label">
+          <span class="vertical">家长反馈意见</span>
+        </td>
+        <td class="write-area"></td>
+      </tr>
+    </table>
+
+    <div class="signature-row">
+      家长签名：<span class="signature-line"></span>
+      <span style="margin-left:18mm;">年　　月　　日</span>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
