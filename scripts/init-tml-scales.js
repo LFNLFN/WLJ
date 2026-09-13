@@ -5,10 +5,10 @@
  *   node scripts/init-tml-scales.js
  *   
  * 可以指定 API 地址:
- *   API_URL=http://localhost:3001/api node scripts/init-tml-scales.js
+ *   API_URL=https://www.weilaijia20210101.com/api node scripts/init-tml-scales.js
  */
 
-const API_BASE = process.env.API_URL || 'http://localhost:3001/api';
+const API_BASE = process.env.API_URL || 'https://www.weilaijia20210101.com/api';
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);

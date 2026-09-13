@@ -16,10 +16,16 @@ let db;
 let isPg = true;
 
 async function initDb() {
+  // 只连接线上数据库，绝不回退到本地库（connectionString 为空时 pg 会默认连 localhost）
+  if (!DATABASE_URL) {
+    throw new Error(
+      '未配置 DATABASE_URL：本项目只使用线上 PostgreSQL，不支持本地数据库。请在服务器环境变量中配置线上数据库连接串。'
+    );
+  }
   const { Pool } = require('pg');
   db = new Pool({
     connectionString: DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: (process.env.PGSSLMODE || '').toLowerCase() === 'disable' ? false : { rejectUnauthorized: false },
   });
   isPg = true;
 
@@ -68,6 +74,31 @@ async function initDb() {
       "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
     );
   `);
+  // 登录用户表（与 Next.js 侧 src/lib/auth/store.ts 保持一致；认证接口在 Next.js 侧实现）
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL UNIQUE,
+      "passwordHash" TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'teacher',
+      status TEXT NOT NULL DEFAULT 'active', source TEXT DEFAULT 'web',
+      "securityQuestion" TEXT DEFAULT '', "securityAnswerHash" TEXT DEFAULT '',
+      "recoveryCodeHash" TEXT DEFAULT '',
+      "mustChangePassword" BOOLEAN DEFAULT false,
+      "resetFailCount" INTEGER DEFAULT 0, "resetLockedUntil" TEXT DEFAULT '',
+      "lastResetAt" TEXT DEFAULT '', "lastResetBy" TEXT DEFAULT '',
+      "lastLoginAt" TEXT DEFAULT '',
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS'),
+      "updatedAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+  `);
+  // 密码变更审计表（找回密码 / 管理员重置）
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS password_reset_logs (
+      id TEXT PRIMARY KEY, "userId" TEXT DEFAULT '', phone TEXT DEFAULT '',
+      action TEXT DEFAULT '', operator TEXT DEFAULT '',
+      "createdAt" TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')
+    );
+  `);
+
   // 迁移：补充 student_scale_records 可能缺失的列（兼容旧表结构）
   try {
     await db.query(`ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "scaleName" TEXT DEFAULT ''`);

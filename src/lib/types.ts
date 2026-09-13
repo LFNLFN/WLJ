@@ -201,7 +201,7 @@ export interface SyncRequest {
 // 同步结果
 export interface SyncResult {
   id: string;        // 小程序报告ID
-  savedId: string;   // 本地数据库ID
+  savedId: string;   // 数据库记录 ID
   success: boolean;
 }
 

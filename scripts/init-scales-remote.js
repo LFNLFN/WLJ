@@ -1,7 +1,7 @@
 // 初始化预设量表模板到线上数据库
 // 使用方式: API_URL=https://your-domain.com/api node scripts/init-scales-remote.js
 
-const API_BASE = process.env.API_URL || 'https://wlj-production.up.railway.app/api';
+const API_BASE = process.env.API_URL || 'https://www.weilaijia20210101.com/api';
 
 const PRESET_SCALES = [
   {
