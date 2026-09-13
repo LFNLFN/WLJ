@@ -126,6 +126,50 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 > 临时密码只显示一次，页面弹窗提供复制按钮；请线下告知教师本人。
 
+## 小程序端：家长提交 / 教师批阅
+
+微信小程序（`~/Desktop/sensory-integration-app`）首页有「教师入口」，把用户分成两种身份：
+
+| 身份 | 登录 | 能做什么 |
+|---|---|---|
+| 普通用户（家长） | 不需要登录 | 只能**提交**评估表；只能看到**自己这台设备**提交的记录（`userid` = 小程序设备标识），看不到别人的；不能批阅 |
+| 教师 / 治疗师 / 管理员 | 用**未来家课程管理平台的账号密码**（手机号 + 密码）登录 | 能看到**全部**评估记录，可以**批阅**（批阅人由服务端按登录态记录）；登录状态在小程序本地保留 **24 小时**，期间免登录 |
+
+### 小程序是怎么鉴权的
+
+1. `POST /api/auth/login`，body 带 `{ phone, password, client: 'weapp' }` → 响应里除了 `user` 还会返回 `token`；
+   Web 端登录（不带 `client`）仍然只用 httpOnly Cookie，不会把 token 暴露给前端 JS。
+2. 小程序把 `token` 存本地（含 24 小时过期时间），之后请求带 `Authorization: Bearer <token>`。
+3. 服务端 `src/middleware.ts` 与 `src/lib/auth/current.ts` **同时支持** Cookie 和 Bearer token。
+
+### 小程序相关接口
+
+| 方法 | 路径 | 权限 |
+|---|---|---|
+| POST | `/api/auth/login` | 公开。带 `client: 'weapp'` 时返回 `token` |
+| POST | `/api/student-scale-records` | 公开提交，**必须带 `userid`**（家长免登录）；批阅字段一律由服务端忽略 |
+| GET | `/api/student-scale-records` | 带会话 → 全部记录，可 `?reviewStatus=pending\|reviewed` 过滤；不带会话 → **必须带 `?userid=`**，只返回该设备的记录，否则 401 |
+| GET | `/api/student-scale-records/[id]` | 带会话 → 任意；未登录 → 必须 `?userid=` 且与记录一致，否则 403 |
+| PUT | `/api/student-scale-records/[id]` | **必须登录**；不允许改批阅字段 |
+| DELETE | `/api/student-scale-records/[id]` | 带会话 → 任意；未登录 → 必须 `?userid=` 且与记录一致 |
+| POST | `/api/student-scale-records/[id]/review` | **必须登录且是教师/治疗师/管理员**，body `{ comment, status?: 'reviewed'\|'pending' }` |
+
+`student_scale_records` 新增批阅列：`reviewStatus`（`pending` / `reviewed`）、`reviewComment`、
+`reviewerId`、`reviewerName`、`reviewedAt`（代码里幂等 `ALTER TABLE` 自动补，不用手工执行）。
+
+> 批阅人（`reviewerId` / `reviewerName`）**只能取自服务端会话**，并且会从数据库重新核对账号角色，
+> 客户端传什么都不认——所以每条批阅都能追溯到具体是哪位老师批的。
+
+> `/api/student-scale-records` 仍留在 middleware 白名单里（家长免登录提交），
+> 因此具体的读写权限是在各 route 内部按身份判定的，改动这些接口时请保留这套判定。
+
+### 界面上怎么看批阅结果
+
+- **PC 后台**「量表评估记录」页（`/scales/records`）：新增「批阅状态」「批阅人（含批阅时间）」「批阅意见」三列，
+  并支持按批阅状态筛选；顶部统计卡新增「待批阅 / 已批阅」。
+- **小程序家长端**「历史评估记录」页：每条记录显示 `⏳ 待批阅` / `✅ 已批阅`（含批阅人与批阅时间），
+  有批阅意见时一并显示；统计条新增「待批阅」计数。
+
 ## 创建管理员账号
 
 三种方式，任选其一：

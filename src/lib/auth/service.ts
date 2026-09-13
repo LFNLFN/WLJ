@@ -391,6 +391,26 @@ export async function requireAdmin(
   return { ok: true, value: { id: row.id, name: row.name || '' } };
 }
 
+/**
+ * 校验「机构内部人员」（教师 / 治疗师 / 管理员）身份，用于小程序教师端。
+ * 每次从库里取，避免用过期 Cookie/Token 里的角色。
+ */
+export async function requireStaff(
+  db: Pool,
+  userId: string | undefined
+): Promise<Result<{ id: string; name: string; role: string; phone: string }>> {
+  if (!userId) return { ok: false, status: 401, error: '未登录，请先登录教师账号' };
+  const row = await findUserById(db, userId);
+  if (!row) return { ok: false, status: 401, error: '未登录，请先登录教师账号' };
+  if ((row.status || 'active') !== 'active') {
+    return { ok: false, status: 403, error: '该账号已被停用' };
+  }
+  if (!(USER_ROLES as readonly string[]).includes(row.role)) {
+    return { ok: false, status: 403, error: '该账号没有教师权限' };
+  }
+  return { ok: true, value: { id: row.id, name: row.name || '', role: row.role, phone: row.phone || '' } };
+}
+
 /** 管理员：用户列表 */
 export async function adminListUsers(
   db: Pool,

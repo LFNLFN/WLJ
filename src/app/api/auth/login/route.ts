@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/api/db';
-import { SESSION_COOKIE, sessionCookieOptions } from '@/lib/auth/config';
+import { SESSION_COOKIE, SESSION_MAX_AGE, sessionCookieOptions } from '@/lib/auth/config';
 import { authenticateUser } from '@/lib/auth/service';
 import { createSessionToken } from '@/lib/auth/session';
 import { ensureAuthSchema } from '@/lib/auth/store';
@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
       role: user.role,
     });
 
-    const res = NextResponse.json({ user });
+    // 小程序（wx.request）不方便稳靠地保存 Cookie：带 client=weapp 时把同一个 token 返回给客户端保存
+    const isWeapp = String(body?.client || req.headers.get('x-client') || '').toLowerCase() === 'weapp';
+    const res = NextResponse.json(isWeapp ? { user, token, expiresIn: SESSION_MAX_AGE } : { user });
     res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions());
     return res;
   } catch (err: any) {
