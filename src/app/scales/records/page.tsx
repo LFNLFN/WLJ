@@ -20,6 +20,12 @@ type StudentScaleRecord = {
   summary: string;
   status: 'draft' | 'completed';
   createdat: string;
+  // 教师批阅（小程序教师端写入）
+  reviewStatus?: 'pending' | 'reviewed';
+  reviewComment?: string;
+  reviewerId?: string;
+  reviewerName?: string;
+  reviewedAt?: string;
 };
 
 const categoryColors: Record<string, string> = {
@@ -37,6 +43,7 @@ export default function ScaleRecordsPage() {
   const [records, setRecords] = useState<StudentScaleRecord[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [filterStudentId, setFilterStudentId] = useState('');
+  const [filterReview, setFilterReview] = useState('');
 
   const loadData = () => {
     getStudentScaleRecords()
@@ -63,9 +70,15 @@ export default function ScaleRecordsPage() {
     }
   };
 
-  const filteredRecords = filterStudentId
-    ? records.filter(r => r.studentId === filterStudentId)
-    : records;
+  const isReviewed = (r: StudentScaleRecord) => (r.reviewStatus || 'pending') === 'reviewed';
+  const pendingCount = records.filter(r => !isReviewed(r)).length;
+
+  const filteredRecords = records.filter((r) => {
+    if (filterStudentId && r.studentId !== filterStudentId) return false;
+    if (filterReview === 'pending' && isReviewed(r)) return false;
+    if (filterReview === 'reviewed' && !isReviewed(r)) return false;
+    return true;
+  });
 
   const columns = [
     { key: 'studentname', label: '学生姓名' },
@@ -90,6 +103,45 @@ export default function ScaleRecordsPage() {
       key: 'createdat',
       label: '记录时间',
       render: (val: string) => new Date(val).toLocaleDateString('zh-CN'),
+    },
+    {
+      key: 'reviewStatus',
+      label: '批阅状态',
+      render: (_val: string, row: StudentScaleRecord) =>
+        isReviewed(row) ? (
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+            ✅ 已批阅
+          </span>
+        ) : (
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+            ⏳ 待批阅
+          </span>
+        ),
+    },
+    {
+      key: 'reviewerName',
+      label: '批阅人',
+      render: (_val: string, row: StudentScaleRecord) =>
+        isReviewed(row) ? (
+          <div className="leading-tight">
+            <div className="text-gray-800">{row.reviewerName || '—'}</div>
+            <div className="text-xs text-gray-400">{row.reviewedAt || ''}</div>
+          </div>
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
+    },
+    {
+      key: 'reviewComment',
+      label: '批阅意见',
+      render: (val: string) =>
+        val ? (
+          <span className="block max-w-[220px] truncate text-gray-600" title={val}>
+            {val}
+          </span>
+        ) : (
+          <span className="text-gray-400">—</span>
+        ),
     },
   ];
 
@@ -117,6 +169,10 @@ export default function ScaleRecordsPage() {
             <Card title="评估总次数" value={records.length} icon="📊" color="bg-purple-50" />
 
             <Card title="涉及学生" value={new Set(records.map(r => r.studentId)).size} icon="👦" color="bg-blue-50" />
+
+            <Card title="待批阅" value={pendingCount} icon="⏳" color="bg-orange-50" />
+
+            <Card title="已批阅" value={records.length - pendingCount} icon="✅" color="bg-green-50" />
           </div>
 
           {/* 筛选 */}
@@ -135,11 +191,19 @@ export default function ScaleRecordsPage() {
                   </option>
                 ))}
               </select>
-              {filterStudentId && (
-                <span className="text-xs text-gray-400">
-                  找到 {filteredRecords.length} 条记录
-                </span>
-              )}
+              <span className="text-sm font-medium text-gray-700 ml-2">按批阅状态筛选：</span>
+              <select
+                value={filterReview}
+                onChange={e => setFilterReview(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent text-sm"
+              >
+                <option value="">全部状态</option>
+                <option value="pending">待批阅</option>
+                <option value="reviewed">已批阅</option>
+              </select>
+              <span className="text-xs text-gray-400">
+                找到 {filteredRecords.length} 条记录
+              </span>
             </div>
           </div>
 

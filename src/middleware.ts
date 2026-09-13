@@ -8,10 +8,14 @@ import { verifySessionToken } from '@/lib/auth/session';
  * 页面：未登录 → 跳转 /login?next=<原地址>
  * 接口：未登录 → 401（下面白名单除外）
  *
- * ⚠️ 白名单里 /api/student-scale-records 是微信小程序端**直连**写入评估记录的接口
- *    （小程序 utils/assessment.js → `${WLJ_API_BASE}/student-scale-records`），
- *    一旦加鉴权，小程序保存评估记录会全部失败。若后续要收紧，请改成给小程序发一个
- *    固定 Token 放进请求头，而不是直接启用 Cookie 校验。
+ * ⚠️ 白名单里 /api/student-scale-records 是微信小程序端**直连**的接口
+ *    （小程序 utils/assessment.js → `${WLJ_API_BASE}/student-scale-records`）：
+ *    - 普通用户（家长）不登录，只要带上设备 userid 就能提交 / 只看自己的记录；
+ *    - 教师在小程序里登录后拿 Bearer token，可以看全部记录并批阅。
+ *    因此这一条不在 middleware 里拦，而是**由路由内部按身份判定**：
+ *      src/app/api/student-scale-records/route.ts（列表：登录=全部，未登录=必须带 userid）
+ *      src/app/api/student-scale-records/[id]/route.ts（单条：同上）
+ *      src/app/api/student-scale-records/[id]/review/route.ts（批阅：必须登录且是教师/治疗师/管理员）
  */
 
 /** 免登录页面（登录页、找回密码页） */
@@ -43,8 +47,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const isPublicPage = PUBLIC_PAGES.includes(pathname);
-  const token = req.cookies.get(SESSION_COOKIE)?.value;
-  const session = await verifySessionToken(token);
+  // Web 用 httpOnly Cookie，小程序用 Authorization: Bearer <token>
+  const cookieToken = req.cookies.get(SESSION_COOKIE)?.value;
+  const bearer = /^Bearer\s+(.+)$/i.exec((req.headers.get('authorization') || '').trim())?.[1];
+  const session = await verifySessionToken(cookieToken || bearer);
 
   if (!session) {
     if (pathname.startsWith('/api/')) {
