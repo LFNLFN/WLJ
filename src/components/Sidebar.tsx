@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/teachers', label: '教师管理', icon: '👨‍🏫' },
@@ -12,6 +12,10 @@ const navItems = [
   { href: '/', label: 'AI 辅助备课', icon: '🤖' },
   { href: '/lesson-plans', label: '教案中心', icon: '📖' },
   { href: '/training-plans', label: '训练阶段计划', icon: '📋' },
+];
+
+const adminNavItems = [
+  { href: '/users', label: '用户管理', icon: '👥' },
 ];
 
 const subNavGroups = [
@@ -35,6 +39,24 @@ const subNavGroups = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  // 是否管理员（用于决定是否显示「用户管理」）
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/me')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setIsAdmin(data?.user?.role === 'admin');
+      })
+      .catch(() => {
+        /* 未登录时静默忽略 */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [expandedGroup, setExpandedGroup] = useState<string | null>(() => {
     if (pathname.startsWith('/rehabilitation')) return '康复档案';
     if (pathname.startsWith('/scales')) return '量表管理';
@@ -146,6 +168,41 @@ export default function Sidebar() {
               </li>
             );
           })}
+
+          {/* 账号相关 */}
+          <li className="pt-4 border-t border-gray-100 mt-4" />
+          {isAdmin &&
+            adminNavItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-[#FFF0E0] text-[#F08020] font-medium border-r-4 border-[#F08020]'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+                    }`}
+                  >
+                    <span className="text-lg">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          <li>
+            <Link
+              href="/account"
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                pathname === '/account'
+                  ? 'bg-[#FFF0E0] text-[#F08020] font-medium border-r-4 border-[#F08020]'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
+              }`}
+            >
+              <span className="text-lg">⚙️</span>
+              <span>账号设置</span>
+            </Link>
+          </li>
         </ul>
       </nav>
     </aside>

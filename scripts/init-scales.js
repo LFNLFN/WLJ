@@ -1,7 +1,8 @@
-// 初始化量表模板数据到 Railway 后端
+// 初始化量表模板数据到线上后端（与其它接口同一个 origin）
 // 使用方式: node scripts/init-scales.js
+// 可覆盖: API_URL=https://your-domain/api node scripts/init-scales.js
 
-const API_BASE = process.env.API_URL || 'https://wlj-production.up.railway.app/api';
+const API_BASE = process.env.API_URL || 'https://www.weilaijia20210101.com/api';
 
 const PRESET_SCALES = [
   {

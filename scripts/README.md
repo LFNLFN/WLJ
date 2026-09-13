@@ -1,49 +1,55 @@
-# 数据同步工具
+# 运维 / 数据脚本
 
-## 配置 PostgreSQL（仅需执行一次）
+## 数据库：只使用线上库
 
-### 在 Railway 网页控制台操作：
+本项目**只有一个数据库**：阿里云服务器（`www.weilaijia20210101.com` → `8.148.240.144`）上的 PostgreSQL（人工部署维护）。
 
-**步骤 1:** 打开 https://railway.app/project，用 GitHub 登录
+- **不要在本地新建任何数据库**，本地开发也直连线上库。
+- 连接串统一放在 `DATABASE_URL`：
+  - 本地开发：写进项目根目录的 `.env.local`（已被 git 忽略）
+  - 线上：写进阿里云服务器的环境变量（systemd / PM2 / shell profile，人工配置）
+- 不配置 `DATABASE_URL` 时接口会直接报错，不会回退到本地库（见 `src/lib/api/db.ts`、`server/index.js`）。
+- 表由代码幂等创建（`CREATE TABLE IF NOT EXISTS`），不需要手工建表，项目里也不存在任何本地数据库文件。
 
-**步骤 2:** 点击项目名称（不是 "New project"，而是你部署 wlj 的那个项目）
+## 接口地址（登录接口与其它接口同源）
 
-**步骤 3:** 点击页面顶部的 "New" 按钮 → "Database" → "Add PostgreSQL"
+所有接口都在同一个域名下，脚本默认使用线上地址，也可以用 `API_URL` 覆盖：
 
-**步骤 4:** 等待 PostgreSQL 创建完成（约 1 分钟）
-
-**步骤 5:** 在 Railway 项目页面，找到 "Variables" 选项卡
-   - 确认有一个 `DATABASE_URL` 变量（Railway 会自动设置）
-
-**步骤 6:** 触发重新部署：
-   - 在 "Deployments" 选项卡中
-   - 找到最近的部署记录
-   - 点击 "Redeploy" 按钮
-   - 或者在 GitHub 推送一次新的提交
-
-**步骤 7:** 部署完成后验证：
 ```bash
-curl https://wlj-production.up.railway.app/api/health
-```
-返回 `{"status":"ok","db":"postgresql",...}` 表示成功 ✅
-
-**步骤 8:** 同步现有数据：
-```bash
-node scripts/sync-to-remote.js
+API_URL=https://www.weilaijia20210101.com/api node scripts/init-tml-scales.js
 ```
 
-## 日常使用命令
+- 健康检查：`https://www.weilaijia20210101.com/api/health`
+- 登录：`https://www.weilaijia20210101.com/api/auth/login`（和 `/api/teachers` 等接口同一 origin）
+
+## 常用命令
 
 ```bash
-# 本地开发（使用 SQLite）
+# 本地开发（Next.js，页面与 API 同源，端口 3000）
 npm run dev
 
-# 修改数据后同步到线上
-npm run sync:remote
+# 构建 + 线上运行（Next.js，端口 3001，由 Nginx 反向代理）
+npm run build && npm run start
 
-# 初始化预设量表模板到线上
+# 初始化预设量表模板到线上数据库
 npm run sync:scales
 
-# 检查 PostgreSQL 配置状态
-npm run setup:pg
+# 创建/重置管理员账号（本地会自动读 .env.local 里的 DATABASE_URL）
+npm run create-admin -- --name 张三 --phone 13800000000
+
+# 检查线上接口与数据库状态
+node scripts/setup-postgresql.js
+bash scripts/setup-pg.sh
 ```
+
+## 脚本清单
+
+| 脚本 | 作用 |
+|---|---|
+| `init-scales-remote.js` | 初始化预设量表模板到线上（`npm run sync:scales`） |
+| `init-scales.js` / `init-tml-scales.js` | 初始化量表模板（含小程序 TML 量表） |
+| `create-admin.js` | 创建/重置管理员账号，顺带生成一次性恢复码；本地自动读 `.env.local` |
+| `setup-postgresql.js` / `setup-pg.sh` | 检查线上接口与数据库状态 |
+
+> 注意：量表和模板类接口在登录功能上线后需要登录态；这类一次性初始化建议在部署登录版本之前执行，
+> 或临时使用管理员账号的会话 Cookie 调用。

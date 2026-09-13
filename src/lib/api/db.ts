@@ -1,5 +1,4 @@
 import { Pool } from 'pg';
-import path from 'path';
 
 type DbConfig = {
   type: 'postgres';
@@ -10,30 +9,21 @@ let dbConfig: DbConfig | null = null;
 
 // PostgreSQL 连接配置
 function getPgPool(): Pool {
-  // 优先使用连接字符串
-  const connStr = process.env.DATABASE_URL || process.env.POSTGRES_URL || 
-                  process.env.RAILWAY_DATABASE_URL || process.env.RAILWAY_POSTGRES_URL;
+  // 只允许连接「线上数据库」：必须显式提供连接串，绝不回退到 localhost 之类的本地库
+  const connStr = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+  if (!connStr) {
+    throw new Error(
+      '未配置 DATABASE_URL：本项目只使用线上 PostgreSQL，不支持本地数据库。' +
+        '请在 .env.local（本地开发）或阿里云服务器的环境变量中配置线上数据库连接串。'
+    );
+  }
+
   const sslMode = (process.env.PGSSLMODE || process.env.PGSSL || '').toLowerCase();
-  const shouldUseSsl = sslMode === 'disable'
-    ? false
-    : !!connStr || process.env.NODE_ENV === 'production';
+  const shouldUseSsl = sslMode === 'disable' ? false : true;
   const ssl = shouldUseSsl ? { rejectUnauthorized: false } : false;
 
-  if (connStr) {
-    return new Pool({
-      connectionString: connStr,
-      ssl,
-    });
-  }
-  // 支持独立的环境变量（PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD）
-  return new Pool({
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT || '5432'),
-    database: process.env.PGDATABASE || 'postgres',
-    user: process.env.PGUSER || 'postgres',
-    password: process.env.PGPASSWORD || '',
-    ssl,
-  });
+  return new Pool({ connectionString: connStr, ssl });
 }
 
 export async function getDb(): Promise<Pool> {

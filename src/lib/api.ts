@@ -1,5 +1,8 @@
-// API 基础地址
-// 现在 Next.js API Routes 和前端在同一域名/端口下
+// API 基础地址（唯一入口）
+//
+// 所有接口——包括登录 / 注册（/auth/login、/auth/register）——都使用这个相对路径，
+// 即「与页面同源」：本地是 http://localhost:3000/api，线上是 https://www.weilaijia20210101.com/api。
+// 登录接口和 /teachers、/students 等其它接口在同一 origin，不要在任何地方写死其它域名。
 const API_BASE = '/api';
 
 async function request(path: string, options: RequestInit = {}) {
@@ -269,3 +272,91 @@ export async function saveTrainingPlan(data: any) {
 export async function deleteTrainingPlan(id: string) {
   return request(`/training-plans/${id}`, { method: 'DELETE' });
 }
+
+// ==================== 认证 ====================
+
+export async function getCurrentUser() {
+  return request('/auth/me');
+}
+
+export async function login(phone: string, password: string) {
+  return request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ phone, password }),
+  });
+}
+
+export async function register(data: {
+  name: string;
+  phone: string;
+  password: string;
+  confirmPassword?: string;
+  role?: string;
+  securityQuestion?: string;
+  securityAnswer?: string;
+  registerCode?: string;
+}) {
+  return request('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function logout() {
+  return request('/auth/logout', { method: 'POST' });
+}
+
+export async function changePassword(data: { oldPassword: string; newPassword: string; confirmPassword?: string }) {
+  return request('/auth/password', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function getForgotInfo(phone: string) {
+  return request(`/auth/forgot?phone=${encodeURIComponent(phone)}`);
+}
+
+export async function resetPassword(data: {
+  phone: string;
+  method: 'security' | 'recovery';
+  answer?: string;
+  recoveryCode?: string;
+  newPassword: string;
+  confirmPassword?: string;
+}) {
+  return request('/auth/forgot', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export async function setSecurityQuestion(data: { securityQuestion: string; securityAnswer: string }) {
+  return request('/auth/security-question', { method: 'POST', body: JSON.stringify(data) });
+}
+
+// ==================== 管理员：用户管理 ====================
+
+export async function getUsers(keyword = '') {
+  return request(`/admin/users${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ''}`);
+}
+
+export async function updateUser(id: string, data: { role?: string; status?: string }) {
+  return request(`/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export async function adminResetUserPassword(id: string) {
+  return request(`/admin/users/${id}/reset-password`, { method: 'POST' });
+}
+
+export async function adminIssueRecoveryCode(id: string) {
+  return request(`/admin/users/${id}/recovery-code`, { method: 'POST' });
+}
+
+// ==================== 管理员：教师账号 ====================
+
+export async function getTeacherAccounts() {
+  return request('/admin/teacher-accounts');
+}
+
+export async function teacherAccountAction(teacherId: string, action: 'create' | 'reset') {
+  return request(`/admin/teachers/${teacherId}/account`, {
+    method: 'POST',
+    body: JSON.stringify({ action }),
+  });
+}
+

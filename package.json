@@ -10,6 +10,7 @@
     "server": "node server/index.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "sync:scales": "node scripts/init-scales-remote.js",
+    "create-admin": "node scripts/create-admin.js",
     "migrate:scale-records": "node scripts/migrate-student-scale-records.js"
   },
   "dependencies": {
