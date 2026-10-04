@@ -454,6 +454,26 @@ npm run build
 npm run start          # next start -p 3001，由 Nginx 反向代理
 ```
 
+### 部署后一键验收
+
+```bash
+npm run deploy:verify                    # 在服务器上跑（默认用 www.weilaijia20210101.com 探测公网目录，可 --base 覆盖）
+```
+逐条检查并给出 PASS/WARN/FAIL：环境变量（DATABASE_URL / KB_API_KEY / KB_COLLECTION_NAME / PUBLIC_BASE_URL）、
+数据库与关键表、火山知识库四连（ping → collection/list → doc/list → search_knowledge）、
+`/generated/` 的公网可访问性（火山知识库抓取上传文件的前提）、平台知识库条数。
+只读为主，会写一个临时文件并立即删除。任一项 FAIL 时退出码为 1。
+
+实测输出（当前环境）：
+```
+✅ DATABASE_URL / KB_API_KEY / KB_COLLECTION_NAME
+✅ 数据库连接成功（13ms）；8 张表都在
+✅ 火山知识库 ping / collection/list → WLJ(1 篇) / doc/list → 1 份 / search_knowledge("王小明") → 3 条切片
+⚠️ /generated/ 公网拉取 404（开发机跑属正常，服务器上跑才有意义）
+⚠️ knowledge_documents → 0 条（还没成功上传过）
+结论：PASS 9 ｜ WARN 3 ｜ FAIL 0
+```
+
 部署后确认「登录接口与其它接口同源」：
 
 ```bash
