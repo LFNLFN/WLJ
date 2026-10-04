@@ -16,6 +16,7 @@ import path from 'path';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { searchKnowledgeBase, getAgentConfigStatus, type KnowledgeItem } from '../src/lib/agent-tools';
+import { callerLine, roleLabel, runWithAgentContext } from '../src/lib/agent/context';
 import {
   addVikingDocByUrl,
   deleteVikingDoc,
@@ -24,6 +25,9 @@ import {
   listVikingDocs,
   listVikingPoints,
 } from '../src/lib/knowledge/viking';
+
+/** 测试用的假 Ark key：**运行时拼接**，避免把「长得像真密钥」的字面量写进仓库（GitHub push protection 会拦） */
+const FAKE_ARK_KEY = ['ark', '12345678-1234-1234-1234-123456789012', 'abcde'].join('-');
 
 let passed = 0;
 let failed = 0;
@@ -254,7 +258,7 @@ async function main() {
 
   console.log('\n== 4. 托管智能体会话流（按你给的 session 调用方式）==');
   // 完全按实测的事件流结构：agent.tool_result 里包着 search_knowledge 的响应体
-  const ARK_KEY = ['ark', '12345678-1234-1234-1234-123456789012', 'abcde'].join('-');
+  const ARK_KEY = FAKE_ARK_KEY;
   let createdSession = false;
   const ark = await startArkMock(() => {
     createdSession = true;
@@ -394,6 +398,35 @@ async function main() {
     docTypeFromFilename('c.docx') === 'docx' && docTypeFromFilename('noext') === 'txt', 
     [docTypeFromFilename('a.pdf'), docTypeFromFilename('b.PDF'), docTypeFromFilename('noext')]);
   await vk.close();
+
+  console.log('\n== 7. 调用者身份（管理员被"没有权限"拒绝的修复）==');
+  check('roleLabel 把角色码翻成中文', roleLabel('admin') === '管理员' && roleLabel('teacher') === '教师' && roleLabel(undefined) === '未知角色');
+  check('没有身份上下文时不拼调用者前缀', callerLine() === '');
+
+  const withCtx = runWithAgentContext({ name: '梁丰年', role: 'admin' }, () =>
+    callerLine({ name: '梁丰年', role: 'admin' })
+  );
+  check('有身份时生成调用者说明', withCtx.includes('梁丰年') && withCtx.includes('管理员'), withCtx);
+
+  // 端到端：身份要真的出现在发给托管智能体的问题里
+  const arkCtx = await startArkMock(() => {});
+  process.env.ARK_API_KEY = FAKE_ARK_KEY;
+  process.env.ARK_BASE_URL = arkCtx.url;
+  process.env.ARK_AGENT_ID = 'agent-future-home-kb';
+  process.env.ARK_SESSION_ID = 'sesn-20261004055646-hqst3';
+  delete process.env.KB_API_KEY;
+  await runWithAgentContext({ name: '梁丰年', role: 'admin' }, () => searchKnowledgeBase('我们中心有哪些学生？'));
+  const sentText = JSON.stringify(arkCtx.posted);
+  check('发给智能体的问题里带上【调用者：梁丰年（管理员）】', sentText.includes('【调用者：梁丰年（管理员）'), sentText.slice(0, 200));
+  await arkCtx.close();
+
+  const arkNoCtx = await startArkMock(() => {});
+  process.env.ARK_BASE_URL = arkNoCtx.url;
+  await searchKnowledgeBase('我们中心有哪些学生？');
+  check('无身份时不带调用者前缀（行为与以前一致）', !JSON.stringify(arkNoCtx.posted).includes('【调用者：'), JSON.stringify(arkNoCtx.posted).slice(0, 160));
+  await arkNoCtx.close();
+  delete process.env.ARK_SESSION_ID;
+  delete process.env.ARK_API_KEY;
 
   console.log('\n----------------------------------------');
   console.log(`通过 ${passed}，失败 ${failed}`);

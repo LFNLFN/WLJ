@@ -25,6 +25,7 @@ import {
   WidthType,
 } from 'docx';
 import { getDb } from './api/db';
+import { callerLine } from './agent/context';
 
 const DEFAULT_ARK_BASE_URL = 'https://ark.cn-beijing.volces.com/api/v3';
 const FETCH_TIMEOUT_MS = 30_000;
@@ -480,11 +481,15 @@ async function searchViaManagedAgent(
   const streamUrl = `${eventsPath}/stream`;
 
   const sendQuery = async (): Promise<{ ok: boolean; detail?: string }> => {
+    // 把「谁在问」告诉智能体：它看不到我们的登录态，否则面对学生/评估这类数据
+    // 会以「你当前没有访问学生及相关数据的权限」搪塞（实测问题）。
+    const who = callerLine();
+    const question = who ? `${who} ${query}` : query;
     const post = await fetchWithTimeout(eventsPath, {
       method: 'POST',
       headers,
       body: JSON.stringify({
-        events: [{ type: 'user.message', content: [{ type: 'text', text: query }] }],
+        events: [{ type: 'user.message', content: [{ type: 'text', text: question }] }],
       }),
     });
     if (post.ok) return { ok: true };

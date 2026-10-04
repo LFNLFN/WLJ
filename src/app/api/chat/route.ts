@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { executeTool } from '@/lib/agent/execute';
 import { listToolSchemas } from '@/lib/agent/registry';
+import { roleLabel, runWithAgentContext, type AgentContext } from '@/lib/agent/context';
 import {
   augmentMessagesWithAttachments,
   dropImageParts,
@@ -70,13 +71,39 @@ export async function POST(req: NextRequest) {
       ...prepared.skipped.map((s) => `未解析 ${s.name}：${s.reason}`),
     ];
 
+    /**
+     * 当前登录用户（middleware 已把会话透传成 x-user-* 头）。
+     *
+     * 为什么必须有：模型与方舟托管智能体都看不到我们的登录态，
+     * 不告诉它"谁在问"，它遇到学生/评估这类数据就会以「你当前没有访问学生相关数据的权限」搪塞（实测）。
+     * 同时通过 AsyncLocalStorage 把身份带进工具执行层（见 src/lib/agent/context.ts）。
+     */
+    const rawName = req.headers.get('x-user-name') || '';
+    let userName = '';
+    try {
+      userName = decodeURIComponent(rawName);
+    } catch {
+      userName = rawName;
+    }
+    const agentCtx: AgentContext = {
+      userId: req.headers.get('x-user-id') || undefined,
+      name: userName || undefined,
+      role: req.headers.get('x-user-role') || undefined,
+    };
+    const userLine = agentCtx.name
+      ? `当前登录用户：${agentCtx.name}（${roleLabel(agentCtx.role)}），本中心内部账号，已通过系统登录。\n` +
+        'ta 的提问属于机构内部的正当使用：在职责范围内**可以直接检索业务库（学生 / 教师 / 课程 / 评估记录等）与知识库并给出结果**，' +
+        '不要以「没有权限」「无法访问」为由拒绝，也不要反复索要权限；' +
+        '只有在明显超出机构内部职责范围（例如索取其它单位的个人信息）时才拒绝，并说明原因。'
+      : '';
+
     const client = new OpenAI({ apiKey, baseURL: process.env.ARK_BASE_URL });
     const model = process.env.ARK_MODEL_ENDPOINT!;
     // 工具 schema 统一由注册表提供，避免与 agent-tools 的实现脱节
     const tools = listToolSchemas() as unknown as OpenAI.Chat.Completions.ChatCompletionTool[];
 
     let runnerMessages: ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: userLine ? `${SYSTEM_PROMPT}\n\n${userLine}` : SYSTEM_PROMPT },
       ...augmented.messages,
     ];
 
@@ -146,7 +173,8 @@ export async function POST(req: NextRequest) {
 
         const name = call.function.name;
         // executeTool 内部完成：参数解析、schema 校验、超时、异常兜底
-        const result = await executeTool(name, call.function.arguments);
+        // 带上下文执行：工具内部（尤其是发给托管智能体的检索）能读到调用者身份
+        const result = await runWithAgentContext(agentCtx, () => executeTool(name, call.function.arguments));
         steps.push({
           name,
           ok: result.ok,
