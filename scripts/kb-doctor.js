@@ -155,7 +155,50 @@ function explain(status, json, text) {
       if (!list.length) {
         console.log('  提示：0 条命中 —— 确认 KB_COLLECTION_NAME / KB_RESOURCE_ID 是否指向你要的那个知识库，或换个检索词。');
       }
-      console.log('\n== 结论 ==');
+      // ---------- 6) 两个知识库一览（最容易混的地方） ----------
+  console.log('\n[6] 两个知识库一览');
+  console.log('  ① 平台知识库（业务库 knowledge_documents）：📚 面板上方「上传」进的库，只收可抽取纯文本的文件');
+  try {
+    const { Client } = require('pg');
+    const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (url) {
+      const c = new Client({ connectionString: url, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 8000 });
+      await c.connect();
+      const r = await c.query(`select count(*)::int as n, max("createdAt") as latest from knowledge_documents`);
+      const rows = await c.query(`select title, category, length(content) as len from knowledge_documents order by "createdAt" desc limit 5`);
+      console.log(`     total = ${r.rows[0].n}${r.rows[0].latest ? '，最近一条 ' + r.rows[0].latest : ''}`);
+      for (const row of rows.rows) console.log(`     - ${row.title}（${row.category}，${row.len} 字）`);
+      if (r.rows[0].n === 0) {
+        console.log('     ⚠️ 0 条 = 从没成功入库。注意：**PDF 传不进这个库**（抽取器不支持 PDF，接口 400）');
+        console.log('        平台库只收 txt / md / csv / tsv / json / xlsx / docx；PDF、扫描件、PPT 请传火山知识库');
+      }
+      await c.end();
+    } else {
+      console.log('     (未配置 DATABASE_URL，跳过)');
+    }
+  } catch (e) {
+    console.log('     读取失败:', e.message);
+  }
+
+  console.log('  ② 火山知识库（方舟 Viking KnowledgeBase）：🌋 面板下方「上传到火山知识库」进的库，支持 PDF/Office');
+  try {
+    const H = { 'Content-Type': 'application/json', Authorization: `Bearer ${KEY}` };
+    const r = await fetch(`${HOST}/api/knowledge/doc/list`, {
+      method: 'POST', headers: H, signal: AbortSignal.timeout(TIMEOUT),
+      body: JSON.stringify({ name: NAME, project: PROJECT, ...(RESOURCE_ID ? { resource_id: RESOURCE_ID } : {}), page_num: 1, page_size: 50 }),
+    });
+    const j = await r.json();
+    const docs = j?.data?.doc_list || [];
+    console.log(`     total = ${j?.data?.total_num ?? 0}（知识库 ${NAME}）`);
+    for (const d of docs.slice(0, 5)) {
+      console.log(`     - ${d.doc_name}（${d.doc_type}，来源 ${d.add_type}，${d.create_time ? new Date(d.create_time * 1000).toLocaleString('zh-CN') : '-'}）`);
+    }
+    if (!docs.length) console.log('     （空）可在面板「🌋 火山知识库」上传，或去火山控制台传');
+  } catch (e) {
+    console.log('     读取失败:', e.message);
+  }
+
+  console.log('\n== 结论 ==');
       console.log('  ✅ 直连检索可用。把下面两个变量配到服务器环境后重启，助理就会优先用这条路（快、返回原文切片）：');
       console.log('     KB_API_KEY=<知识库 API Key>');
       console.log(`     KB_COLLECTION_NAME=${NAME || '<上面的 name>'}`);

@@ -295,8 +295,11 @@ curl -s "https://ark.cn-beijing.volces.com/api/v3/sessions/$SID/events?limit=500
 | 托管智能体会话（`ARK_SESSION_ID`） | 11~25s（复杂问题 100s+） | 生成好的回答（可另从 tool_result 抽切片） |
 
 ```bash
-npm run kb:doctor            # ping → collection/list（确认知识库名，如 name=WLJ）→ search_knowledge
+# 一条命令看清两个库 + 直连链路（ping → collection/list → search_knowledge → 两个库一览）
+npm run kb:doctor            # 默认检索词「知识库里有哪些资料」
 npm run kb:doctor "王小明"
+# 输出第 [6] 段会分别列出：平台知识库（业务库表）条数 + 火山知识库文档列表，
+# 平台库为 0 时会直接提示「PDF 传不进平台库」以及该往哪传
 ```
 
 > 该服务上还有 `collection/search_and_generate`（检索+生成带依据的回答）、`service/rerank`、
