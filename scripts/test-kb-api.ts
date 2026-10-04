@@ -252,6 +252,42 @@ async function main() {
 
   delete process.env.ARK_SESSION_ID;
 
+  console.log('\n== 5. 知识库限流（429）：退避重试一次；仍失败则快速失败，不去拖 30 秒的托管智能体 ==');
+  process.env.KB_API_KEY = 'kb-api-key-for-test';
+  process.env.KB_COLLECTION_NAME = 'WLJ';
+  process.env.KB_API_RESET_MS = '';
+  process.env.ARK_API_KEY = ['ark', '12345678-1234-1234-1234-123456789012', 'abcde'].join('-');
+  process.env.ARK_AGENT_ID = 'agent-future-home-kb';
+  process.env.ARK_SESSION_ID = 'sesn-20261004055646-hqst3';
+
+  let hits = 0;
+  const flaky = await startMock(() => {
+    hits++;
+    if (hits === 1) return { status: 429, payload: { code: 1000001, message: 'request limit exceeded' } };
+    return { status: 200, payload: { code: 0, data: { result_list: [{ id: 'pt_retry', content: '重试成功的切片' }] } } };
+  });
+  process.env.KB_API_HOST = flaky.url;
+  const retried = JSON.parse(await searchKnowledgeBase('王小明'));
+  check('第一次 429 会自动退避重试并成功', hits === 2 && (retried.items || []).some((i: KnowledgeItem) => i.id === 'pt_retry'), { hits, items: retried.items });
+  await flaky.close();
+
+  let alwaysHits = 0;
+  const always429 = await startMock(() => {
+    alwaysHits++;
+    return { status: 429, payload: { code: 1000001, message: 'request limit exceeded' } };
+  });
+  const ark2 = await startArkMock(() => {});
+  process.env.KB_API_HOST = always429.url;
+  process.env.ARK_BASE_URL = ark2.url;
+  const throttled = JSON.parse(await searchKnowledgeBase('王小明'));
+  check('一直 429 时如实报限流（notice 带 429）', /知识库检索失败\(429\)/.test(throttled.notice || ''), throttled.notice);
+  check('限流时不会再去调托管智能体（省掉几十秒的无谓等待）', ark2.posted.length === 0 && alwaysHits >= 1, { posted: ark2.posted.length, alwaysHits });
+  await always429.close();
+  await ark2.close();
+
+  delete process.env.ARK_SESSION_ID;
+  delete process.env.ARK_API_KEY;
+
   console.log('\n----------------------------------------');
   console.log(`通过 ${passed}，失败 ${failed}`);
   if (failed > 0) {

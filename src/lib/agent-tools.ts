@@ -359,6 +359,8 @@ interface ArkSearchResult {
   ok: boolean;
   items: KnowledgeItem[];
   notice?: string;
+  /** 是否因为「限流」失败（429/5xx）：这种情况降级到托管智能体也没意义，直接快速失败） */
+  rateLimited?: boolean;
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -644,24 +646,45 @@ async function searchViaKnowledgeApi(query: string, limit: number): Promise<ArkS
   const resourceId = (process.env.KB_RESOURCE_ID || process.env.ARK_KNOWLEDGE_BASE_ID || '').trim();
   if (resourceId) body.resource_id = resourceId;
 
-  try {
-    const res = await fetchWithTimeout(
-      `${host}/api/knowledge/collection/search_knowledge`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(body),
-      },
-      timeoutMs
-    );
+  const url = `${host}/api/knowledge/collection/search_knowledge`;
+  const attempts = clampInt(process.env.KB_API_RETRY, 1, 3, 2);
 
-    const text = await res.text();
+  try {
+    let res!: Response;
+    let text = '';
+
+    for (let i = 0; i < attempts; i++) {
+      res = await fetchWithTimeout(
+        url,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(body),
+        },
+        timeoutMs
+      );
+      text = await res.text();
+
+      // 429 / 5xx 多为瞬时限流或服务抖动：退避一下重试；其它状态码直接返回
+      const retryable = res.status === 429 || res.status >= 500;
+      if (res.ok || !retryable || i === attempts - 1) break;
+      const waitMs = 1200 * (i + 1);
+      console.warn(`[kb] 知识库检索被限流(${res.status})，${waitMs}ms 后重试第 ${i + 2} 次`);
+      await sleep(waitMs);
+    }
+
     if (!res.ok) {
-      return { ok: false, items: [], notice: `知识库检索失败(${res.status})：${text.slice(0, 200)}` };
+      const throttled = res.status === 429 || res.status >= 500;
+      return {
+        ok: false,
+        items: [],
+        rateLimited: throttled,
+        notice: `知识库检索失败(${res.status})${throttled ? '：知识库限流/服务抖动' : ''}：${text.slice(0, 200)}`,
+      };
     }
 
     const data = (safeJson(text) as any)?.data ?? {};
@@ -789,6 +812,9 @@ async function tryArkKnowledgeSearch(query: string, limit: number): Promise<ArkS
 
   const direct = await searchViaKnowledgeApi(query, limit);
   if (direct.ok) return direct;
+
+  // 限流：降级到托管智能体没意义（同样依赖知识库、还慢几十秒），直接如实返回
+  if (direct.rateLimited) return direct;
 
   const fallback = await tryArkAgentOrBotSearch(query, limit);
   const notices = [direct.notice, fallback.notice].filter(Boolean).join('；');

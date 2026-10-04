@@ -235,18 +235,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | `KB_API_KEY` | 火山知识库 API Key（控制台「知识库 → API Key」生成，**不是** `ark-*` 的方舟 Key） |
 | `KB_COLLECTION_NAME` | 知识库名称；不填则退回 `ARK_KNOWLEDGE_BASE_ID` |
 | `KB_RESOURCE_ID` | 可选，方舟里的 `kb-xxx`；给了它检索范围更准 |
-| `KB_API_HOST` / `KB_PROJECT` / `KB_DENSE_WEIGHT` / `KB_API_TIMEOUT_MS` | 可选，默认 `https://api-knowledgebase.mlp.cn-beijing.volces.com` / `default` / `0.5` / `10000` |
+| `KB_API_HOST` / `KB_PROJECT` / `KB_DENSE_WEIGHT` / `KB_API_TIMEOUT_MS` / `KB_API_RETRY` | 可选，默认 `https://api-knowledgebase.mlp.cn-beijing.volces.com` / `default` / `0.5` / `10000` / `2`（429、5xx 会退避重试；一直限流则如实报错，不再去拖几十秒的托管智能体） |
 
 调用的是 `POST /api/knowledge/collection/search_knowledge`（`Authorization: Bearer <KB_API_KEY>`），
 返回 **原文切片**（`chunk_title` / `content` / `score` / `rerank_score`），百毫秒级，直接拼进对话上下文；
 比托管智能体那条路（返回生成好的回答、实测 10–56 秒）更适合做问答依据。配了 `KB_API_KEY` 就先走直连，
 失败会自动降级到托管智能体，并把两条原因写进 `notice`。
-
-```bash
-npm run kb:doctor            # 三步实测：ping → 列出知识库 → 检索原文切片（推荐先跑这个）
-npm run kb:doctor "王小明"    # 指定检索词
-npm run test:kb-api          # 本地 mock 验证接线（不需要真实 key）
-```
 
 #### 托管智能体会话（`ARK_SESSION_ID`）怎么调
 
@@ -283,6 +277,18 @@ curl -s "https://ark.cn-beijing.volces.com/api/v3/sessions/$SID/events?limit=500
    把你指定的 session 悄悄忽略掉；现在「显式配置 > 自动新建」，想强制每次新建就不要再设 `ARK_SESSION_ID`。
 2. **它慢，而且会限流**：一次简单问答 ~10–20s，复杂问题实测 **113s 直接撞超时**，且日志里会出现「检索触发了限流」。
    撞超时时我们仍会把已抓到的原文切片返回（`ok:true`），并附 `notice` 说明回答不完整。想稳定快，就配 `KB_API_KEY` 走直连。
+
+实测（2026-10-04，知识库 `WLJ` / `kb-b26625679831644f`，1 份文档）：
+
+| 方式 | 耗时 | 返回内容 |
+|---|---|---|
+| 直连 `search_knowledge`（本页方案） | **318~898ms** | 5 条**原文切片**（含 token_usage 统计） |
+| 托管智能体会话（`ARK_SESSION_ID`） | 11~25s（复杂问题 100s+） | 生成好的回答（可另从 tool_result 抽切片） |
+
+```bash
+npm run kb:doctor            # ping → collection/list（确认知识库名，如 name=WLJ）→ search_knowledge
+npm run kb:doctor "王小明"
+```
 
 > 该服务上还有 `collection/search_and_generate`（检索+生成带依据的回答）、`service/rerank`、
 > `chat/completions`，以及 `doc/add`、`point/add`、`collection/create` 等**写入类**接口——
