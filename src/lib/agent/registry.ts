@@ -66,16 +66,21 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
   {
     name: 'generate_file',
-    description: '生成可下载的 Excel(.xlsx) 或 Word(.docx) 文件，并返回下载地址。',
+    description:
+      '生成可下载的 Excel(.xlsx) / Word(.docx) / PPT(.pptx) 文件，并返回下载地址。' +
+      '做演示稿（PPT）时用 type=ppt，content 给 { title, subtitle, slides:[{title, bullets:[...], table:{headers,rows}}] }；' +
+      '也可以只给 { title, text }（Markdown 的 # 标题会分页）。',
     parameters: {
       type: 'object',
       properties: {
-        type: { type: 'string', enum: ['excel', 'word'], description: '文件类型' },
+        type: { type: 'string', enum: ['excel', 'word', 'ppt'], description: '文件类型' },
         filename: { type: 'string', description: '期望的文件名（无需扩展名）' },
         content: {
           type: 'object',
           description:
-            'excel: {headers, rows} 或 {sheets:[{name,headers,rows}]}；word: {title, paragraphs, headers, rows, text}',
+            'excel: {headers, rows} 或 {sheets:[{name,headers,rows}]}；' +
+            'word: {title, paragraphs, headers, rows, text}；' +
+            'ppt: {title, subtitle, slides:[{title, bullets, text, table:{headers,rows}}]}，只给 text 时按 Markdown 标题分页',
         },
       },
       required: ['type', 'filename', 'content'],

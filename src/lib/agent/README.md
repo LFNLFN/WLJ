@@ -55,7 +55,9 @@
   - ⚠️ 托管智能体依赖会话绑定的 vault 凭证；凭证无效时 Skill 会返回 `authentication_error / invalid api key`，
     此时工具仍返回回答，但会附带 `notice` 说明该回答不基于知识库
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
-- `generate_file(type, filename, content)`：生成 Excel/Word 并返回下载地址
+- `generate_file(type, filename, content)`：生成 Excel(`excel`) / Word(`word`) / **PPT(`ppt`)** 并返回下载地址
+  - `ppt` 的 content：`{ title, subtitle, slides:[{ title, bullets:[…], text, table:{headers,rows} }] }`；
+    也可以只给 `{ title, text }` —— 会按 Markdown 的 `#` 标题自动分页（实测封面 + 每页标题/要点/表格都能正确写入 pptx）
 
 ### 盯着会话跑：`npm run session:watch` / `bash scripts/session-watch.sh`
 

@@ -23,7 +23,8 @@ const SYSTEM_PROMPT = [
   '回答前先取证据，不要凭记忆编造：',
   '1) 涉及课程体系、评估量表、教案、训练计划、机构制度等资料性问题，先调用 search_knowledge_base 检索；',
   '2) 涉及具体业务数据（学生 / 教师 / 课程 / 评估记录等），先调用 query_database 查询；',
-  '3) 用户要求导出或生成文件时调用 generate_file，并把返回的下载地址（/generated/...）明确告诉用户。',
+  '3) 用户要求导出或生成文件时调用 generate_file（支持 Excel / Word / **PPT**），并把返回的下载地址（/generated/...）明确告诉用户；'
+  + '做演示稿用 type=ppt，content 给 { title, subtitle, slides:[{title, bullets:[…], table:{headers,rows}}] }，也可以只给 { title, text }（按 Markdown 标题分页）。',
   '用户可能随提问附带图片或文件：',
   '  · 图片会以图片形式给你，请直接看图回答；',
   '  · 文本 / 表格 / Word 附件的内容会以 <file name="...">…</file> 的形式拼在问题后面；',

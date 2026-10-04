@@ -1155,14 +1155,118 @@ function sanitizeFilename(name: unknown, defaultExt: string): string {
   return base;
 }
 
+export interface GenerateSlide {
+  title?: string;
+  /** 要点列表（每行一条） */
+  bullets?: unknown[];
+  /** 段落文字（不想要项目符号时用） */
+  text?: string;
+  /** 这一页的表格 */
+  table?: { headers?: unknown[]; rows?: unknown[][] };
+}
+
 export interface GenerateFileContent {
   sheetName?: string;
   headers?: unknown[];
   rows?: unknown[][];
   sheets?: { name?: string; headers?: unknown[]; rows?: unknown[][] }[];
   title?: string;
+  /** PPT 副标题 */
+  subtitle?: string;
   paragraphs?: unknown[];
   text?: string;
+  /** PPT：按页给内容；不给则用 text 里的 Markdown 标题自动分页 */
+  slides?: GenerateSlide[];
+}
+
+/** PPT 单页上限与每页要点上限（防止模型一次塞几百页） */
+const PPT_MAX_SLIDES = 30;
+const PPT_MAX_BULLETS = 12;
+
+/** 把 Markdown 风格文本切成页：`#` 标题页 / `##` 新页 / `- `、`1. ` 作要点 */
+function markdownToSlides(text: string, fallbackTitle: string): GenerateSlide[] {
+  const slides: GenerateSlide[] = [];
+  let current: GenerateSlide | null = null;
+  const push = () => {
+    if (current) slides.push(current);
+  };
+
+  for (const rawLine of String(text || '').split('\n')) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const heading = line.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      push();
+      current = { title: heading[2].trim(), bullets: [] };
+      continue;
+    }
+    if (!current) current = { title: fallbackTitle, bullets: [] };
+    const bullet = line.match(/^(?:[-*+]\s+|\d+[.)]\s+)(.*)$/);
+    (current.bullets as unknown[]).push(bullet ? bullet[1] : line);
+  }
+  push();
+
+  if (slides.length === 0) slides.push({ title: fallbackTitle, bullets: ['（无内容）'] });
+  return slides;
+}
+
+/** 生成 .pptx（pptxgenjs，纯 JS） */
+async function writePptx(filePath: string, content: GenerateFileContent): Promise<void> {
+  const mod: any = require('pptxgenjs');
+  const PptxGenJS = mod?.default || mod;
+  const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_16x9';
+
+  const title = String(content.title || '分析报告');
+  const subtitle = content.subtitle ? String(content.subtitle) : '';
+
+  // 封面
+  const cover = pptx.addSlide();
+  cover.addText(title, { x: 0.5, y: 1.6, w: 9, h: 1.4, fontSize: 32, bold: true, align: 'center' });
+  if (subtitle) {
+    cover.addText(subtitle, { x: 0.5, y: 3.1, w: 9, h: 0.8, fontSize: 16, color: '666666', align: 'center' });
+  }
+  cover.addText(new Date().toLocaleDateString('zh-CN'), { x: 0.5, y: 4.6, w: 9, h: 0.5, fontSize: 12, color: '999999', align: 'center' });
+
+  // 内容页
+  const slides: GenerateSlide[] =
+    Array.isArray(content.slides) && content.slides.length > 0
+      ? content.slides
+      : markdownToSlides(String(content.text || ''), title);
+
+  for (const s of slides.slice(0, PPT_MAX_SLIDES)) {
+    const page = pptx.addSlide();
+    page.addText(String(s?.title || title), { x: 0.5, y: 0.4, w: 9, h: 0.9, fontSize: 22, bold: true });
+
+    let y = 1.5;
+    const bullets = Array.isArray(s?.bullets) ? s.bullets.filter(Boolean).slice(0, PPT_MAX_BULLETS) : [];
+    if (bullets.length > 0) {
+      page.addText(
+        bullets.map((b) => ({ text: String(b), options: { bullet: true, breakLine: true } })),
+        { x: 0.7, y, w: 8.6, h: 3.6, fontSize: 15, lineSpacingMultiple: 1.2 }
+      );
+      y += 3.6;
+    } else if (s?.text) {
+      page.addText(String(s.text), { x: 0.7, y, w: 8.6, h: 3.6, fontSize: 15 });
+      y += 3.6;
+    }
+
+    const table = s?.table;
+    if (table && Array.isArray(table.rows) && table.rows.length > 0) {
+      const header = Array.isArray(table.headers) ? table.headers.map((h) => String(h)) : null;
+      const rows = table.rows.slice(0, 12).map((r) => (Array.isArray(r) ? r : [r]).map((c) => String(c ?? '')));
+      const body = (header ? [header, ...rows] : rows).map((cells, i) =>
+        cells.map((c) => ({
+          text: c,
+          options: i === 0 && header ? { bold: true, fill: 'F2F2F2' } : {},
+        }))
+      );
+      page.addTable(body as any, { x: 0.7, y: Math.min(y, 5.1), w: 8.6, fontSize: 11, border: { pt: 0.5, color: 'DDDDDD' } });
+    }
+  }
+
+  const buffer = await pptx.write({ outputType: 'nodebuffer' });
+  await fs.writeFile(filePath, buffer);
 }
 
 /**
@@ -1177,14 +1281,14 @@ export async function generateFile(
   content: GenerateFileContent = {}
 ): Promise<string> {
   const t = String(type ?? '').trim().toLowerCase();
-  if (t !== 'excel' && t !== 'word') {
-    throw new Error("type 仅支持 'excel' 或 'word'");
+  if (t !== 'excel' && t !== 'word' && t !== 'ppt') {
+    throw new Error("type 仅支持 'excel'、'word' 或 'ppt'");
   }
   if (!content || typeof content !== 'object') {
     throw new Error('content 必须是一个对象');
   }
 
-  const ext = t === 'excel' ? '.xlsx' : '.docx';
+  const ext = t === 'excel' ? '.xlsx' : t === 'ppt' ? '.pptx' : '.docx';
   const safeName = sanitizeFilename(filename, ext);
   const dir = path.join(process.cwd(), 'public', 'generated');
   await fs.mkdir(dir, { recursive: true });
@@ -1216,7 +1320,7 @@ export async function generateFile(
     }
     if (added === 0) wb.addWorksheet('Sheet1');
     await wb.xlsx.writeFile(filePath);
-  } else {
+  } else if (t === 'word') {
     const children: (Paragraph | Table)[] = [];
     if (content.title) {
       children.push(new Paragraph({ text: String(content.title), heading: HeadingLevel.HEADING_1 }));
@@ -1249,6 +1353,10 @@ export async function generateFile(
     const doc = new Document({ sections: [{ children }] });
     const buffer = await Packer.toBuffer(doc);
     await fs.writeFile(filePath, buffer);
+  }
+
+  if (t === 'ppt') {
+    await writePptx(filePath, content);
   }
 
   const stat = await fs.stat(filePath);

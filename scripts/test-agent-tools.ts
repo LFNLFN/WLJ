@@ -97,6 +97,38 @@ async function run() {
     check('Word 文件已落盘', fs.existsSync(path.join(process.cwd(), 'public', url)));
   }
 
+  console.log('\n== 4b. generate_file（PPT）==');
+  const ppt = await executeTool('generate_file', {
+    type: 'ppt',
+    filename: '王小明训练进展分析',
+    content: {
+      title: '王小明训练进展分析',
+      subtitle: '2026 年 10 月 · 未来家儿童能力发展中心',
+      slides: [
+        { title: '基本情况', bullets: ['男，6 岁，2026 年 3 月入学', '诊断：智力发育迟缓', '每周训练 2 次'] },
+        { title: '评估结果', bullets: ['粗大运动 2 分（部分完成）', '认知 1 分', '语言交往 1 分'], table: { headers: ['领域', '得分'], rows: [['粗大运动', 2], ['认知', 1]] } },
+        { title: '下一步建议', bullets: ['加强前庭觉训练', '家长配合每日 10 分钟'] },
+      ],
+    },
+  });
+  check('PPT 生成成功', ppt.ok === true, ppt);
+  if (ppt.ok) {
+    const url = (ppt.result as any).downloadUrl as string;
+    const abs = path.join(process.cwd(), 'public', url);
+    check('PPT 扩展名为 .pptx', /\.pptx$/.test(url), url);
+    check('PPT 文件已落盘', fs.existsSync(abs), abs);
+    const buf = fs.readFileSync(abs);
+    check('PPT 是合法 zip（PK 头）', buf.slice(0, 2).toString() === 'PK', buf.slice(0, 2).toString());
+    check('PPT 大小 > 10KB', buf.length > 10 * 1024, buf.length);
+  }
+
+  const pptText = await executeTool('generate_file', {
+    type: 'ppt',
+    filename: 'markdown 分页',
+    content: { title: '就绪度评估', text: '# 现状\n- 平台知识库 0 条\n# 结论\n- 需要上传资料' },
+  });
+  check('只给 text 时按 Markdown 标题分页也能生成', pptText.ok === true, pptText);
+
   console.log('\n== 5. generate_file 安全性 ==');
   const traversal = await executeTool('generate_file', {
     type: 'excel',
