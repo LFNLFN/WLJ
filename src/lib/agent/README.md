@@ -89,6 +89,23 @@ npm run session:watch -- "问题" --keep --timeout 90000      # 保留会话 / �
 `span.model_request_start|end` 与 `agent.thinking`（多轮、增量）→ `agent.tool_use` + `agent.tool_result`
 （知识库检索结果）→ `agent.message` → `session.thread_status_idle`，最后打印最终回答。
 
+### 可选：放开「外部公开资料检索」（默认关闭，草稿已备好）
+
+现在这个助理的职责范围被 `wlj-system-prompt.md` 严格限定在**中心内部业务**，所以「查某某公司财报 / 外部政策」这类问题会被礼貌拒绝（实测行为）。
+
+仓库里已备好一份**可选追加段落**：`src/lib/agent/prompt-addon-external-search.md`
+（含来源标注、隐私边界、超出能力直说、交付文件用 `generate_file` 等约束）。默认**不生效**，要显式启用：
+
+```bash
+node scripts/push-agent-prompt.js --dry-run --with-external-search   # 先看长度/差异，不推送
+node scripts/push-agent-prompt.js --with-external-search             # 确认后推送（自动备份旧配置到 .ark-backup/）
+node scripts/push-agent-prompt.js                                    # 不带参数 = 恢复"仅内部"的原行为
+```
+
+> 实测：不带参数时 `--dry-run` 显示「内容与线上一致，无需推送」→ 说明线上 agent 未被改动（version 4），
+> 只有显式加 `--with-external-search` 才会把 prompt 从 3595 字变成 4254 字。
+> `--with <任意文件>` 也可以追加别的段落。
+
 ## 使用方式
 
 ### 1. 直接执行（服务端）

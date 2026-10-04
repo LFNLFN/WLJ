@@ -6,6 +6,13 @@
  *   node scripts/push-agent-prompt.js --dry-run     # 只看将要推送的内容长度 / 差异
  *   node scripts/push-agent-prompt.js               # 实际推送（会创建新版本）
  *   node scripts/push-agent-prompt.js --name "未来家知识助理" --description "…"
+ *   node scripts/push-agent-prompt.js --dry-run --with-external-search   # 追加「外部资料检索授权」草稿（见下）
+ *   node scripts/push-agent-prompt.js --with <文件路径>                   # 追加任意一段文本
+ *
+ * 可选追加（默认不追加）：
+ *   --with-external-search   追加 src/lib/agent/prompt-addon-external-search.md 里 `---` 之后的正文，
+ *                            让助理可以去检索公开的外部资料（默认职责范围是"中心内部知识助理"，会拒绝外部问题）
+ *   --with <file>            追加指定文件里 `---` 之后的正文（与上面等价，只是文件自己给）
  *
  * 说明：
  *   - system prompt 正文取自 markdown 文件里第一个 `---` 之后的全部内容
@@ -19,6 +26,7 @@ const path = require('path');
 
 const PROJECT_ROOT = path.join(__dirname, '..');
 const PROMPT_FILE = path.join(PROJECT_ROOT, 'src/lib/agent/wlj-system-prompt.md');
+const EXTERNAL_SEARCH_ADDON = path.join(PROJECT_ROOT, 'src/lib/agent/prompt-addon-external-search.md');
 const BACKUP_DIR = path.join(PROJECT_ROOT, '.ark-backup');
 
 function loadEnvLocal() {
@@ -43,11 +51,24 @@ const BASE_URL = (
 const AGENT_ID = process.env.ARK_AGENT_ID || env.ARK_AGENT_ID;
 
 /** 取 markdown 里第一个 `---` 之后的正文 */
-function readPrompt() {
-  const raw = fs.readFileSync(PROMPT_FILE, 'utf8');
+function readBody(file) {
+  const raw = fs.readFileSync(file, 'utf8');
   const marker = raw.indexOf('\n---\n');
   const body = marker >= 0 ? raw.slice(marker + 5) : raw;
   return body.trim();
+}
+
+/** 主 prompt（可选追加 addon：默认不追加，避免悄悄改变助理的职责范围） */
+function readPrompt() {
+  const base = readBody(PROMPT_FILE);
+  const withExternal = process.argv.includes('--with-external-search');
+  const withFile = arg('--with');
+  const addonFile = withExternal ? EXTERNAL_SEARCH_ADDON : withFile;
+  if (!addonFile) return base;
+  if (!fs.existsSync(addonFile)) throw new Error(`追加文件不存在：${addonFile}`);
+  const addon = readBody(addonFile);
+  console.log(`已追加可选段落：${path.relative(PROJECT_ROOT, addonFile)}（+${addon.length} 字）`);
+  return `${base}\n\n${addon}`;
 }
 
 async function api(method, apiPath, body) {
