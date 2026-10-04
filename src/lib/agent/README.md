@@ -17,6 +17,9 @@
 - `search_knowledge_base(query)`：检索内部知识库。**默认走库内检索**（课程 / 量表 / 课堂记录 / 教案 / 训练计划 /
   平台上「📚 知识库」上传的 `knowledge_documents`），不依赖外部凭证；若配置了方舟知识库接入方式则额外合并其结果，
   未配置或调用失败会自动降级并给出 `notice`
+  - 检索方式：把问题切成检索词（英文/数字串、中文串、长中文串补 2-gram，去掉「怎么 / 什么 / 哪些」等停用词），
+    词之间 OR 匹配、按命中词数排序；只要查询里有 ≥3 字的「强检索词」，就要求结果至少命中一个强词——
+    否则「问题」「完全」这类通用 2-gram 会把整张表都捞出来
   - 方式一（推荐）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
     知识库以 Skill（`viking-knowledge-search`）挂在智能体上，是方舟**唯一**能真正检索知识库的路径：
     `POST /sessions/{id}/events` 发问题 → 轮询 `GET /sessions/{id}/events` 取 `agent.message`。

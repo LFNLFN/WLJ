@@ -193,27 +193,3 @@ export async function deleteKnowledgeDocument(id: string): Promise<boolean> {
   const result = await db.query(`DELETE FROM knowledge_documents WHERE id = $1`, [String(id)]);
   return (result.rowCount ?? 0) > 0;
 }
-
-export interface KnowledgeHit {
-  id: string;
-  title: string;
-  category: string;
-  content: string;
-}
-
-/**
- * 供 AI 工具 search_knowledge_base 使用：按关键词模糊检索平台知识库。
- * 表不存在等异常由调用方（agent-tools 的 safeQuery）兜底。
- */
-export async function searchKnowledgeDocuments(keyword: string, limit = 5): Promise<KnowledgeHit[]> {
-  await ensureKnowledgeTable();
-  const db = await getDb();
-  const like = `%${keyword}%`;
-  const result = await db.query(
-    `SELECT id, title, category, left(content, 800) AS content FROM knowledge_documents
-     WHERE title ILIKE $1 OR content ILIKE $1 OR category ILIKE $1
-     ORDER BY "createdAt" DESC LIMIT $2`,
-    [like, limit]
-  );
-  return result.rows as KnowledgeHit[];
-}

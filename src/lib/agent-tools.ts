@@ -70,10 +70,82 @@ export interface KnowledgeItem {
   source: string;
 }
 
+/**
+ * 把自然语言问题切成检索词。
+ *
+ * 直接拿整句去 ILIKE 是查不到的（「孤独症 ABC 量表怎么计分」不是任何文档里的连续子串），
+ * 所以：按标点/空白切分 → 抽出英文数字串与中文串 → 长中文串再补 2-gram → 去掉疑问/口语停用词。
+ * 多个检索词之间是 OR，命中词数多的排前面。
+ */
+const QUERY_STOPWORDS = new Set([
+  '怎么', '如何', '什么', '哪些', '哪个', '多少', '请问', '一下', '可以', '是否', '有没有',
+  '我们', '咱们', '机构', '中心', '这个', '那个', '这些', '那些', '以及', '还有', '就是', '的话',
+]);
+
+function queryTokens(query: string): string[] {
+  const text = String(query || '').toLowerCase();
+  const tokens: string[] = [];
+
+  /** 收集 source 里所有匹配（不用 matchAll：tsconfig 的 target 较低） */
+  const findAll = (source: string, re: RegExp): string[] => {
+    const out: string[] = [];
+    re.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(source)) !== null) {
+      out.push(m[0]);
+      if (m.index === re.lastIndex) re.lastIndex++;
+    }
+    return out;
+  };
+
+  // 英文 / 数字串（如 ABC、MCH、FS）
+  tokens.push(...findAll(text, /[a-z0-9][a-z0-9._-]{1,}/g));
+
+  // 中文串：先按标点/空白切分，再抽出连续中文；长串额外补 2-gram，避免整句匹配不上
+  const chunks = text.split(/[\s,，。！？、；：:;!?()（）【】\[\]"'“”‘’/\\|+*&=<>~`#@$%^\-]+/);
+  for (const chunk of chunks) {
+    for (const run of findAll(chunk, /[\u4e00-\u9fa5]{2,}/g)) {
+      tokens.push(run);
+      if (run.length > 4) {
+        for (let i = 0; i + 2 <= run.length; i++) tokens.push(run.slice(i, i + 2));
+      }
+    }
+  }
+
+  return Array.from(new Set(tokens.filter((t) => t.length >= 2 && !QUERY_STOPWORDS.has(t)))).slice(0, 12);
+}
+
+/**
+ * 用检索词拼「OR 模糊匹配」的 WHERE，并按命中情况排序：
+ * - 命中一个「强检索词」（≥3 字）算 2 分，命中一个 2-gram 算 1 分，分高者靠前
+ * - 只要查询里存在强检索词，就要求结果至少命中一个强检索词，
+ *   否则「问题」「完全」这类通用 2-gram 会把整个库都捞出来（实测过）
+ */
+function buildTokenFilter(tokens: string[], columns: string[]) {
+  const params: unknown[] = [];
+  const parts = tokens.map((token) => {
+    params.push(`%${token}%`);
+    const idx = params.length;
+    return {
+      sql: `(${columns.map((c) => `${c} ILIKE $${idx}`).join(' OR ')})`,
+      weight: token.length >= 3 ? 2 : 1,
+    };
+  });
+
+  return {
+    where: parts.map((p) => p.sql).join(' OR '),
+    strongWhere: parts.filter((p) => p.weight === 2).map((p) => p.sql).join(' OR '),
+    score: parts.map((p) => `(CASE WHEN ${p.sql} THEN ${p.weight} ELSE 0 END)`).join(' + '),
+    params,
+  };
+}
+
 /** 库内知识检索：不依赖任何外部凭证，直接查业务库中的课程 / 量表 / 课堂记录 / 教案 / 知识库资料等 */
 async function searchLocalKnowledge(keyword: string, limit: number): Promise<KnowledgeItem[]> {
+  const tokens = queryTokens(keyword);
+  if (tokens.length === 0) return [];
+
   const db = await getDb();
-  const like = `%${keyword}%`;
   const items: KnowledgeItem[] = [];
 
   const safeQuery = async (sql: string, params: unknown[]) => {
@@ -87,54 +159,62 @@ async function searchLocalKnowledge(keyword: string, limit: number): Promise<Kno
 
   const clip = (v: unknown, n = 500) => String(v ?? '').slice(0, n);
 
-  for (const r of await safeQuery(
-    `SELECT id, title, content FROM lesson_plans WHERE title ILIKE $1 OR content ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({ type: '教案', id: r.id, title: r.title, content: clip(r.content), source: 'lesson_plans' });
-  }
+  /** 在单张表上做「多词 OR + 命中词数排序」检索 */
+  const searchTable = async (table: string, columns: string[], map: (row: any) => KnowledgeItem) => {
+    const filter = buildTokenFilter(tokens, columns);
+    const gate = filter.strongWhere ? `(${filter.where}) AND (${filter.strongWhere})` : `(${filter.where})`;
+    const sql = `SELECT * FROM ${table} WHERE ${gate} ORDER BY (${filter.score}) DESC LIMIT $${filter.params.length + 1}`;
+    for (const row of await safeQuery(sql, [...filter.params, limit])) items.push(map(row));
+  };
 
-  for (const r of await safeQuery(
-    `SELECT id, title, content FROM training_plans WHERE title ILIKE $1 OR content ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({ type: '训练计划', id: r.id, title: r.title, content: clip(r.content), source: 'training_plans' });
-  }
+  await searchTable('lesson_plans', ['title', 'content'], (r) => ({
+    type: '教案',
+    id: r.id,
+    title: r.title,
+    content: clip(r.content),
+    source: 'lesson_plans',
+  }));
 
-  for (const r of await safeQuery(
-    `SELECT id, name, subject FROM courses WHERE name ILIKE $1 OR subject ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({ type: '课程', id: r.id, title: r.name, content: clip(r.subject), source: 'courses' });
-  }
+  await searchTable('training_plans', ['title', 'content'], (r) => ({
+    type: '训练计划',
+    id: r.id,
+    title: r.title,
+    content: clip(r.content),
+    source: 'training_plans',
+  }));
 
-  for (const r of await safeQuery(
-    `SELECT id, name, type FROM scale_templates WHERE name ILIKE $1 OR type ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({ type: '评估量表', id: r.id, title: r.name, content: clip(r.type), source: 'scale_templates' });
-  }
+  await searchTable('courses', ['name', 'subject'], (r) => ({
+    type: '课程',
+    id: r.id,
+    title: r.name,
+    content: clip(r.subject),
+    source: 'courses',
+  }));
 
-  for (const r of await safeQuery(
-    `SELECT id, courseName, content FROM class_records WHERE courseName ILIKE $1 OR content ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({ type: '课堂记录', id: r.id, title: r.courseName, content: clip(r.content), source: 'class_records' });
-  }
+  await searchTable('scale_templates', ['name', 'type'], (r) => ({
+    type: '评估量表',
+    id: r.id,
+    title: r.name,
+    content: clip(r.type),
+    source: 'scale_templates',
+  }));
+
+  await searchTable('class_records', ['"courseName"', 'content'], (r) => ({
+    type: '课堂记录',
+    id: r.id,
+    title: r.courseName,
+    content: clip(r.content),
+    source: 'class_records',
+  }));
 
   // 平台上「📚 知识库」上传的资料（/api/knowledge → knowledge_documents）
-  for (const r of await safeQuery(
-    `SELECT id, title, category, content FROM knowledge_documents WHERE title ILIKE $1 OR content ILIKE $1 OR category ILIKE $1 LIMIT $2`,
-    [like, limit]
-  )) {
-    items.push({
-      type: '知识库资料',
-      id: r.id,
-      title: r.title,
-      content: clip(r.content),
-      source: 'knowledge_documents',
-    });
-  }
+  await searchTable('knowledge_documents', ['title', 'content', 'category'], (r) => ({
+    type: '知识库资料',
+    id: r.id,
+    title: r.title,
+    content: clip(r.content),
+    source: 'knowledge_documents',
+  }));
 
   return items.slice(0, limit * 2);
 }
