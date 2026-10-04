@@ -320,6 +320,52 @@ export async function uploadKnowledgeFile(file: File, meta: { title?: string; ca
   return res.json();
 }
 
+// ==================== 火山知识库（Viking KnowledgeBase）====================
+//
+// 平台知识库（/api/knowledge，数据在自己的数据库里）之外，还可以直接看/管**火山知识库**里的文档。
+// 上传走「先落到公网地址 → 由知识库服务按 URL 抓取」：API Key 身份下没有 tos_fe（控制台拖文件）权限。
+
+export interface VikingDocSummary {
+  docId: string;
+  docName: string;
+  docType: string;
+  addType: string;
+  createTime: number;
+  updateTime: number;
+  addedBy: string;
+}
+
+export async function listVikingDocs(): Promise<{ total: number; items: VikingDocSummary[] }> {
+  return request('/knowledge/viking');
+}
+
+export async function listVikingPoints(docId: string, size = 5): Promise<{ total: number; items: { pointId: string; content: string }[] }> {
+  return request(`/knowledge/viking?docId=${encodeURIComponent(docId)}&size=${size}`);
+}
+
+export async function deleteVikingDoc(docId: string): Promise<{ ok: boolean; notice?: string }> {
+  return request(`/knowledge/viking?docId=${encodeURIComponent(docId)}`, { method: 'DELETE' });
+}
+
+/** 上传文件到火山知识库（multipart，不能复用 request()——它会强塞 JSON 头） */
+export async function uploadVikingFile(file: File): Promise<{
+  ok: boolean;
+  docId: string;
+  docName: string;
+  docType: string;
+  publicUrl: string;
+  notice?: string;
+}> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('/api/knowledge/viking', { method: 'POST', body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: '上传失败' }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 // ==================== 训练阶段计划 ====================
 
 export async function getTrainingPlans() {

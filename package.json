@@ -22,6 +22,7 @@
     "test:kb-search": "tsc scripts/test-kb-search.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-search.js"
   },
   "dependencies": {
+    "@volcengine/ark": "^1.0.4",
     "docx": "^9.8.1",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",

@@ -16,6 +16,14 @@ import path from 'path';
 import http from 'http';
 import { AddressInfo } from 'net';
 import { searchKnowledgeBase, getAgentConfigStatus, type KnowledgeItem } from '../src/lib/agent-tools';
+import {
+  addVikingDocByUrl,
+  deleteVikingDoc,
+  docTypeFromFilename,
+  isVikingConfigured,
+  listVikingDocs,
+  listVikingPoints,
+} from '../src/lib/knowledge/viking';
 
 let passed = 0;
 let failed = 0;
@@ -48,6 +56,7 @@ loadEnvLocal();
 
 interface Captured {
   authorization?: string;
+  path?: string;
   body?: any;
 }
 
@@ -58,6 +67,7 @@ function startMock(handler: (captured: Captured) => { status: number; payload: a
     req.on('data', (c) => (raw += c));
     req.on('end', () => {
       captured.authorization = req.headers.authorization;
+      captured.path = req.url;
       captured.body = raw ? JSON.parse(raw) : {};
       const { status, payload } = handler(captured);
       res.writeHead(status, { 'content-type': 'application/json' });
@@ -317,6 +327,73 @@ async function main() {
 
   delete process.env.ARK_SESSION_ID;
   delete process.env.ARK_API_KEY;
+
+  console.log('\n== 6. 火山知识库「文档列表 / 上传(url) / 删除」客户端 ==');
+  const calls: { path: string; auth?: string; body: any }[] = [];
+  const vk = await startMock((captured) => {
+    calls.push({ path: captured.path || '', auth: captured.authorization, body: captured.body });
+
+    if ((captured.path || '').includes('/doc/list')) {
+      const doc = {
+        collection_name: 'WLJ',
+        doc_name: '康复训练档案_王小明.pdf',
+        doc_id: 'doc-1',
+        doc_type: 'pdf',
+        add_type: 'tos_fe',
+        create_time: 1791088909,
+        update_time: 1791088930,
+        added_by: 'x',
+      };
+      return { status: 200, payload: { code: 0, message: 'success', data: { total_num: 1, count: 1, doc_list: [doc] } } };
+    }
+    if ((captured.path || '').includes('/doc/add')) {
+      return { status: 200, payload: { code: 0, message: 'success', data: { doc_id: captured.body.doc_id, collection_name: 'WLJ' } } };
+    }
+    if ((captured.path || '').includes('/doc/delete')) {
+      return { status: 200, payload: { code: 0, message: 'success', data: {} } };
+    }
+    if ((captured.path || '').includes('/point/list')) {
+      return { status: 200, payload: { code: 0, message: 'success', data: { total_num: 2, point_list: [
+        { point_id: 'doc-1-p1', md_content: '切片一' }, { point_id: 'doc-1-p2', md_content: '切片二' },
+        { point_id: 'other-doc-p9', md_content: '别的文档的切片' } ] } } };
+    }
+    return { status: 404, payload: { code: 1000001, message: 'not found' } };
+  });
+  process.env.KB_API_HOST = vk.url;
+  process.env.KB_API_KEY = 'kb-api-key-for-test';
+  process.env.KB_COLLECTION_NAME = 'WLJ';
+  process.env.KB_RESOURCE_ID = 'kb-b26625679831644f';
+
+  check('isVikingConfigured() 认到 KB_API_KEY', isVikingConfigured());
+  const docs = await listVikingDocs();
+  check('doc/list 解析出文档（docId/docName/docType）',
+    docs.total === 1 && docs.items[0]?.docId === 'doc-1' && docs.items[0]?.docName === '康复训练档案_王小明.pdf' && docs.items[0]?.docType === 'pdf',
+    docs);
+
+  const added = await addVikingDocByUrl({ docId: 'wlj-1', docName: '测试.pdf', docType: 'pdf', url: 'https://example.com/a.pdf' });
+  check('doc/add 用 add_type=url 且带上 doc_id/doc_name/doc_type/url', added.docId === 'wlj-1', added);
+  const addCall = calls.find((c) => c.body?.url);
+  check('请求体字段正确', addCall?.body?.add_type === 'url' && addCall?.body?.doc_id === 'wlj-1' &&
+    addCall?.body?.doc_name === '测试.pdf' && addCall?.body?.doc_type === 'pdf' && addCall?.body?.name === 'WLJ' &&
+    addCall?.body?.resource_id === 'kb-b26625679831644f' && addCall?.body?.project === 'default', addCall?.body);
+  check('带 Authorization: Bearer', (addCall?.auth || '').startsWith('Bearer '), addCall?.auth);
+
+  await deleteVikingDoc('wlj-1');
+  check('doc/delete 打到 /doc/delete 并带上 doc_id',
+    calls.some((c) => c.path.includes('/doc/delete') && c.body?.doc_id === 'wlj-1'), calls.map((c) => c.path));
+
+  const points = await listVikingPoints('doc-1', { pageSize: 2 });
+  check('point/list 解析出切片正文', points.total === 2 && points.items[0]?.content === '切片一', points);
+  check('point/list 按 doc_id 本地过滤（接口本身不过滤）',
+    points.items.every((p: { pointId: string }) => p.pointId.includes('doc-1') || !p.pointId), points.items.map((p: { pointId: string }) => p.pointId));
+  check('三个接口都打在知识库服务上',
+    calls.some((c) => c.path.includes('/doc/list')) && calls.some((c) => c.path.includes('/doc/add')) && calls.some((c) => c.path.includes('/point/list')),
+    calls.map((c) => c.path));
+  check('docTypeFromFilename：pdf/docx/无扩展名/大写', 
+    docTypeFromFilename('a.pdf') === 'pdf' && docTypeFromFilename('b.PDF') === 'pdf' &&
+    docTypeFromFilename('c.docx') === 'docx' && docTypeFromFilename('noext') === 'txt', 
+    [docTypeFromFilename('a.pdf'), docTypeFromFilename('b.PDF'), docTypeFromFilename('noext')]);
+  await vk.close();
 
   console.log('\n----------------------------------------');
   console.log(`通过 ${passed}，失败 ${failed}`);

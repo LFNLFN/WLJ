@@ -317,6 +317,34 @@ npm run kb:doctor "王小明"
 - 实现：`src/lib/chat/session.ts`（纯函数 + `StorageLike` 注入，便于测试）配合首页 `src/app/page.tsx`；
   逻辑测试 `npm run test:chat-session`（24 条断言，覆盖「切换页面保留 / 换用户清空 / 关标签页清空 / 脏数据兼容」）。
 
+### 在智能助理页面看/管火山知识库的文档（列表 + 上传）
+
+「📚 知识库」面板底部新增「🌋 火山知识库（方舟）」区块：**列出知识库里的文档**、**上传新文档**、看切片预览、删除。
+
+```bash
+GET    /api/knowledge/viking               # 文档列表（doc/list）
+GET    /api/knowledge/viking?docId=x       # 某个文档的切片预览（point/list，本地按 doc_id 过滤）
+POST   /api/knowledge/viking               # 上传（multipart，字段 file）
+DELETE /api/knowledge/viking?docId=x       # 删除（doc/delete，异步生效）
+```
+
+**关于「官方 Node SDK」的实测结论**：npm 上火山引擎的官方包是 `@volcengine/openapi`（通用 OpenAPI 客户端 + AK/SK V4 签名）
+与 `@volcengine/sdk-core`，以及按产品生成的 swagger 客户端（`@volcengine/ark`、`@volcengine/kms`…）；
+实测 `@volcengine/openapi@1.36.2` 包内**没有知识库（Viking KnowledgeBase）的服务定义**，npm 上也没有对应客户端——
+知识库只有**官方 Python SDK**（`volcengine/viking_knowledgebase`）。所以这里直接调用知识库服务的 HTTP 接口
+（与 Python SDK 封的是同一批 `/api/knowledge/*`），鉴权用控制台「知识库 → API Key」（`Authorization: Bearer`，实测可用）；
+Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签名逻辑可直接复用 `@volcengine/openapi` 的 SignerV4。
+
+**上传为什么要先落到公网地址**：API Key 身份下 `add_type="tos_fe"`（控制台拖文件那种）会返回
+`not support tos_fe for user:xxxx`（无权限），唯一可用的是 `add_type="url"` —— **由知识库服务按 URL 自己去抓取文件**。
+所以上传流程是：文件 → 临时写到 `public/generated/`（部署后即 `/generated/xxx`，公网可访问）→
+调用 `doc/add { add_type:'url', doc_id, doc_name, doc_type, url }` → 知识库侧异步抓取、解析、切片。
+面板里上传前必须勾选确认（**文件内容会外发给火山知识库**，含儿童个人信息的材料请谨慎）；失败时临时文件会被清掉。
+
+> 实测（真实知识库 `WLJ`）：列表拿到 `康复训练档案_王小明_1787056050266.pdf`；
+> 按 URL 上传 `cli-probe-robots.txt` → 6 秒后出现在列表；删除后回到 1 份。
+> `point/list` 实测**不按 `doc_id` 过滤**（返回整个集合的切片），所以切片预览在本地按 `point_id` 前缀过滤。
+
 ### 智能助理查不到知识库里的资料？先看这三条
 
 **链路**：`/api/chat` → 模型判断要不要查资料 → 调用工具 `search_knowledge_base` →

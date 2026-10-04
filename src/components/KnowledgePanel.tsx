@@ -20,6 +20,10 @@ import {
   listKnowledgeDocuments,
   uploadKnowledgeFile,
   type KnowledgeDocumentSummary,
+  deleteVikingDoc,
+  listVikingDocs,
+  listVikingPoints,
+  uploadVikingFile,
 } from '@/lib/api';
 
 const CATEGORIES = ['机构制度', '课程体系', '评估量表', '教案', '训练计划', '康复档案', '其它'];
@@ -61,6 +65,20 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
   // 展开查看的详情
   const [expanded, setExpanded] = useState<{ id: string; content: string } | null>(null);
 
+  // ---- 火山知识库（Viking KnowledgeBase）：文档列表 / 上传 / 删除 ----
+  const [vikingDocs, setVikingDocs] = useState<
+    { docId: string; docName: string; docType: string; addType: string; createTime: number }[]
+  >([]);
+  const [vikingTotal, setVikingTotal] = useState(0);
+  const [vikingLoading, setVikingLoading] = useState(false);
+  const [vikingUploading, setVikingUploading] = useState(false);
+  const [vikingError, setVikingError] = useState('');
+  const [vikingNotice, setVikingNotice] = useState('');
+  /** 上传会把文件放到公网地址由火山侧抓取，必须先勾选确认 */
+  const [vikingConsent, setVikingConsent] = useState(false);
+  const [vikingPoints, setVikingPoints] = useState<{ docId: string; items: { pointId: string; content: string }[] } | null>(null);
+  const vikingFileRef = useRef<HTMLInputElement>(null);
+
   const refresh = useCallback(
     async (q = keyword, cat = category) => {
       setLoading(true);
@@ -78,8 +96,25 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
     [keyword, category]
   );
 
+  const loadViking = useCallback(async () => {
+    setVikingLoading(true);
+    setVikingError('');
+    try {
+      const res = await listVikingDocs();
+      setVikingDocs(res?.items || []);
+      setVikingTotal(res?.total || 0);
+    } catch (err: any) {
+      setVikingError(err?.message || '读取火山知识库失败');
+    } finally {
+      setVikingLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    if (open) refresh();
+    if (open) {
+      refresh();
+      loadViking();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -101,6 +136,52 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
       setError(err?.message || '上传失败');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleVikingUpload = async (file: File) => {
+    if (!vikingConsent) {
+      setVikingError('请先勾选下方确认项：上传的文件会被放到公网地址，由火山知识库抓取解析');
+      return;
+    }
+    setVikingUploading(true);
+    setVikingError('');
+    setVikingNotice('');
+    try {
+      const res = await uploadVikingFile(file);
+      setVikingNotice(`已提交「${res.docName}」（doc_id=${res.docId}）：${res.notice || '解析中'}`);
+      if (vikingFileRef.current) vikingFileRef.current.value = '';
+      setTimeout(() => loadViking(), 3000); // 知识库切片是异步的，等几秒再刷新
+    } catch (err: any) {
+      setVikingError(err?.message || '上传到火山知识库失败');
+    } finally {
+      setVikingUploading(false);
+    }
+  };
+
+  const handleVikingDelete = async (docId: string, docName: string) => {
+    if (!confirm(`确定从火山知识库删除「${docName}」？删除是异步的，列表可能滞后几秒。`)) return;
+    setVikingError('');
+    try {
+      await deleteVikingDoc(docId);
+      setVikingNotice(`已提交删除「${docName}」`);
+      setTimeout(() => loadViking(), 3000);
+    } catch (err: any) {
+      setVikingError(err?.message || '删除失败');
+    }
+  };
+
+  const handleVikingPoints = async (docId: string) => {
+    if (vikingPoints?.docId === docId) {
+      setVikingPoints(null);
+      return;
+    }
+    setVikingError('');
+    try {
+      const res = await listVikingPoints(docId, 3);
+      setVikingPoints({ docId, items: res?.items || [] });
+    } catch (err: any) {
+      setVikingError(err?.message || '读取切片失败');
     }
   };
 
@@ -157,7 +238,7 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
           <div>
             <h3 className="text-lg font-bold text-gray-800">📚 知识库</h3>
             <p className="text-xs text-gray-500 mt-0.5">
-              上传的资料会进入平台知识库，AI 智能助理可直接检索（共 {total} 份）
+              上传的资料会进入平台知识库，AI 智能助理可直接检索（共 {total} 份）；下方还可管理火山知识库
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
@@ -264,6 +345,95 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
             >
               搜索
             </button>
+          </div>
+
+          {/* 火山知识库（Viking KnowledgeBase）：文档列表 + 上传 */}
+          <div className="border border-gray-200 rounded-lg p-4 bg-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800">🌋 火山知识库（方舟）</h4>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  存在火山知识库里的文档，AI 直连检索用的就是它（共 {vikingTotal} 份）
+                </p>
+              </div>
+              <button
+                onClick={loadViking}
+                disabled={vikingLoading}
+                className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              >
+                {vikingLoading ? '加载中...' : '刷新'}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <input
+                ref={vikingFileRef}
+                type="file"
+                accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls,.pptx,.html,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleVikingUpload(f);
+                }}
+              />
+              <button
+                onClick={() => vikingFileRef.current?.click()}
+                disabled={vikingUploading || !vikingConsent}
+                className="px-3 py-2 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 disabled:opacity-50"
+              >
+                {vikingUploading ? '上传中...' : '⬆️ 上传到火山知识库'}
+              </button>
+              <label className="flex items-center gap-1 text-[11px] text-gray-600">
+                <input type="checkbox" checked={vikingConsent} onChange={(e) => setVikingConsent(e.target.checked)} />
+                我确认该文件会被放到公网地址（/generated）由火山知识库抓取解析
+              </label>
+            </div>
+
+            {(vikingError || vikingNotice) && (
+              <p className={`text-xs mt-2 ${vikingError ? 'text-red-600' : 'text-green-700'}`}>
+                {vikingError || vikingNotice}
+              </p>
+            )}
+
+            <div className="mt-3 space-y-1.5">
+              {vikingDocs.length === 0 && !vikingLoading && (
+                <p className="text-xs text-gray-400">
+                  {vikingError ? '（读取失败，请看上面的提示）' : '（火山知识库里还没有文档）'}
+                </p>
+              )}
+              {vikingDocs.map((d) => (
+                <div key={d.docId} className="flex items-center justify-between gap-3 px-3 py-2 bg-gray-50 rounded-lg">
+                  <div className="min-w-0">
+                    <div className="text-sm text-gray-700 truncate" title={d.docName}>
+                      {d.docName}
+                    </div>
+                    <div className="text-[11px] text-gray-400">
+                      {d.docType} ｜ {d.addType} ｜{' '}
+                      {d.createTime ? new Date(d.createTime * 1000).toLocaleString('zh-CN') : '-'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => handleVikingPoints(d.docId)} className="text-xs text-primary-600 hover:text-primary-800">
+                      {vikingPoints?.docId === d.docId ? '收起' : '看切片'}
+                    </button>
+                    <button
+                      onClick={() => handleVikingDelete(d.docId, d.docName)}
+                      className="text-xs text-red-500 hover:text-red-700"
+                    >
+                      删除
+                    </button>
+                  </div>
+                  {vikingPoints?.docId === d.docId && (
+                    <pre className="absolute" style={{ display: 'none' }} />
+                  )}
+                </div>
+              ))}
+              {vikingPoints && (
+                <pre className="max-h-56 overflow-y-auto whitespace-pre-wrap text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded p-2">
+                  {vikingPoints.items.map((p) => `· ${p.content.slice(0, 300)}`).join('\n\n')}
+                </pre>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
