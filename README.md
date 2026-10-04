@@ -206,9 +206,37 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | POST | `/api/knowledge` | JSON `{ title, category, content }`，或 `multipart/form-data` 上传 `file` |
 | GET / DELETE | `/api/knowledge/[id]` | 单条资料详情 / 删除 |
 
-> **与「火山方舟知识库」的区别**：上面这套是**平台自己的知识库**（数据在业务库里，随时可读写）。
-> 方舟侧的知识库（`ARK_KNOWLEDGE_BASE_ID`）目前只能通过托管智能体**检索**——方舟开放接口没有文档上传路径
-> （`/api/v3/knowledge/*` 返回 404），要往方舟知识库里加资料只能在方舟控制台手动操作。
+> **与「火山知识库」的区别**：上面这套是**平台自己的知识库**（数据在业务库里，随时可读写）。
+> 火山知识库是**另一个独立服务**（`api-knowledgebase.mlp.cn-beijing.volces.com`），有完整的检索与文档管理接口，
+> 本项目已支持直连检索（见下节）。注意别被 `ark.cn-beijing.volces.com/api/v3/knowledge/*` 的 404 误导——
+> 那是方舟宿主机上没有，不代表没有知识库接口。
+
+### 接入火山知识库（直连检索，推荐）
+
+配 **一个环境变量** 就能让助理把火山知识库的内容整合进回答：
+
+| 变量 | 说明 |
+|---|---|
+| `KB_API_KEY` | 火山知识库 API Key（控制台「知识库 → API Key」生成，**不是** `ark-*` 的方舟 Key） |
+| `KB_COLLECTION_NAME` | 知识库名称；不填则退回 `ARK_KNOWLEDGE_BASE_ID` |
+| `KB_RESOURCE_ID` | 可选，方舟里的 `kb-xxx`；给了它检索范围更准 |
+| `KB_API_HOST` / `KB_PROJECT` / `KB_DENSE_WEIGHT` / `KB_API_TIMEOUT_MS` | 可选，默认 `https://api-knowledgebase.mlp.cn-beijing.volces.com` / `default` / `0.5` / `10000` |
+
+调用的是 `POST /api/knowledge/collection/search_knowledge`（`Authorization: Bearer <KB_API_KEY>`），
+返回 **原文切片**（`chunk_title` / `content` / `score` / `rerank_score`），百毫秒级，直接拼进对话上下文；
+比托管智能体那条路（返回生成好的回答、实测 10–56 秒）更适合做问答依据。配了 `KB_API_KEY` 就先走直连，
+失败会自动降级到托管智能体，并把两条原因写进 `notice`。
+
+```bash
+npm run kb:doctor            # 三步实测：ping → 列出知识库 → 检索原文切片（推荐先跑这个）
+npm run kb:doctor "王小明"    # 指定检索词
+npm run test:kb-api          # 本地 mock 验证接线（不需要真实 key）
+```
+
+> 该服务上还有 `collection/search_and_generate`（检索+生成带依据的回答）、`service/rerank`、
+> `chat/completions`，以及 `doc/add`、`point/add`、`collection/create` 等**写入类**接口——
+> 也就是说，以后可以把平台「📚 知识库」上传的资料**同步进火山知识库**（当前未实现，留作后续）。
+> 接口清单与字段以官方 SDK `volcengine/viking_knowledgebase`（v1.0.228）为准。
 
 ### 对话记录保存在哪里（切换页面不丢）
 
@@ -423,7 +451,8 @@ node server/index.js
 | `AUTH_SECRET` | **线上必填**，登录会话签名密钥（≥16 位随机字符串） |
 | `REGISTER_CODE` | 可选。配置后注册需要填邀请码（不配置=开放注册） |
 | `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
-| `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索方舟知识库，详见 `src/lib/agent/README.md` |
+| `KB_API_KEY` | 可选（推荐）。火山知识库 API Key → 直连检索知识库原文切片，详见 `src/lib/agent/README.md` |
+| `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索知识库（兜底路径，慢），详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |
 | `PGSSLMODE` | 可选，设为 `disable` 时关闭数据库 SSL（默认开启） |
 

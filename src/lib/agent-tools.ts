@@ -68,6 +68,8 @@ export interface KnowledgeItem {
   title?: string;
   content?: string;
   source: string;
+  /** 相关性分（火山知识库 / 向量检索会返回） */
+  score?: number;
 }
 
 /**
@@ -535,7 +537,89 @@ async function searchViaManagedAgent(
  *
  * ⚠️ 方舟开放接口**没有**独立的「知识库 chunk 检索」路径，`POST /knowledge/search` 返回 404。
  */
-async function tryArkKnowledgeSearch(query: string, limit: number): Promise<ArkSearchResult> {
+/**
+ * 火山知识库（Viking KnowledgeBase）**直连检索**。
+ *
+ * 接口来源：官方 SDK `volcengine/viking_knowledgebase/VikingKnowledgeBaseService.py`（v1.0.228）
+ * 实测结论（2026-10-04）：
+ *   - 宿主机 `ark.cn-beijing.volces.com/api/v3/knowledge/*` 全部 404：方舟那套接口**没有**知识库检索；
+ *     知识库是**独立服务**：`https://api-knowledgebase.mlp.cn-beijing.volces.com`
+ *   - `POST /api/knowledge/collection/search_knowledge` 存在，返回 `data.result_list[]`（原文切片，带 score），
+ *     字段见 SDK 的 Point：point_id / chunk_id / chunk_title / content / score / rerank_score / doc_info
+ *   - 鉴权两种：① `Authorization: Bearer <知识库 API Key>`（控制台「知识库 → API Key」，实测假 key 会明确报
+ *     `invalid api key`）；② 官方 SDK 用的 AK/SK V4 签名（service = "air"）。
+ *     本函数只用 ①，因为它在服务器上只需要一个环境变量。
+ *
+ * 与托管智能体那条路的区别：这条路**快**（百毫秒级）且返回**原文切片**，可以直接塞进对话上下文；
+ * 托管智能体返回的是「生成好的回答」，要 10~56 秒。
+ */
+const KB_DEFAULT_HOST = 'https://api-knowledgebase.mlp.cn-beijing.volces.com';
+
+function getKnowledgeApiKey(): string {
+  return (process.env.KB_API_KEY || process.env.VIKING_KB_API_KEY || '').trim();
+}
+
+async function searchViaKnowledgeApi(query: string, limit: number): Promise<ArkSearchResult> {
+  const apiKey = getKnowledgeApiKey();
+  if (!apiKey) {
+    return { ok: false, items: [], notice: '未配置 KB_API_KEY（火山知识库 API Key），跳过直连知识库检索' };
+  }
+
+  const host = (process.env.KB_API_HOST || KB_DEFAULT_HOST).replace(/\/+$/, '');
+  const timeoutMs = clampInt(process.env.KB_API_TIMEOUT_MS, 1_000, 60_000, 10_000);
+  const collectionName = (process.env.KB_COLLECTION_NAME || process.env.ARK_KNOWLEDGE_BASE_ID || '').trim();
+
+  const body: Record<string, unknown> = {
+    name: collectionName,
+    query,
+    project: process.env.KB_PROJECT || 'default',
+    limit,
+    dense_weight: Number(process.env.KB_DENSE_WEIGHT ?? 0.5),
+  };
+  // 方舟控制台里那个 kb-xxxx 就是 resource_id；给了它检索范围更准
+  const resourceId = (process.env.KB_RESOURCE_ID || process.env.ARK_KNOWLEDGE_BASE_ID || '').trim();
+  if (resourceId) body.resource_id = resourceId;
+
+  try {
+    const res = await fetchWithTimeout(
+      `${host}/api/knowledge/collection/search_knowledge`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+      },
+      timeoutMs
+    );
+
+    const text = await res.text();
+    if (!res.ok) {
+      return { ok: false, items: [], notice: `知识库检索失败(${res.status})：${text.slice(0, 200)}` };
+    }
+
+    const data = (safeJson(text) as any)?.data ?? {};
+    const list: any[] = Array.isArray(data?.result_list) ? data.result_list : [];
+
+    return {
+      ok: true,
+      items: list.slice(0, limit).map((p: any) => ({
+        type: '火山知识库',
+        id: String(p?.point_id ?? p?.chunk_id ?? '') || undefined,
+        title: String(p?.chunk_title ?? p?.doc_info?.doc_name ?? query).slice(0, 200),
+        content: String(p?.content ?? '').slice(0, 800),
+        source: 'ark-kb',
+        score: Number(p?.rerank_score ?? p?.score ?? 0) || undefined,
+      })),
+    };
+  } catch (err) {
+    return { ok: false, items: [], notice: `知识库检索异常：${(err as Error).message}` };
+  }
+}
+
+async function tryArkAgentOrBotSearch(query: string, limit: number): Promise<ArkSearchResult> {
   const apiKey = process.env.ARK_API_KEY;
   const knowledgeBaseId = process.env.ARK_KNOWLEDGE_BASE_ID;
   const baseUrl = (process.env.ARK_BASE_URL || DEFAULT_ARK_BASE_URL).replace(/\/+$/, '');
@@ -629,24 +713,47 @@ async function tryArkKnowledgeSearch(query: string, limit: number): Promise<ArkS
 }
 
 /**
+ * 外部知识库检索总入口（按优先级）：
+ * ① `KB_API_KEY` + 知识库服务直连检索（`/api/knowledge/collection/search_knowledge`）——快、返回原文切片；
+ * ② 火山方舟托管智能体 / 应用(Bot) / 自建 `ARK_KB_ENDPOINT`——返回生成好的回答，慢。
+ * ① 配了但失败（key 或知识库名不对）时会自动降级到 ②，并把两条原因都写进 notice，便于排查。
+ */
+async function tryArkKnowledgeSearch(query: string, limit: number): Promise<ArkSearchResult> {
+  if (!getKnowledgeApiKey()) {
+    return tryArkAgentOrBotSearch(query, limit);
+  }
+
+  const direct = await searchViaKnowledgeApi(query, limit);
+  if (direct.ok) return direct;
+
+  const fallback = await tryArkAgentOrBotSearch(query, limit);
+  const notices = [direct.notice, fallback.notice].filter(Boolean).join('；');
+  return { ...fallback, notice: notices || undefined };
+}
+
+/**
  * 当前 AI / 知识库接入状态（供页面显示，**不包含任何密钥**）。
  */
 export function getAgentConfigStatus() {
   const agentId = (process.env.ARK_AGENT_ID || '').trim();
   const sessionId = (process.env.ARK_SESSION_ID || '').trim();
   const botId = (process.env.ARK_BOT_ID || '').trim();
-  const knowledgeBaseMode = agentId && (sessionId || process.env.ARK_ENVIRONMENT_ID)
-    ? 'agent'
-    : botId
-      ? 'bot'
-      : process.env.ARK_KB_ENDPOINT
-        ? 'endpoint'
-        : 'none';
+  const knowledgeBaseMode = getKnowledgeApiKey()
+    ? 'kb-api'
+    : agentId && (sessionId || process.env.ARK_ENVIRONMENT_ID)
+      ? 'agent'
+      : botId
+        ? 'bot'
+        : process.env.ARK_KB_ENDPOINT
+          ? 'endpoint'
+          : 'none';
 
   return {
     apiKeyConfigured: Boolean(process.env.ARK_API_KEY),
     model: process.env.ARK_MODEL_ENDPOINT || null,
     knowledgeBaseId: process.env.ARK_KNOWLEDGE_BASE_ID || null,
+    /** 直连知识库服务时用的知识库名 / 资源 id（不包含密钥） */
+    knowledgeCollection: process.env.KB_COLLECTION_NAME || process.env.ARK_KNOWLEDGE_BASE_ID || null,
     knowledgeBaseMode,
     databaseConfigured: Boolean(process.env.DATABASE_URL),
     externalLlm: false,

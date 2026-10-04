@@ -20,13 +20,28 @@
   - 检索方式：把问题切成检索词（英文/数字串、中文串、长中文串补 2-gram，去掉「怎么 / 什么 / 哪些」等停用词），
     词之间 OR 匹配、按命中词数排序；只要查询里有 ≥3 字的「强检索词」，就要求结果至少命中一个强词——
     否则「问题」「完全」这类通用 2-gram 会把整张表都捞出来
-  - 方式一（推荐）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
-    知识库以 Skill（`viking-knowledge-search`）挂在智能体上，是方舟**唯一**能真正检索知识库的路径：
-    `POST /sessions/{id}/events` 发问题 → 轮询 `GET /sessions/{id}/events` 取 `agent.message`。
-    每次检索会新建一个干净会话（绑定 vault 里的 Viking 凭证）并在结束后删除；也可用 `ARK_SESSION_ID` 复用固定会话
+  - **方式零（推荐，最划算）`KB_API_KEY`：直连「火山知识库」服务**，拿的是**原文切片**（不是生成好的回答），
+    百毫秒级返回，最合适塞进对话上下文：
+    `POST https://api-knowledgebase.mlp.cn-beijing.volces.com/api/knowledge/collection/search_knowledge`
+    请求头 `Authorization: Bearer <知识库 API Key>`，请求体
+    `{ name（知识库名）, resource_id（方舟里的 kb-xxx）, query, project: 'default', limit, dense_weight }`，
+    返回 `data.result_list[]`（`chunk_title` / `content` / `score` / `rerank_score` / `point_id` / `doc_info`）。
+    接口清单与字段来自官方 SDK `volcengine/viking_knowledgebase`（v1.0.228）；
+    该服务上还有 `collection/search`（可带 rerank）、`collection/search_and_generate`（检索+生成带依据的回答）、
+    `service/rerank`、`chat/completions`、以及 `doc/{add,list,...}`、`point/{add,list,...}`、`collection/{create,list,...}`
+    （**所以知识库文档是可以程序化写入的**，与早期 README 里「方舟开放接口没有文档上传路径」的结论不同）。
+    鉴权两种：① Bearer 知识库 API Key（本项目用这个，服务器上只需一个环境变量）；
+    ② 官方 SDK 的 AK/SK V4 签名（service 名为 `"air"`）。
+    验证：`npm run kb:doctor`（ping → collection/list → search_knowledge 三步实测）、`npm run test:kb-api`（本地 mock 测接线）
+  - 方式一（兜底）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
+    知识库以 Skill（`viking-knowledge-search`）挂在智能体上：`POST /sessions/{id}/events` 发问题 →
+    轮询 `GET /sessions/{id}/events` 取 `agent.message`。每次检索新建干净会话（绑定 vault 里的 Viking 凭证）并删除，
+    也可用 `ARK_SESSION_ID` 复用固定会话。⚠️ 它返回的是**生成好的回答**且**慢**（实测 10~56 秒）
   - 方式二 `ARK_BOT_ID`：方舟「应用(Bot)」，走 `POST /api/v3/bots/chat/completions`
   - 方式三 `ARK_KB_ENDPOINT`：自建 / 兼容的检索接口，请求体 `{ knowledge_base_id, query, top_k }`
-  - ⚠️ 方舟开放接口**没有**独立的「知识库 chunk 检索」路径，`POST /api/v3/knowledge/search` 返回 404，不要再用它
+  - 优先级：配了 `KB_API_KEY` 就先走方式零；失败（key 或知识库名不对）自动降级到方式一，并把两条原因都写进 `notice`
+  - ⚠️ 注意区分：方舟宿主机 `ark.cn-beijing.volces.com/api/v3/knowledge/*` 确实全部 404（实测），
+    但知识库是**独立服务域名**（`api-knowledgebase.mlp.cn-beijing.volces.com`），不要因为前者 404 就以为没有知识库接口
   - ⚠️ 托管智能体依赖会话绑定的 vault 凭证；凭证无效时 Skill 会返回 `authentication_error / invalid api key`，
     此时工具仍返回回答，但会附带 `notice` 说明该回答不基于知识库
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
@@ -87,7 +102,10 @@ node scripts/init-knowledge-table.js --list                      # 查看平台�
 | 变量 | 说明 |
 | --- | --- |
 | `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 火山方舟（可选）。`ARK_API_KEY` 形如 `ark-<uuid>-<后缀>` 或纯 UUID；非法或缺失时知识库自动降级为库内检索 |
-| `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 方舟「托管智能体」接入（推荐）。三者配齐即每次检索新建并销毁会话；vault 内需放有效的 Viking 知识库 Key |
+| `KB_API_KEY` | **推荐**。火山知识库 API Key（控制台「知识库 → API Key」，注意不是 `ark-*` 的方舟 Key）。配了就直连知识库服务检索原文切片 |
+| `KB_COLLECTION_NAME` / `KB_RESOURCE_ID` | 可选。知识库名称 / 方舟里的 `kb-xxx`；不填则退回 `ARK_KNOWLEDGE_BASE_ID` |
+| `KB_API_HOST` / `KB_PROJECT` / `KB_DENSE_WEIGHT` / `KB_API_TIMEOUT_MS` | 可选。默认 `https://api-knowledgebase.mlp.cn-beijing.volces.com` / `default` / `0.5` / `10000` |
+| `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 兜底路径：方舟「托管智能体」。三者配齐即每次检索新建并销毁会话；vault 内需放有效的 Viking 知识库 Key |
 | `ARK_SESSION_ID` | 可选，复用固定会话（不配 environment+vault 时生效）。注意会话历史会参与上下文，建议单独用一个检索专用会话 |
 | `ARK_AGENT_TIMEOUT_MS` | 可选，单次托管智能体检索的最长等待，默认 110000。带 thinking 时单轮 15~60s，需要多轮检索的问题可能 60~120s |
 | `ARK_BOT_ID` | 火山方舟**应用(Bot)** ID（`bot-xxxx`），该应用需在控制台绑定知识库。配置后知识库走 `/bots/chat/completions` |

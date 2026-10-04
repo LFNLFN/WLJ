@@ -464,7 +464,9 @@ export default function HomePage() {
   };
 
   const kbModeLabel =
-    config?.knowledgeBaseMode === 'agent'
+    config?.knowledgeBaseMode === 'kb-api'
+      ? '知识库已接入（直连检索，返回原文切片）'
+      : config?.knowledgeBaseMode === 'agent'
       ? '知识库已接入（托管智能体）'
       : config?.knowledgeBaseMode === 'bot'
         ? '知识库已接入（应用）'
