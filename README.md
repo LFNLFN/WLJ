@@ -419,8 +419,13 @@ Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签�
 - **回归测试**：`npm run test:kb-api` 第 7 组（身份解析三条路径、角色以数据库为准、数据库抖动时退回快照、
   授权模型措辞、两类拒绝话术判定的正反例、托管智能体问题里带身份）。
 - ⚠️ **改了必须部署才生效**：这是服务端代码，线上 `www.weilaijia20210101.com` 要跑
-  `git pull → npm install → npm run build → 重启`（见「部署与运行」）。判断线上是不是旧版本：
-  `curl -s https://www.weilaijia20210101.com/api/knowledge | grep hint`（有 `hint` 说明已含本修复所在版本）。
+  `git pull → npm install → npm run build → 重启`（见「部署与运行」）。
+  判断线上到底部署了没有 —— `/api/health` 返回里的 `build` 就是**该进程实际在跑的构建指纹**
+  （读 `.next/BUILD_ID`，开发模式显示 `dev`）：
+  ```bash
+  curl -s https://www.weilaijia20210101.com/api/health | grep -o '"build":"[^"]*"'
+  cat .next/BUILD_ID            # 在服务器/本地项目目录里对比，一致才算部署成功
+  ```
 
 ### 问某个孩子（如王小明），却被回「系统里没有这个学生」？
 

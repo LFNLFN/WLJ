@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { NextResponse } from 'next/server';
 import { getDb, withDbRetry } from '@/lib/api/db';
 
@@ -10,6 +12,25 @@ export const runtime = 'nodejs';
  */
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+/**
+ * 当前进程实际在跑的构建指纹（Next 构建时写进 .next/BUILD_ID）。
+ *
+ * 为什么需要它：本项目是**人工部署**（服务器上 git pull → build → 重启），反复出现
+ * "代码修好了、线上还是旧版本"，以前只能拿某个新字段/新行为去猜是不是部署了。
+ * 有了这个字段，`curl /api/health | grep build` 和本地 `cat .next/BUILD_ID` 一对就知道。
+ * （不是敏感信息：页面 HTML 里的 /_next/static/<BUILD_ID>/ 本来就带着它。）
+ */
+function readBuildId(): string {
+  if (process.env.NODE_ENV !== 'production') return 'dev';
+  try {
+    return fs.readFileSync(path.join(process.cwd(), '.next', 'BUILD_ID'), 'utf8').trim() || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+const BUILD_ID = readBuildId();
 
 /** 日志/返回里打码，避免把内网 IP、连接串暴露给外部 */
 function sanitize(msg: unknown): string {
@@ -25,6 +46,7 @@ export async function GET() {
   const startedAt = Date.now();
   const base = {
     db: 'postgresql',
+    build: BUILD_ID,
     pid: process.pid,
     uptimeSec: Math.round(process.uptime()),
     time: new Date().toISOString(),
