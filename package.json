@@ -1,7 +1,7 @@
 {
   "name": "wlj",
   "version": "1.0.0",
-  "description": "\u672a\u6765\u5bb6\u513f\u7ae5\u80fd\u529b\u53d1\u5c55\u4e2d\u5fc3 - \u8bfe\u7a0b\u7ba1\u7406\u7cfb\u7edf",
+  "description": "未来家儿童能力发展中心 - 课程管理系统",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
@@ -11,13 +11,16 @@
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "sync:scales": "node scripts/init-scales-remote.js",
     "create-admin": "node scripts/create-admin.js",
-    "migrate:scale-records": "node scripts/migrate-student-scale-records.js"
+    "migrate:scale-records": "node scripts/migrate-student-scale-records.js",
+    "test:agent-tools": "tsc scripts/test-agent-tools.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-agent-tools.js"
   },
   "dependencies": {
-    "docx": "^9.7.1",
+    "docx": "^9.8.1",
+    "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "next": "^14.2.35",
+    "openai": "^7.27.0",
     "pg": "^8.21.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -33,3 +33,12 @@ next-env.d.ts
 
 # 临时 PDF 调试页（调试完成后移除或合并）
 /pdf-export-debug/
+
+# AI Agent 工具生成的导出文件（Excel / Word）
+/public/generated/
+
+# Agent 工具功能测试的临时编译产物
+/.agent-test-build/
+
+# 智能体配置备份（推送 prompt 前自动生成）
+/.ark-backup/
