@@ -25,7 +25,7 @@ const TIMEOUT_MS = 4000;
 // ---------------- 小工具 ----------------
 
 function loadEnvLocal() {
-  const file = path.join(process.cwd(), '.env.local');
+  const file = path.join(process.cwd(), '.env');
   if (!fs.existsSync(file)) return null;
   const env = {};
   for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
@@ -113,7 +113,7 @@ function line(label) {
   const url = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
   const target = parseTarget(url);
   console.log(`  DATABASE_URL   : ${mask(url)}`);
-  console.log(`  .env.local     : ${envFile ? '存在' : '不存在'}`);
+  console.log(`  .env            : ${envFile ? '存在' : '不存在'}`);
   if (envFile && envFile.DATABASE_URL && envFile.DATABASE_URL !== process.env.DATABASE_URL) {
     console.log(`  ⚠️ .env.local 里的 DATABASE_URL 与环境变量不同：${mask(envFile.DATABASE_URL)}`);
   }
