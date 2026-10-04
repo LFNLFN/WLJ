@@ -143,9 +143,11 @@ POST /api/ai/tools                    # 执行单个工具
 以「你当前没有访问学生及相关数据的权限」搪塞（实测，管理员也一样）——这句话是模型自己生成的，不在本仓库。
 
 - `/api/chat` 和 `/api/ai/tools` 都先用 `agentContextFromRequest()` 取身份：优先 middleware 透传的
-  `x-user-id` / `x-user-role` / `x-user-name`（URL 编码），**拿不到头时用会话 Cookie / `Authorization: Bearer` 验签兜底**；
+  `x-user-id` / `x-user-role` / `x-user-name`（URL 编码），**拿不到头时用会话 Cookie / `Authorization: Bearer` 验签兜底**，
+  再查一次 `users` 表校正姓名/角色（token 里只是登录时的快照，改过角色后不会自动更新；查库失败退回快照）；
+  服务端日志会留一行 `[api/chat] 调用者=…（角色） 身份来源=… 角色来源=db/token` 供排障；
 - `/api/chat` 把 `callerSystemLine()` 拼进 system prompt：说明内部账号 + 平台真实授权模型 + 不得以
-  「没有权限 / 无法访问 / 超出岗位范围」为由拒绝；模型**没调工具却直接回权限拒绝话术**时，
+  「没有权限 / 无法访问 / 超出岗位范围」为由拒绝，**也不许自行推断/复述角色与权限清单**；模型**没调工具却直接回权限拒绝话术**时，
   用 `shouldRetryPermissionRefusal()` 补一句权限提醒重问一次（每请求最多一次）；
 - 工具执行统一包在 `runWithAgentContext()` 里，`search_knowledge_base` 会把
   `【调用者：姓名（角色），本中心内部登录账号】` 拼进发给托管智能体的问题前。

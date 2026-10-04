@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { executeTool } from '@/lib/agent/execute';
 import { listToolSchemas } from '@/lib/agent/registry';
-import { runWithAgentContext } from '@/lib/agent/context';
+import { roleLabel, runWithAgentContext } from '@/lib/agent/context';
 import {
   PERMISSION_GUARD_NOTE,
   agentContextFromRequest,
@@ -88,6 +88,16 @@ export async function POST(req: NextRequest) {
     const agentCtx = await agentContextFromRequest(req);
     const userLine = callerSystemLine(agentCtx);
     let systemContent = userLine ? `${SYSTEM_PROMPT}\n\n${userLine}` : SYSTEM_PROMPT;
+
+    // 留一行可核对的日志：以后若再有人反馈"助理说我没权限 / 说我是教师"，
+    // 直接看这行就知道当时模型到底拿到的身份是什么、角色来自数据库还是过期 token。
+    console.log(
+      `[api/chat] 调用者=${agentCtx.name || '匿名'}（${roleLabel(agentCtx.role)}）` +
+        ` 身份来源=${agentCtx.source} 角色来源=${agentCtx.roleInDb ? 'db' : 'token/匿名'}` +
+        (agentCtx.roleInDb && agentCtx.roleFromToken && agentCtx.roleInDb !== agentCtx.roleFromToken
+          ? `（⚠️ 会话 token 里是过期的 "${agentCtx.roleFromToken}"）`
+          : '')
+    );
 
     const client = new OpenAI({ apiKey, baseURL: process.env.ARK_BASE_URL });
     const model = process.env.ARK_MODEL_ENDPOINT!;

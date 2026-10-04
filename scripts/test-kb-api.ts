@@ -432,11 +432,49 @@ async function main() {
       'x-user-name': encodeURIComponent('梁丰年'),
     }),
   };
-  const headerCtx = await agentContextFromRequest(headerReq);
+  // 注入假 loadUser：解析逻辑本身不依赖数据库，单测必须能断死行为
+  const noDb: { loadUser: (id: string) => Promise<{ name?: string; role?: string } | null> } = {
+    loadUser: async () => null,
+  };
+  const headerCtx = await agentContextFromRequest(headerReq, noDb);
   check(
     'agentContextFromRequest：读 middleware 透传的 x-user-* 头（姓名要解码）',
-    headerCtx.userId === 'mtz9m7qf2ttlxzpjb' && headerCtx.name === '梁丰年' && headerCtx.role === 'admin',
+    headerCtx.userId === 'mtz9m7qf2ttlxzpjb' && headerCtx.name === '梁丰年' && headerCtx.role === 'admin' && headerCtx.source === 'headers',
     headerCtx
+  );
+  check(
+    'agentContextFromRequest：姓名/角色缺失时用会话快照补全',
+    (await agentContextFromRequest({ headers: new Headers({ 'x-user-id': 'u1' }) }, noDb)).source === 'none'
+  );
+
+  // ⚠️ 角色不能只信会话 token：token 里是登录那一刻的快照，管理员在「用户管理」改过角色后不会自动更新
+  //    （线上实测过一次：模型照着过期角色回「你的账号角色是教师…无法查询学生个人档案」）
+  const staleReq = {
+    headers: new Headers({
+      'x-user-id': 'mtz9m7qf2ttlxzpjb',
+      'x-user-role': 'teacher',
+      'x-user-name': encodeURIComponent('梁丰年'),
+    }),
+  };
+  const staleCtx = await agentContextFromRequest(staleReq, { loadUser: async () => ({ name: '梁丰年', role: 'admin' }) });
+  check(
+    'agentContextFromRequest：角色以数据库为准，过期的 token 快照不会传给模型',
+    staleCtx.role === 'admin' && staleCtx.roleFromToken === 'teacher' && staleCtx.roleInDb === 'admin',
+    staleCtx
+  );
+  check(
+    'agentContextFromRequest：数据库里查不到该 id 时保留快照（不把身份打回匿名）',
+    (await agentContextFromRequest(staleReq, noDb)).role === 'teacher'
+  );
+  const boom = await agentContextFromRequest(staleReq, {
+    loadUser: async () => {
+      throw new Error('ECONNRESET');
+    },
+  });
+  check(
+    'agentContextFromRequest：查库失败（线上有数据库抖动）也保留快照，不误判成"没权限"',
+    boom.role === 'teacher' && boom.name === '梁丰年',
+    boom
   );
 
   // 兜底：没有 x-user-* 头（反代 / 直调 / 以后新增的路由）时，用会话 Cookie 验签拿身份
@@ -446,19 +484,41 @@ async function main() {
     phone: '18816898140',
     role: 'admin',
   });
-  const cookieCtx = await agentContextFromRequest({
-    headers: new Headers({ cookie: `wlj_session=${token}` }),
-  });
+  // 默认 loader 真去库里查（防止只在小写/驼峰列名上报错）：用一个真实存在的管理员账号
+  try {
+    const { getDb } = await import('../src/lib/api/db');
+    const db = await getDb();
+    const r = await db.query("SELECT id, name FROM users WHERE role = 'admin' AND status = 'active' ORDER BY \"createdAt\" LIMIT 1");
+    const admin: any = r.rows[0];
+    if (admin) {
+      const dbCtx = await agentContextFromRequest({ headers: new Headers({ 'x-user-id': String(admin.id) }) });
+      check(
+        'agentContextFromRequest：默认 loader 真的按数据库校正角色（roleInDb=admin）',
+        dbCtx.roleInDb === 'admin' && dbCtx.role === 'admin' && dbCtx.name === admin.name,
+        dbCtx
+      );
+    } else {
+      check('agentContextFromRequest：默认 loader 实测（库里没有 active 管理员，跳过）', true);
+    }
+  } catch (e) {
+    check('agentContextFromRequest：默认 loader 实测（数据库不可用，跳过）', true, (e as Error).message);
+  }
+
+  const cookieCtx = await agentContextFromRequest(
+    { headers: new Headers({ cookie: `wlj_session=${token}` }) },
+    { loadUser: async () => ({ name: '梁丰年', role: 'admin' }) }
+  );
   check(
     'agentContextFromRequest：没有 x-user-* 头时用会话 Cookie 兜底',
     cookieCtx.name === '梁丰年' && cookieCtx.role === 'admin' && cookieCtx.userId === 'mtz9m7qf2ttlxzpjb',
     cookieCtx
   );
-  const bearerCtx = await agentContextFromRequest({
-    headers: new Headers({ authorization: `Bearer ${token}` }),
-  });
+  const bearerCtx = await agentContextFromRequest(
+    { headers: new Headers({ authorization: `Bearer ${token}` }) },
+    noDb
+  );
   check('agentContextFromRequest：Authorization: Bearer 同样可用（小程序路径）', bearerCtx.name === '梁丰年', bearerCtx);
-  const anonCtx = await agentContextFromRequest({ headers: new Headers() });
+  const anonCtx = await agentContextFromRequest({ headers: new Headers() }, noDb);
   check(
     'agentContextFromRequest：匿名请求不编造身份（行为与修复前一致）',
     anonCtx.userId === undefined && anonCtx.name === undefined && anonCtx.role === undefined && callerSystemLine(anonCtx) === '',
@@ -475,6 +535,19 @@ async function main() {
     !isPermissionRefusal('共有 1 名在册学生：小米（家长大米，12335666）。') &&
     !isPermissionRefusal(''));
   check('PERMISSION_GUARD_NOTE 明确要求直接调工具取数', PERMISSION_GUARD_NOTE.includes('query_database') && PERMISSION_GUARD_NOTE.includes('search_knowledge_base'));
+  check(
+    'callerSystemLine：禁止模型自己推断/复述角色与权限清单',
+    sysLine.includes('不要') && sysLine.includes('角色与权限'),
+    sysLine.slice(-120)
+  );
+
+  // 第二种线上话术：模型替调用者编一个角色/权限清单再拒绝
+  const roleRefusal = '你的账号角色是教师，仅具备「查看知识库、课程、评估量表、教学资源」等权限，无法查询学生个人档案信息。';
+  check('isPermissionRefusal：识别"你的账号角色是教师…仅具备…权限"这种编造权限的拒绝', isPermissionRefusal(roleRefusal));
+  check('isPermissionRefusal：正常说明角色（没有受限措辞）不算拒绝',
+    !isPermissionRefusal('你在系统里的角色是管理员，可以查询、汇总、导出学生与评估记录数据。'));
+  check('PERMISSION_GUARD_NOTE 也覆盖"角色只有…权限"式拒绝', PERMISSION_GUARD_NOTE.includes('角色'));
+
 
   // 兜底重试的判定（/api/chat 用它决定要不要"点破权限 + 重问一次"）
   const retryBase = { ctx: { name: '梁丰年', role: 'admin' }, reply: '抱歉，你当前没有访问学生及相关数据的权限。', toolCallCount: 0, alreadyRetried: false, round: 0, maxRounds: 5 };
