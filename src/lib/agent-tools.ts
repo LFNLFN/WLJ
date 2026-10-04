@@ -473,21 +473,13 @@ async function searchViaManagedAgent(
 
   // ⚠️ 实测：GET /sessions/{id}/events **默认只返回前 50 条**（`?limit=` 可调，5000 也能用）。
   // 会话事件超过 50 条之后，新事件就落在窗口外 —— 轮询会一直"看不到"新内容，直到超时，
-  // 表现就是「明明答完了，却报方舟智能体未返回结果」。所以这里必须显式带上 limit。
+  // 表现就是「明明答完了，却报方舟智能体未返回结果」。所以轮询兜底路径也必须显式带上 limit。
   const eventsLimit = clampInt(process.env.ARK_EVENTS_LIMIT, 50, 5000, 500);
   const eventsPath = `${baseUrl}/sessions/${sessionId}/events`;
   const eventsUrl = `${eventsPath}?limit=${eventsLimit}`;
+  const streamUrl = `${eventsPath}/stream`;
 
-  try {
-    // 先记录已有事件，避免把历史回答当成本次结果
-    const before = await fetchWithTimeout(eventsUrl, { method: 'GET', headers });
-    if (!before.ok) {
-      return { ok: false, items: [], notice: `读取方舟会话失败(${before.status})，请检查 ARK_SESSION_ID` };
-    }
-    const seen = new Set<string>(
-      (safeJson(await before.text()) as any)?.data?.map((e: any) => e.id) ?? []
-    );
-
+  const sendQuery = async (): Promise<{ ok: boolean; detail?: string }> => {
     const post = await fetchWithTimeout(eventsPath, {
       method: 'POST',
       headers,
@@ -495,88 +487,55 @@ async function searchViaManagedAgent(
         events: [{ type: 'user.message', content: [{ type: 'text', text: query }] }],
       }),
     });
-    if (!post.ok) {
-      const detail = (await post.text()).slice(0, 200);
-      return { ok: false, items: [], notice: `向方舟会话发送消息失败(${post.status})：${detail}` };
+    if (post.ok) return { ok: true };
+    return { ok: false, detail: `向方舟会话发送消息失败(${post.status})：${(await post.text()).slice(0, 200)}` };
+  };
+
+  try {
+    const state = createSessionRunState(limit);
+
+    // ---------- 首选：SSE 事件流（实时，不用轮询）----------
+    // `curl -N {base}/sessions/{id}/events/stream`：content-type: text/event-stream，
+    // 帧格式是 `data: {"type":"agent.message",...}` + 空行，`: ready` 是心跳注释。
+    if (process.env.ARK_SESSION_STREAM !== '0') {
+      const sse = openSessionEventStream(streamUrl, headers, timeoutMs, state);
+      const ready = await sse.waitReady(4_000);
+      if (ready) {
+        const sent = await sendQuery();
+        if (!sent.ok) {
+          sse.abort();
+          return { ok: false, items: [], notice: sent.detail || '发送失败' };
+        }
+        await sse.done;
+        return finishSessionResult(state, query, timeoutMs);
+      }
+      // 流建不起来（网关不支持 / 404 等）：静默退回轮询
+      sse.abort();
     }
 
-    // 轮询事件流，直到会话回到 idle
-    const deadline = Date.now() + timeoutMs;
-    const answers: string[] = [];
-    /** 知识库 Skill 返回的原文切片（即便最终回答没及时出来，这些也应该给到模型） */
-    const kbChunks: KnowledgeItem[] = [];
-    let toolError = '';
-    let rateLimited = false;
-    let idle = false;
+    // ---------- 兜底：轮询 ----------
+    const before = await fetchWithTimeout(eventsUrl, { method: 'GET', headers });
+    if (!before.ok) {
+      return { ok: false, items: [], notice: `读取方舟会话失败(${before.status})，请检查 ARK_SESSION_ID` };
+    }
+    const seen = new Set<string>((safeJson(await before.text()) as any)?.data?.map((e: any) => e.id) ?? []);
 
-    while (Date.now() < deadline) {
+    const sent = await sendQuery();
+    if (!sent.ok) return { ok: false, items: [], notice: sent.detail || '发送失败' };
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline && !state.idle) {
       await sleep(3_000);
       const res = await fetchWithTimeout(eventsUrl, { method: 'GET', headers });
       if (!res.ok) continue;
-      const events: any[] = (safeJson(await res.text()) as any)?.data ?? [];
-
-      for (const event of events) {
+      for (const event of (safeJson(await res.text()) as any)?.data ?? []) {
         if (!event?.id || seen.has(event.id)) continue;
         seen.add(event.id);
-
-        if (event.type === 'agent.message') {
-          const text = eventText(event);
-          if (text) answers.push(text);
-        } else if (event.type === 'agent.thinking') {
-          if (/限流|rate.?limit|too many requests|429/i.test(eventText(event))) rateLimited = true;
-        } else if (event.type === 'agent.tool_result') {
-          const text = eventText(event);
-          if (/authentication_error|invalid api key|鉴权/i.test(text)) toolError ||= text;
-          if (/限流|rate.?limit|too many requests|429/i.test(text)) rateLimited = true;
-          for (const chunk of extractKnowledgeChunks(text, limit)) {
-            if (!kbChunks.some((c) => c.id && c.id === chunk.id)) kbChunks.push(chunk);
-          }
-        } else if (event.type === 'session.status_idle' || event.type === 'session.thread_status_idle') {
-          idle = true;
-        }
+        applySessionEvent(event, state);
       }
-      if (idle) break;
     }
 
-    // 多轮检索时中途也会有 agent.message，最终答复取最后一条
-    const finalText = answers.length ? answers[answers.length - 1] : '';
-    const items: KnowledgeItem[] = [
-      // 原文切片放前面：模型可以直接引用
-      ...kbChunks,
-      ...(finalText
-        ? [{ type: '知识库回答', title: query, content: finalText.slice(0, 2000), source: 'ark-agent' }]
-        : []),
-    ];
-
-    if (items.length === 0) {
-      return {
-        ok: false,
-        items: [],
-        notice: idle
-          ? '方舟智能体未返回内容'
-          : `方舟智能体在 ${timeoutMs}ms 内未返回结果（可调大 ARK_AGENT_TIMEOUT_MS，或该问题的推理耗时较长）`,
-      };
-    }
-
-    const notices: string[] = [];
-    if (toolError) {
-      notices.push(
-        '注意：方舟智能体调用知识库 Skill 时鉴权失败（invalid api key）。' +
-          '请在会话(vault)上绑定有效的 Viking 知识库 API Key，否则回答不基于知识库'
-      );
-    }
-    if (!idle) {
-      notices.push(
-        `注意：方舟智能体在 ${timeoutMs}ms 内未结束（返回的是阶段性回答，可能不完整）；` +
-          `已尽量返回检索到的知识库原文${kbChunks.length ? `（${kbChunks.length} 条切片）` : ''}；` +
-          '可在 .env.local 调大 ARK_AGENT_TIMEOUT_MS'
-      );
-    }
-    if (rateLimited) {
-      notices.push('注意：方舟知识库检索触发了限流，本次结果可能不全；可稍后重试，或改用直连知识库（KB_API_KEY）绕开该限制');
-    }
-
-    return { ok: true, items, ...(notices.length ? { notice: notices.join(' ') } : {}) };
+    return finishSessionResult(state, query, timeoutMs);
   } catch (err) {
     return { ok: false, items: [], notice: `方舟托管智能体不可用：${(err as Error).message}` };
   } finally {
@@ -704,6 +663,175 @@ async function searchViaKnowledgeApi(query: string, limit: number): Promise<ArkS
   } catch (err) {
     return { ok: false, items: [], notice: `知识库检索异常：${(err as Error).message}` };
   }
+}
+
+/** 一次会话问答的中间状态（SSE 与轮询两条路共用同一套解析逻辑） */
+interface SessionRunState {
+  answers: string[];
+  kbChunks: KnowledgeItem[];
+  toolError: string;
+  rateLimited: boolean;
+  /** 是否收到过非 idle 的事件（防止「连上流时先收到上一轮的 idle」被误判为本轮结束） */
+  sawActivity: boolean;
+  idle: boolean;
+  /** 单次解析最多取几条知识库切片 */
+  chunkLimit: number;
+}
+
+function createSessionRunState(chunkLimit: number): SessionRunState {
+  return { answers: [], kbChunks: [], toolError: '', rateLimited: false, sawActivity: false, idle: false, chunkLimit };
+}
+
+/** 处理一条会话事件（SSE 与轮询共用） */
+function applySessionEvent(event: any, state: SessionRunState): void {
+  const type = event?.type;
+  if (typeof type !== 'string') return;
+
+  if (!/idle/.test(type)) state.sawActivity = true;
+
+  if (type === 'agent.message') {
+    const text = eventText(event);
+    if (text) state.answers.push(text);
+  } else if (type === 'agent.thinking') {
+    if (/限流|rate.?limit|too many requests|429/i.test(eventText(event))) state.rateLimited = true;
+  } else if (type === 'agent.tool_result') {
+    const text = eventText(event);
+    if (/authentication_error|invalid api key|鉴权/i.test(text)) state.toolError ||= text;
+    if (/限流|rate.?limit|too many requests|429/i.test(text)) state.rateLimited = true;
+    for (const chunk of extractKnowledgeChunks(text, state.chunkLimit)) {
+      if (!state.kbChunks.some((c) => c.id && c.id === chunk.id)) state.kbChunks.push(chunk);
+    }
+  } else if (type === 'session.status_idle' || type === 'session.thread_status_idle') {
+    // 只有本轮确实跑起来过，才把 idle 当成本轮结束
+    if (state.sawActivity) state.idle = true;
+  }
+}
+
+/** 把中间状态组装成工具返回值（超时但有切片也算成功） */
+function finishSessionResult(state: SessionRunState, query: string, timeoutMs: number): ArkSearchResult {
+  const finalText = state.answers.length ? state.answers[state.answers.length - 1] : '';
+  const items: KnowledgeItem[] = [
+    // 原文切片放前面：模型可以直接引用
+    ...state.kbChunks,
+    ...(finalText
+      ? [{ type: '知识库回答', title: query, content: finalText.slice(0, 2000), source: 'ark-agent' }]
+      : []),
+  ];
+
+  if (items.length === 0) {
+    return {
+      ok: false,
+      items: [],
+      notice: state.idle
+        ? '方舟智能体未返回内容'
+        : `方舟智能体在 ${timeoutMs}ms 内未返回结果（可调大 ARK_AGENT_TIMEOUT_MS，或该问题的推理耗时较长）`,
+    };
+  }
+
+  const notices: string[] = [];
+  if (state.toolError) {
+    notices.push(
+      '注意：方舟智能体调用知识库 Skill 时鉴权失败（invalid api key）。' +
+        '请在会话(vault)上绑定有效的 Viking 知识库 API Key，否则回答不基于知识库'
+    );
+  }
+  if (!state.idle) {
+    notices.push(
+      `注意：方舟智能体在 ${timeoutMs}ms 内未结束（返回的是阶段性回答，可能不完整）；` +
+        `已尽量返回检索到的知识库原文${state.kbChunks.length ? `（${state.kbChunks.length} 条切片）` : ''}；` +
+        '可在 .env.local 调大 ARK_AGENT_TIMEOUT_MS'
+    );
+  }
+  if (state.rateLimited) {
+    notices.push('注意：方舟知识库检索触发了限流，本次结果可能不全；可稍后重试，或改用直连知识库（KB_API_KEY）绕开该限制');
+  }
+
+  return { ok: true, items, ...(notices.length ? { notice: notices.join(' ') } : {}) };
+}
+
+/**
+ * 打开会话的 SSE 事件流（`GET /sessions/{id}/events/stream`），实时消费到本轮结束或超时。
+ *
+ * 帧格式（实测）：`data: {"type":"agent.message",...}` + 空行分隔；`: ready` 之类的注释行是心跳。
+ * 比轮询好在：不用每 3 秒问一次，也没有「默认只返回前 50 条」的窗口问题。
+ */
+function openSessionEventStream(url: string, headers: Record<string, string>, timeoutMs: number, state: SessionRunState) {
+  const controller = new AbortController();
+  let resolveReady: (v: boolean) => void = () => {};
+  const ready = new Promise<boolean>((resolve) => {
+    resolveReady = resolve;
+  });
+
+  const done = (async () => {
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { ...headers, Accept: 'text/event-stream' },
+        signal: controller.signal,
+      });
+      if (!res.ok || !res.body) {
+        resolveReady(false);
+        return;
+      }
+      resolveReady(true);
+
+      const reader = (res.body as any).getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let dataLines: string[] = [];
+
+      while (!state.idle) {
+        const { done: streamEnded, value } = await reader.read();
+        if (streamEnded) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let nl: number;
+        while ((nl = buffer.indexOf('\n')) >= 0) {
+          let line = buffer.slice(0, nl);
+          buffer = buffer.slice(nl + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+
+          if (line === '') {
+            // 一个帧结束：把累积的 data 行按 SSE 规范拼起来解析
+            if (dataLines.length) {
+              const payload = dataLines.join('\n');
+              dataLines = [];
+              const parsed: any = safeJson(payload);
+              if (parsed && !parsed.raw) applySessionEvent(parsed, state);
+            }
+            continue;
+          }
+          if (line.startsWith(':')) continue; // 心跳/注释
+          if (line.startsWith('data:')) dataLines.push(line.slice(5).replace(/^ /, ''));
+        }
+      }
+    } catch (err) {
+      // 超时 abort / 网络断开：交给 finishSessionResult 按「未结束」处理
+      resolveReady(false);
+    } finally {
+      clearTimeout(timer);
+      try {
+        controller.abort();
+      } catch {
+        /* ignore */
+      }
+    }
+  })();
+
+  return {
+    done,
+    ready,
+    /** 最多等 ms 毫秒判断流是否建起来了 */
+    waitReady: (ms: number) => Promise.race([ready, sleep(ms).then(() => false)]),
+    abort: () => {
+      try {
+        controller.abort();
+      } catch {
+        /* ignore */
+      }
+    },
+  };
 }
 
 async function tryArkAgentOrBotSearch(query: string, limit: number): Promise<ArkSearchResult> {

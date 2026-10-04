@@ -35,6 +35,9 @@
     验证：`npm run kb:doctor`（ping → collection/list → search_knowledge 三步实测）、`npm run test:kb-api`（本地 mock 测接线）
   - 方式一（兜底）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
     会话来源：**显式 `ARK_SESSION_ID` 优先**（沿用该会话上下文）；没设才用 environment+vault 自动新建临时会话、用完即删。
+    **事件监控默认走 SSE**：`GET /sessions/{id}/events/stream`（`text/event-stream`，帧是 `data: {json}` + 空行，
+    `: ready` 为心跳）——实时、不用每 3 秒轮询、也没有下面那个"只看前 50 条"的窗口问题；
+    流建不起来时自动退回轮询。`ARK_SESSION_STREAM=0` 可强制走轮询。
     ⚠️ 读事件必须带 `?limit=`：`GET /sessions/{id}/events` **默认只返回前 50 条**（实测 `limit` 到 5000 可用）。
     会话事件超过 50 条后，新事件就落在窗口外，轮询永远"看不到"新内容直到超时 ——
     表现为「明明已经答完，却报方舟智能体未返回结果」。本项目固定带 `?limit=`（`ARK_EVENTS_LIMIT`，默认 500）。

@@ -245,6 +245,15 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 #### 托管智能体会话（`ARK_SESSION_ID`）怎么调
 
 ```bash
+# 0) 实时监控（推荐）：SSE 事件流，`-N` 关掉 curl 缓冲
+curl -N -H "Authorization: Bearer $ARK_API_KEY" -H "Accept: text/event-stream" \
+  https://ark.cn-beijing.volces.com/api/v3/sessions/sesn-xxxx/events/stream
+# 帧格式（实测）：`data: {"type":"agent.message",...}` + 空行分隔；`: ready` 是心跳注释；
+# 事件类型：session.status_running / user.message / span.model_request_start|end /
+#           agent.thinking / agent.tool_use / agent.tool_result / agent.message /
+#           session.thread_status_idle / session.status_idle
+# 本项目默认用 SSE（ARK_SESSION_STREAM=0 可退回轮询）
+
 # 1) 看某个会话已有的事件（可用来确认上一次问答/检索到底干了什么）
 curl -H "Authorization: Bearer $ARK_API_KEY" \
   https://ark.cn-beijing.volces.com/api/v3/sessions/sesn-xxxx/events
