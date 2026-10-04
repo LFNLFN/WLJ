@@ -390,6 +390,28 @@ Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签�
 > 方舟托管智能体那条路要额外知道两点：它返回的是「生成好的回答」而不是原文片段，而且**慢**（实测 10–56 秒），
 > 会拖住整轮对话；可以用 `ARK_AGENT_TIMEOUT_MS`（默认 110000，范围 5s–180s）压时间去兜底。
 
+### 明明是管理员，却被回「你当前没有访问学生及相关数据的权限」？
+
+**这句话不在本项目里**（全库检索过，仓库中只有对它的注释引用）—— 它是**模型自己生成的保守拒绝**。
+
+- **根因**：调用链上没有把「谁在问」告诉模型 / 托管智能体。`src/middleware.ts` 一直把会话透传成
+  `x-user-id` / `x-user-role` / `x-user-name`，但 `/api/chat` 早期**完全没用这些头** →
+  面对学生 / 评估这类敏感数据，模型只能按最保守的隐私策略拒答（管理员也一样）。
+- **修法**（`src/lib/agent/identity.ts`，`/api/chat` 与 `/api/ai/tools` 共用）：
+  1. `agentContextFromRequest()`：读 middleware 透传的 `x-user-*`，**拿不到头时兜底用会话 Cookie / Bearer 验签**
+     （反代、脚本直调、以后新增的路由都不会再"匿名"）；
+  2. `callerSystemLine()`：拼进 chat 的 system prompt —— 除了说明"这是内部账号"，还写明平台**真实的授权模型**
+     （除「用户管理」外所有已登录账号权限相同，学生 / 教师 / 课程 / 评估记录在网页端本来就直接可见可导出），
+     并要求模型**不得**以「没有权限 / 无法访问 / 超出岗位范围」为由拒绝或反过来索要身份证明；
+  3. `runWithAgentContext()`（AsyncLocalStorage）：工具执行时带上身份，`search_knowledge_base` 会把
+     `【调用者：姓名（角色），本中心内部登录账号】` 拼进发给方舟托管智能体的问题里；
+  4. `shouldRetryPermissionRefusal()` 兜底：模型**没调用任何工具**却直接回权限拒绝话术时，
+     把权限提醒补进 system prompt 重问一次（每请求最多一次）。
+- **回归测试**：`npm run test:kb-api` 第 7 组（身份解析、授权模型措辞、拒绝话术判定、托管智能体问题里带身份）。
+- ⚠️ **改了必须部署才生效**：这是服务端代码，线上 `www.weilaijia20210101.com` 要跑
+  `git pull → npm install → npm run build → 重启`（见「部署与运行」）。判断线上是不是旧版本：
+  `curl -s https://www.weilaijia20210101.com/api/knowledge | grep hint`（有 `hint` 说明已含本修复所在版本）。
+
 ## 创建管理员账号
 
 三种方式，任选其一：

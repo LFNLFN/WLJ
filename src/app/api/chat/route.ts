@@ -3,7 +3,13 @@ import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { executeTool } from '@/lib/agent/execute';
 import { listToolSchemas } from '@/lib/agent/registry';
-import { roleLabel, runWithAgentContext, type AgentContext } from '@/lib/agent/context';
+import { runWithAgentContext } from '@/lib/agent/context';
+import {
+  PERMISSION_GUARD_NOTE,
+  agentContextFromRequest,
+  callerSystemLine,
+  shouldRetryPermissionRefusal,
+} from '@/lib/agent/identity';
 import {
   augmentMessagesWithAttachments,
   dropImageParts,
@@ -72,30 +78,16 @@ export async function POST(req: NextRequest) {
     ];
 
     /**
-     * 当前登录用户（middleware 已把会话透传成 x-user-* 头）。
+     * 当前登录用户：middleware 已把会话透传成 x-user-* 头（拿不到头时 agentContextFromRequest
+     * 会兜底用同一份会话 token 验签，见 src/lib/agent/identity.ts）。
      *
-     * 为什么必须有：模型与方舟托管智能体都看不到我们的登录态，
-     * 不告诉它"谁在问"，它遇到学生/评估这类数据就会以「你当前没有访问学生相关数据的权限」搪塞（实测）。
+     * 为什么必须有：模型与方舟托管智能体都看不到我们的登录态，不告诉它"谁在问"，
+     * 它遇到学生/评估这类数据就会以「你当前没有访问学生及相关数据的权限」搪塞（2026-10-04 线上实测）。
      * 同时通过 AsyncLocalStorage 把身份带进工具执行层（见 src/lib/agent/context.ts）。
      */
-    const rawName = req.headers.get('x-user-name') || '';
-    let userName = '';
-    try {
-      userName = decodeURIComponent(rawName);
-    } catch {
-      userName = rawName;
-    }
-    const agentCtx: AgentContext = {
-      userId: req.headers.get('x-user-id') || undefined,
-      name: userName || undefined,
-      role: req.headers.get('x-user-role') || undefined,
-    };
-    const userLine = agentCtx.name
-      ? `当前登录用户：${agentCtx.name}（${roleLabel(agentCtx.role)}），本中心内部账号，已通过系统登录。\n` +
-        'ta 的提问属于机构内部的正当使用：在职责范围内**可以直接检索业务库（学生 / 教师 / 课程 / 评估记录等）与知识库并给出结果**，' +
-        '不要以「没有权限」「无法访问」为由拒绝，也不要反复索要权限；' +
-        '只有在明显超出机构内部职责范围（例如索取其它单位的个人信息）时才拒绝，并说明原因。'
-      : '';
+    const agentCtx = await agentContextFromRequest(req);
+    const userLine = callerSystemLine(agentCtx);
+    let systemContent = userLine ? `${SYSTEM_PROMPT}\n\n${userLine}` : SYSTEM_PROMPT;
 
     const client = new OpenAI({ apiKey, baseURL: process.env.ARK_BASE_URL });
     const model = process.env.ARK_MODEL_ENDPOINT!;
@@ -103,9 +95,14 @@ export async function POST(req: NextRequest) {
     const tools = listToolSchemas() as unknown as OpenAI.Chat.Completions.ChatCompletionTool[];
 
     let runnerMessages: ChatCompletionMessageParam[] = [
-      { role: 'system', content: userLine ? `${SYSTEM_PROMPT}\n\n${userLine}` : SYSTEM_PROMPT },
+      { role: 'system', content: systemContent },
       ...augmented.messages,
     ];
+
+    /** 「权限拒绝话术」兜底重试：每个请求最多触发一次（防止模型反复拒答时死循环） */
+    let permissionRetried = false;
+    /** 触发兜底重试的那条拒绝回答：重问后若模型给了空回复，宁可把这条原样返回，也不要回一句空话 */
+    let refusalFallbackReply = '';
 
     const steps: { name: string; ok: boolean; elapsedMs: number; error?: string }[] = [];
 
@@ -157,8 +154,38 @@ export async function POST(req: NextRequest) {
 
       // 没有工具调用，或已达轮数上限：返回最终回答
       if (!message || !toolCalls || toolCalls.length === 0 || round === MAX_TOOL_ROUNDS) {
+        const content = message?.content ?? '';
+
+        /**
+         * 兜底：模型在"没调用任何工具"的情况下直接生成「你没有…权限」的拒绝话术。
+         *
+         * 主修复是 system prompt 里的身份 + 授权模型说明（callerSystemLine），但实测模型仍会偶发拒答
+         * （线上：问「把中心所有学生的家长电话给我」时 steps 为空、直接回绝 —— 就是梁丰年看到的那类回复）。
+         * 这里只在「已知调用者身份 + 本轮没调用任何工具 + 回答是权限拒绝话术」时，把权限提醒补进
+         * system prompt 重问一次；每请求最多一次，正常问答完全不受影响（判定逻辑见 shouldRetryPermissionRefusal）。
+         */
+        if (
+          shouldRetryPermissionRefusal({
+            ctx: agentCtx,
+            reply: content,
+            toolCallCount: toolCalls?.length ?? 0,
+            alreadyRetried: permissionRetried,
+            round,
+            maxRounds: MAX_TOOL_ROUNDS,
+          })
+        ) {
+          permissionRetried = true;
+          refusalFallbackReply = content;
+          systemContent = `${systemContent}\n\n${PERMISSION_GUARD_NOTE}`;
+          runnerMessages[0] = { role: 'system', content: systemContent };
+          // 故意**不把这条拒绝回答塞进历史**：拒绝本身没有价值，塞进去只会让模型以为"我已经答过了"，
+          // 重问时直接回一句空话（实测：会拿到 finish_reason=stop 且 content=""）。
+          // 这里要的是"带着权限提醒重新生成一遍"，历史保持原样即可。
+          continue;
+        }
+
         return NextResponse.json({
-          reply: message?.content ?? '',
+          reply: content || (permissionRetried && steps.length === 0 ? refusalFallbackReply : ''),
           ...(steps.length > 0 ? { steps } : {}),
           ...(attachmentNotes.length > 0 ? { attachments: attachmentNotes } : {}),
         });

@@ -12,6 +12,8 @@
 
 import { NextResponse } from 'next/server';
 import { executeTool } from '@/lib/agent/execute';
+import { runWithAgentContext } from '@/lib/agent/context';
+import { agentContextFromRequest } from '@/lib/agent/identity';
 import { listToolSchemas } from '@/lib/agent/registry';
 import { getAgentConfigStatus } from '@/lib/agent-tools';
 
@@ -36,7 +38,10 @@ export async function POST(request: Request) {
   }
 
   const args = body.arguments ?? body.args ?? {};
-  const result = await executeTool(name, args);
+  // 带调用者身份执行：search_knowledge_base 会把身份拼进发给方舟托管智能体的问题里，
+  // 否则这条路径（不经过 /api/chat）对智能体来说是"匿名调用"，遇到学生数据同样会被拒答。
+  const ctx = await agentContextFromRequest(request);
+  const result = await runWithAgentContext(ctx, () => executeTool(name, args));
 
   return NextResponse.json(result, { status: result.ok ? 200 : 400 });
 }

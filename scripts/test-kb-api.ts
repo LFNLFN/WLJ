@@ -18,6 +18,14 @@ import { AddressInfo } from 'net';
 import { searchKnowledgeBase, getAgentConfigStatus, type KnowledgeItem } from '../src/lib/agent-tools';
 import { callerLine, roleLabel, runWithAgentContext } from '../src/lib/agent/context';
 import {
+  PERMISSION_GUARD_NOTE,
+  agentContextFromRequest,
+  callerSystemLine,
+  isPermissionRefusal,
+  shouldRetryPermissionRefusal,
+} from '../src/lib/agent/identity';
+import { createSessionToken } from '../src/lib/auth/session';
+import {
   addVikingDocByUrl,
   deleteVikingDoc,
   docTypeFromFilename,
@@ -407,6 +415,81 @@ async function main() {
     callerLine({ name: '梁丰年', role: 'admin' })
   );
   check('有身份时生成调用者说明', withCtx.includes('梁丰年') && withCtx.includes('管理员'), withCtx);
+
+  // ---- /api/chat 的 system prompt 段落 + /api/ai/tools 的身份解析（共用 identity.ts）----
+  check('callerSystemLine：无身份返回空串', callerSystemLine(undefined) === '' && callerSystemLine({}) === '');
+  const sysLine = callerSystemLine({ name: '梁丰年', role: 'admin' });
+  check(
+    'callerSystemLine：说明内部身份并明确"不要以没有权限为由拒绝"',
+    sysLine.includes('梁丰年') && sysLine.includes('管理员') && sysLine.includes('不要以「没有权限」'),
+    sysLine.slice(0, 80)
+  );
+
+  const headerReq = {
+    headers: new Headers({
+      'x-user-id': 'mtz9m7qf2ttlxzpjb',
+      'x-user-role': 'admin',
+      'x-user-name': encodeURIComponent('梁丰年'),
+    }),
+  };
+  const headerCtx = await agentContextFromRequest(headerReq);
+  check(
+    'agentContextFromRequest：读 middleware 透传的 x-user-* 头（姓名要解码）',
+    headerCtx.userId === 'mtz9m7qf2ttlxzpjb' && headerCtx.name === '梁丰年' && headerCtx.role === 'admin',
+    headerCtx
+  );
+
+  // 兜底：没有 x-user-* 头（反代 / 直调 / 以后新增的路由）时，用会话 Cookie 验签拿身份
+  const token = await createSessionToken({
+    id: 'mtz9m7qf2ttlxzpjb',
+    name: '梁丰年',
+    phone: '18816898140',
+    role: 'admin',
+  });
+  const cookieCtx = await agentContextFromRequest({
+    headers: new Headers({ cookie: `wlj_session=${token}` }),
+  });
+  check(
+    'agentContextFromRequest：没有 x-user-* 头时用会话 Cookie 兜底',
+    cookieCtx.name === '梁丰年' && cookieCtx.role === 'admin' && cookieCtx.userId === 'mtz9m7qf2ttlxzpjb',
+    cookieCtx
+  );
+  const bearerCtx = await agentContextFromRequest({
+    headers: new Headers({ authorization: `Bearer ${token}` }),
+  });
+  check('agentContextFromRequest：Authorization: Bearer 同样可用（小程序路径）', bearerCtx.name === '梁丰年', bearerCtx);
+  const anonCtx = await agentContextFromRequest({ headers: new Headers() });
+  check(
+    'agentContextFromRequest：匿名请求不编造身份（行为与修复前一致）',
+    anonCtx.userId === undefined && anonCtx.name === undefined && anonCtx.role === undefined && callerSystemLine(anonCtx) === '',
+    anonCtx
+  );
+
+  // 兜底重试的判定：只认"权限类拒绝话术"，别把正常回答也重试
+  check('isPermissionRefusal：线上实测原句命中', isPermissionRefusal('抱歉，你当前没有访问学生及相关数据的权限。'));
+  check('isPermissionRefusal：其它权限措辞命中',
+    isPermissionRefusal('很抱歉，我不能直接提供中心所有学生家长电话的批量列表，这属于权限不足。') &&
+    isPermissionRefusal('你无权访问该学生的评估记录。'));
+  check('isPermissionRefusal：正常回答不命中（不该触发重试）',
+    !isPermissionRefusal('知识库里没有权限管理相关的资料，建议问教务负责人。') &&
+    !isPermissionRefusal('共有 1 名在册学生：小米（家长大米，12335666）。') &&
+    !isPermissionRefusal(''));
+  check('PERMISSION_GUARD_NOTE 明确要求直接调工具取数', PERMISSION_GUARD_NOTE.includes('query_database') && PERMISSION_GUARD_NOTE.includes('search_knowledge_base'));
+
+  // 兜底重试的判定（/api/chat 用它决定要不要"点破权限 + 重问一次"）
+  const retryBase = { ctx: { name: '梁丰年', role: 'admin' }, reply: '抱歉，你当前没有访问学生及相关数据的权限。', toolCallCount: 0, alreadyRetried: false, round: 0, maxRounds: 5 };
+  check('shouldRetryPermissionRefusal：管理员 + 没调工具 + 权限拒绝话术 → 重试', shouldRetryPermissionRefusal(retryBase));
+  check('shouldRetryPermissionRefusal：已重试过 → 不再重试（每请求最多一次）',
+    !shouldRetryPermissionRefusal({ ...retryBase, alreadyRetried: true }));
+  check('shouldRetryPermissionRefusal：本轮调过工具 → 不重试（回答就是结论）',
+    !shouldRetryPermissionRefusal({ ...retryBase, toolCallCount: 1 }) &&
+    !shouldRetryPermissionRefusal({ ...retryBase, reply: '抱歉，你当前没有访问学生及相关数据的权限。', toolCallCount: 2 }));
+  check('shouldRetryPermissionRefusal：匿名调用者 → 不重试（保持修复前行为）',
+    !shouldRetryPermissionRefusal({ ...retryBase, ctx: undefined }));
+  check('shouldRetryPermissionRefusal：正常回答 → 不重试',
+    !shouldRetryPermissionRefusal({ ...retryBase, reply: '共有 1 名在册学生：小米。' }));
+  check('shouldRetryPermissionRefusal：轮次用完 → 不重试',
+    !shouldRetryPermissionRefusal({ ...retryBase, round: 5 }));
 
   // 端到端：身份要真的出现在发给托管智能体的问题里
   const arkCtx = await startArkMock(() => {});

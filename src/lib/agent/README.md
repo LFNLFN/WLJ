@@ -11,6 +11,8 @@
 | `types.ts` | 工具相关类型（`ToolDefinition`、`ToolExecutionResult` 等） |
 | `registry.ts` | 工具注册表：schema 定义 + handler 绑定，`listToolSchemas()` 供大模型使用 |
 | `execute.ts` | 执行器：`executeTool()` 完成参数归一化 → schema 校验 → 超时 → 执行 → 统一错误结构 |
+| `context.ts` | 调用者身份上下文（AsyncLocalStorage，`runWithAgentContext` / `callerLine`） |
+| `identity.ts` | 从请求解析调用者身份（`x-user-*` 头 → 兜底验签会话 Cookie/Bearer）、`callerSystemLine`、权限拒绝话术兜底 |
 
 ## 已有工具
 
@@ -134,6 +136,20 @@ POST /api/ai/tools                    # 执行单个工具
 ### 3. 接入对话
 
 - `POST /api/chat`：火山方舟对话，自动完成工具调用循环（最多 5 轮）
+
+#### 调用者身份（为什么管理员会被回「没有权限」）
+
+模型与方舟托管智能体**都看不到登录态**。不告诉它们"是谁在问"，遇到学生 / 评估这类数据就会
+以「你当前没有访问学生及相关数据的权限」搪塞（实测，管理员也一样）——这句话是模型自己生成的，不在本仓库。
+
+- `/api/chat` 和 `/api/ai/tools` 都先用 `agentContextFromRequest()` 取身份：优先 middleware 透传的
+  `x-user-id` / `x-user-role` / `x-user-name`（URL 编码），**拿不到头时用会话 Cookie / `Authorization: Bearer` 验签兜底**；
+- `/api/chat` 把 `callerSystemLine()` 拼进 system prompt：说明内部账号 + 平台真实授权模型 + 不得以
+  「没有权限 / 无法访问 / 超出岗位范围」为由拒绝；模型**没调工具却直接回权限拒绝话术**时，
+  用 `shouldRetryPermissionRefusal()` 补一句权限提醒重问一次（每请求最多一次）；
+- 工具执行统一包在 `runWithAgentContext()` 里，`search_knowledge_base` 会把
+  `【调用者：姓名（角色），本中心内部登录账号】` 拼进发给托管智能体的问题前。
+- 回归测试：`npm run test:kb-api` 第 7 组。
 
 ## 功能测试
 
