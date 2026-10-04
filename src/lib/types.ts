@@ -148,39 +148,6 @@ export interface LessonPlan {
   updatedAt: string;
 }
 
-// ==================== AI ====================
-
-export interface AIConfig {
-  provider: 'deepseek' | 'openai' | 'custom';
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-}
-
-export interface AIChatMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
-
-export interface AIGenerateRequest {
-  messages: AIChatMessage[];
-  temperature?: number;
-  maxTokens?: number;
-}
-
-export interface AIGenerateResponse {
-  content: string;
-  error?: string;
-}
-
-export interface RAGSearchResult {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  score: number;
-}
-
 // ==================== 微信小程序同步 ====================
 
 // 小程序同步的评估记录（扩展 StudentScaleRecord 字段）

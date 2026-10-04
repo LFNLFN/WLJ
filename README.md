@@ -269,7 +269,8 @@ node server/index.js
 | `DATABASE_URL` | **必填**，线上 PostgreSQL 连接串（唯一数据源；不配置接口直接报错）。也可用 `POSTGRES_URL` |
 | `AUTH_SECRET` | **线上必填**，登录会话签名密钥（≥16 位随机字符串） |
 | `REGISTER_CODE` | 可选。配置后注册需要填邀请码（不配置=开放注册） |
-| `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | AI 相关功能（默认 DeepSeek） |
+| `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
+| `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索方舟知识库，详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |
 | `PGSSLMODE` | 可选，设为 `disable` 时关闭数据库 SSL（默认开启） |
 

@@ -470,6 +470,31 @@ async function tryArkKnowledgeSearch(query: string, limit: number): Promise<ArkS
 }
 
 /**
+ * 当前 AI / 知识库接入状态（供页面显示，**不包含任何密钥**）。
+ */
+export function getAgentConfigStatus() {
+  const agentId = (process.env.ARK_AGENT_ID || '').trim();
+  const sessionId = (process.env.ARK_SESSION_ID || '').trim();
+  const botId = (process.env.ARK_BOT_ID || '').trim();
+  const knowledgeBaseMode = agentId && (sessionId || process.env.ARK_ENVIRONMENT_ID)
+    ? 'agent'
+    : botId
+      ? 'bot'
+      : process.env.ARK_KB_ENDPOINT
+        ? 'endpoint'
+        : 'none';
+
+  return {
+    apiKeyConfigured: Boolean(process.env.ARK_API_KEY),
+    model: process.env.ARK_MODEL_ENDPOINT || null,
+    knowledgeBaseId: process.env.ARK_KNOWLEDGE_BASE_ID || null,
+    knowledgeBaseMode,
+    databaseConfigured: Boolean(process.env.DATABASE_URL),
+    externalLlm: false,
+  };
+}
+
+/**
  * 检索内部知识库。
  *
  * 默认使用业务库中的本地知识（课程 / 量表 / 课堂记录 / 教案 / 训练计划），

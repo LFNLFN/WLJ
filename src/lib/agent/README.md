@@ -7,7 +7,7 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| `../agent-tools.ts` | 工具底层实现（知识库检索 / 数据库查询 / 文件生成） |
+| `../agent-tools.ts` | 工具底层实现（知识库检索 / 数据库查询 / 文件生成）+ `getAgentConfigStatus()` |
 | `types.ts` | 工具相关类型（`ToolDefinition`、`ToolExecutionResult` 等） |
 | `registry.ts` | 工具注册表：schema 定义 + handler 绑定，`listToolSchemas()` 供大模型使用 |
 | `execute.ts` | 执行器：`executeTool()` 完成参数归一化 → schema 校验 → 超时 → 执行 → 统一错误结构 |
@@ -56,7 +56,6 @@ POST /api/ai/tools                    # 执行单个工具
 ### 3. 接入对话
 
 - `POST /api/chat`：火山方舟对话，自动完成工具调用循环（最多 5 轮）
-- `POST /api/ai/generate`：OpenAI 兼容对话；请求体带 `tools: true`（或工具名数组）即开启工具调用
 
 ## 功能测试
 
@@ -88,5 +87,4 @@ node scripts/push-agent-prompt.js --name 名称 --description 描述  # 推送�
 | `ARK_BOT_ID` | 火山方舟**应用(Bot)** ID（`bot-xxxx`），该应用需在控制台绑定知识库。配置后知识库走 `/bots/chat/completions` |
 | `ARK_KNOWLEDGE_BASE_ID` | 方舟知识库 ID（`kb-xxxx`）。**不能**直接被检索，只能被智能体/应用引用 |
 | `ARK_KB_ENDPOINT` | 可选，自建 / 兼容的知识库检索接口地址（默认**不再**指向方舟 `/knowledge/search`，该路径不存在） |
-| `AI_API_KEY` / `AI_BASE_URL` / `AI_MODEL` | OpenAI 兼容对话（/api/ai/generate） |
 | `DATABASE_URL` 等 | 业务数据库（见 `src/lib/api/db.ts`） |

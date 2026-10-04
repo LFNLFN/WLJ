@@ -230,20 +230,19 @@ export async function deleteLessonPlan(id: string) {
   return request(`/lesson-plans/${id}`, { method: 'DELETE' });
 }
 
-// ==================== AI ====================
+// ==================== AI 智能助理（火山方舟） ====================
 
-export async function aiGenerate(messages: { role: string; content: string }[], temperature?: number, maxTokens?: number) {
-  return request('/ai/generate', {
+/** 与智能助理对话（服务端自动完成工具调用循环） */
+export async function agentChat(messages: { role: string; content: string }[]) {
+  return request('/chat', {
     method: 'POST',
-    body: JSON.stringify({ messages, temperature, maxTokens }),
+    body: JSON.stringify({ messages }),
   });
 }
 
-export async function aiRAGSearch(query: string, maxResults?: number) {
-  return request('/ai/rag', {
-    method: 'POST',
-    body: JSON.stringify({ query, maxResults }),
-  });
+/** 工具列表 + 接入状态（不含密钥），用于页面的就绪检查与配置面板 */
+export async function getAgentTools() {
+  return request('/ai/tools');
 }
 
 // ==================== 训练阶段计划 ====================

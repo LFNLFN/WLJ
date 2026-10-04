@@ -10,17 +10,27 @@ export const dynamic = 'force-dynamic';
 /** 单次请求内允许的最大工具调用轮数，防止死循环 */
 const MAX_TOOL_ROUNDS = 5;
 
-const SYSTEM_PROMPT =
-  '你是企业内部智能助理。需要查资料时先查知识库或数据库，需要生成文件时调用生成工具并给用户提供下载链接。';
+const SYSTEM_PROMPT = [
+  '你是「未来家儿童能力发展中心」的 AI 智能助理，服务对象是中心的教师、治疗师和管理人员。',
+  '回答前先取证据，不要凭记忆编造：',
+  '1) 涉及课程体系、评估量表、教案、训练计划、机构制度等资料性问题，先调用 search_knowledge_base 检索；',
+  '2) 涉及具体业务数据（学生 / 教师 / 课程 / 评估记录等），先调用 query_database 查询；',
+  '3) 用户要求导出或生成文件时调用 generate_file，并把返回的下载地址（/generated/...）明确告诉用户。',
+  '严格区分「检索到的依据」与「你的建议」，没有依据时如实说明缺少资料。',
+  '用中文回答，先给结论再补充要点；涉及儿童个人信息时只回答必要的部分，不做医学诊断。',
+].join('');
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const messages: ChatCompletionMessageParam[] = Array.isArray(body?.messages) ? body.messages : [];
 
-    const apiKey = process.env.ARK_API_KEY || process.env.AI_API_KEY;
+    const apiKey = process.env.ARK_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: '请先配置 ARK_API_KEY 环境变量' }, { status: 400 });
+    }
+    if (!process.env.ARK_MODEL_ENDPOINT) {
+      return NextResponse.json({ error: '请先配置 ARK_MODEL_ENDPOINT（方舟推理接入点）' }, { status: 400 });
     }
 
     const client = new OpenAI({ apiKey, baseURL: process.env.ARK_BASE_URL });
@@ -85,6 +95,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ reply: '', steps });
   } catch (error: any) {
     console.error('[api/chat]', error);
-    return NextResponse.json({ error: error?.message || '内部服务异常' }, { status: 500 });
+    const raw = String(error?.message || '');
+
+    // 把方舟的常见错误翻译成能看懂的提示
+    if (/AccountOverdueError|overdue balance/i.test(raw)) {
+      return NextResponse.json(
+        { error: '火山方舟账号已欠费，模型调用被暂停。请到方舟控制台「费用中心」充值后再试。' },
+        { status: 502 }
+      );
+    }
+    if (/AuthenticationError|invalid api key/i.test(raw)) {
+      return NextResponse.json(
+        { error: '火山方舟 API Key 无效或已失效，请检查服务器上的 ARK_API_KEY。' },
+        { status: 502 }
+      );
+    }
+    if (/InvalidEndpointOrModel/i.test(raw)) {
+      return NextResponse.json(
+        { error: '推理接入点不可用，请检查 ARK_MODEL_ENDPOINT（方舟控制台的接入点 ID）。' },
+        { status: 502 }
+      );
+    }
+    if (error?.name === 'AbortError' || /timeout/i.test(raw)) {
+      return NextResponse.json({ error: '模型响应超时，请稍后重试。' }, { status: 504 });
+    }
+    return NextResponse.json({ error: raw || '内部服务异常' }, { status: 500 });
   }
 }
