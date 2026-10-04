@@ -12,7 +12,8 @@
     "sync:scales": "node scripts/init-scales-remote.js",
     "create-admin": "node scripts/create-admin.js",
     "migrate:scale-records": "node scripts/migrate-student-scale-records.js",
-    "test:agent-tools": "tsc scripts/test-agent-tools.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-agent-tools.js"
+    "test:agent-tools": "tsc scripts/test-agent-tools.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-agent-tools.js",
+    "test:chat-session": "tsc scripts/test-chat-session.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-chat-session.js"
   },
   "dependencies": {
     "docx": "^9.8.1",

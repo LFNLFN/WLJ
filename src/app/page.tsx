@@ -17,7 +17,8 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import KnowledgePanel from '@/components/KnowledgePanel';
-import { agentChat, getAgentTools } from '@/lib/api';
+import { agentChat, getAgentTools, getCurrentUser } from '@/lib/api';
+import { clearChat, loadChat, saveChat } from '@/lib/chat/session';
 
 interface ToolStep {
   name: string;
@@ -59,6 +60,28 @@ const MAX_ATTACHMENT_MB = 8;
 
 const ACCEPT_ATTACHMENTS =
   'image/*,.txt,.md,.markdown,.csv,.tsv,.json,.log,.html,.htm,.xml,.yml,.yaml,.xlsx,.xls,.xlsm,.docx,.pdf,.doc';
+
+/**
+ * 取当前登录用户 id（用于判断对话归属、识别「切换用户」）。
+ * 接口异常时返回 null：此时不做用户比对，避免把正常用户的对话误清掉。
+ */
+async function fetchCurrentUserId(): Promise<string | null> {
+  try {
+    const data = await getCurrentUser();
+    return data?.user?.id ? String(data.user.id) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 去掉附件里的 dataURL（体积大），避免撑爆 sessionStorage 配额 */
+function slimMessages(list: Message[]): Message[] {
+  return list.map((m) =>
+    m.attachments?.length
+      ? { ...m, attachments: m.attachments.map(({ dataUrl, ...rest }) => rest) }
+      : m
+  );
+}
 
 function formatSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -278,34 +301,38 @@ export default function HomePage() {
   const [showKnowledge, setShowKnowledge] = useState(false);
   const [configStatus, setConfigStatus] = useState<'checking' | 'ok' | 'error'>('checking');
   const [config, setConfig] = useState<any>(null);
+  /** 对话是否已从会话存储恢复完成；恢复前不要回写，否则会用欢迎语覆盖掉上次的对话 */
+  const [chatReady, setChatReady] = useState(false);
+  /** 当前对话归属的用户 id（换用户时用于清空存档） */
+  const [chatOwnerId, setChatOwnerId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 从 sessionStorage 恢复对话
+  // 恢复对话：切换页面 / 刷新后继续用；关闭标签页由 sessionStorage 自动清；换用户则在这里清空
   useEffect(() => {
-    const saved = sessionStorage.getItem('agent_chat_messages');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed);
-      } catch (e) {}
-    }
+    let cancelled = false;
+    (async () => {
+      // 最多等 3 秒：接口异常/超时也不把界面卡在「恢复中」，此时按「不做用户比对」处理
+      const uid = await Promise.race([
+        fetchCurrentUserId(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]);
+      if (cancelled) return;
+      const { messages: saved } = loadChat<Message>(sessionStorage, uid);
+      if (saved.length > 0) setMessages(saved);
+      setChatOwnerId(uid);
+      setChatReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 持久化对话（去掉附件里的 dataURL，避免撑爆 sessionStorage 配额）
   useEffect(() => {
-    if (messages.length === 0) return;
-    const slim = messages.map((m) =>
-      m.attachments?.length
-        ? { ...m, attachments: m.attachments.map(({ dataUrl, ...rest }) => rest) }
-        : m
-    );
-    try {
-      sessionStorage.setItem('agent_chat_messages', JSON.stringify(slim));
-    } catch (e) {
-      /* 配额不足时忽略 */
-    }
-  }, [messages]);
+    if (!chatReady) return;
+    saveChat(sessionStorage, chatOwnerId, slimMessages(messages));
+  }, [messages, chatReady, chatOwnerId]);
 
   // 对话更新后滚到底部
   useEffect(() => {
@@ -492,7 +519,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={() => {
-                    sessionStorage.removeItem('agent_chat_messages');
+                    clearChat(sessionStorage);
                     setMessages([WELCOME]);
                   }}
                   className="px-3 py-1.5 bg-gray-100 text-gray-600 text-sm rounded-lg hover:bg-gray-200 transition-colors"
@@ -539,7 +566,14 @@ export default function HomePage() {
             {/* 对话区域 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div ref={scrollRef} className="h-[520px] overflow-y-auto p-6 space-y-4">
-                {messages.map((msg, idx) => (
+                {!chatReady && (
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <span className="animate-pulse">●</span>
+                    <span>正在恢复上次的对话…</span>
+                  </div>
+                )}
+
+                {(chatReady ? messages : []).map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div
                       className={`max-w-[85%] rounded-lg p-4 ${
