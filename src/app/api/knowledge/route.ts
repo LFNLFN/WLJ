@@ -41,7 +41,16 @@ export async function GET(req: NextRequest) {
       limit: Number(searchParams.get('limit')) || 50,
       offset: Number(searchParams.get('offset')) || 0,
     });
-    return NextResponse.json({ ...result, categories: KNOWLEDGE_CATEGORIES });
+
+    // 空库时自己解释自己：避免再出现「{"total":0,"limit":100,"items":[]} 到底哪里出了问题」这种困惑
+    const isEmpty = result.total === 0 && !searchParams.get('q') && !searchParams.get('category');
+    const hint = isEmpty
+      ? '平台知识库（业务库 knowledge_documents）还没有资料：可上传 txt / md / csv / tsv / json / xlsx / docx，' +
+        '以及带文字层的 PDF；扫描件/图片型 PDF、PPT 请用「🌋 火山知识库」上传（由火山侧解析）。' +
+        '一条命令看两个库：npm run kb:doctor'
+      : undefined;
+
+    return NextResponse.json({ ...result, categories: KNOWLEDGE_CATEGORIES, ...(hint ? { hint } : {}) });
   } catch (err: any) {
     console.error('[api/knowledge GET]', err);
     return NextResponse.json({ error: err.message || '读取知识库失败' }, { status: 500 });
