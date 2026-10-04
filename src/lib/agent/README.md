@@ -35,6 +35,9 @@
     验证：`npm run kb:doctor`（ping → collection/list → search_knowledge 三步实测）、`npm run test:kb-api`（本地 mock 测接线）
   - 方式一（兜底）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
     会话来源：**显式 `ARK_SESSION_ID` 优先**（沿用该会话上下文）；没设才用 environment+vault 自动新建临时会话、用完即删。
+    ⚠️ 读事件必须带 `?limit=`：`GET /sessions/{id}/events` **默认只返回前 50 条**（实测 `limit` 到 5000 可用）。
+    会话事件超过 50 条后，新事件就落在窗口外，轮询永远"看不到"新内容直到超时 ——
+    表现为「明明已经答完，却报方舟智能体未返回结果」。本项目固定带 `?limit=`（`ARK_EVENTS_LIMIT`，默认 500）。
     事件解析：`agent.message` 取最终回答；`agent.tool_result` 里是知识库 Skill 的 `search_knowledge` 响应体
     （`{"data":{"result_list":[{"id","content"}]}}`），会被解析成 `source=ark-kb` 的**原文切片**一起返回；
     `agent.thinking` 里出现「限流」时会写进 `notice`。超时但有切片时仍返回 `ok:true` + 不完整提示。
@@ -112,6 +115,7 @@ node scripts/init-knowledge-table.js --list                      # 查看平台�
 | `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 兜底路径：方舟「托管智能体」。三者配齐即每次检索新建并销毁会话；vault 内需放有效的 Viking 知识库 Key |
 | `ARK_SESSION_ID` | 可选，复用固定会话（不配 environment+vault 时生效）。注意会话历史会参与上下文，建议单独用一个检索专用会话 |
 | `ARK_AGENT_TIMEOUT_MS` | 可选，单次托管智能体检索的最长等待，默认 110000。带 thinking 时单轮 15~60s，需要多轮检索的问题可能 60~120s |
+| `ARK_EVENTS_LIMIT` | 可选，读会话事件时带的 `?limit=`，默认 500（接口默认只有 50，会话一长就会漏掉新事件） |
 | `ARK_BOT_ID` | 火山方舟**应用(Bot)** ID（`bot-xxxx`），该应用需在控制台绑定知识库。配置后知识库走 `/bots/chat/completions` |
 | `ARK_KNOWLEDGE_BASE_ID` | 方舟知识库 ID（`kb-xxxx`）。**不能**直接被检索，只能被智能体/应用引用 |
 | `ARK_KB_ENDPOINT` | 可选，自建 / 兼容的知识库检索接口地址（默认**不再**指向方舟 `/knowledge/search`，该路径不存在） |

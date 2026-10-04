@@ -260,6 +260,15 @@ curl -H "Authorization: Bearer $ARK_API_KEY" \
 #    然后每 3 秒 GET 一次，直到出现 session.status_idle
 ```
 
+⚠️ **读事件一定要带 `?limit=`**：`GET /sessions/{id}/events` 默认只返回**前 50 条**（实测 `limit` 可到 5000）。
+会话事件超过 50 条之后，新事件就落在窗口外 → 轮询永远等不到 `session.status_idle` → 报"超时"，
+但服务端其实早就答完了。本项目固定带 `?limit=`（`ARK_EVENTS_LIMIT`，默认 500）。
+
+```bash
+curl -s "https://ark.cn-beijing.volces.com/api/v3/sessions/$SID/events?limit=500" \
+  -H "Authorization: Bearer $ARK_API_KEY" | python3 -m json.tool | tail -40
+```
+
 事件流里值得注意的两类（实测 `sesn-20261004055646-hqst3`）：
 
 - `agent.tool_result`：**知识库 Skill 的检索结果**，里面就是 `search_knowledge` 的响应体

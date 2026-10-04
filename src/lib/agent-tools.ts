@@ -469,7 +469,12 @@ async function searchViaManagedAgent(
     };
   }
 
-  const eventsUrl = `${baseUrl}/sessions/${sessionId}/events`;
+  // ⚠️ 实测：GET /sessions/{id}/events **默认只返回前 50 条**（`?limit=` 可调，5000 也能用）。
+  // 会话事件超过 50 条之后，新事件就落在窗口外 —— 轮询会一直"看不到"新内容，直到超时，
+  // 表现就是「明明答完了，却报方舟智能体未返回结果」。所以这里必须显式带上 limit。
+  const eventsLimit = clampInt(process.env.ARK_EVENTS_LIMIT, 50, 5000, 500);
+  const eventsPath = `${baseUrl}/sessions/${sessionId}/events`;
+  const eventsUrl = `${eventsPath}?limit=${eventsLimit}`;
 
   try {
     // 先记录已有事件，避免把历史回答当成本次结果
@@ -481,7 +486,7 @@ async function searchViaManagedAgent(
       (safeJson(await before.text()) as any)?.data?.map((e: any) => e.id) ?? []
     );
 
-    const post = await fetchWithTimeout(eventsUrl, {
+    const post = await fetchWithTimeout(eventsPath, {
       method: 'POST',
       headers,
       body: JSON.stringify({

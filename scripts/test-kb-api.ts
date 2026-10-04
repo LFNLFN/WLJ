@@ -78,7 +78,7 @@ function startMock(handler: (captured: Captured) => { status: number; payload: a
 
 /** 冒充方舟「托管智能体」：POST/GET /api/v3/sessions/{id}/events */
 function startArkMock(onCreateSession: () => void) {
-  const state = { posts: 0, gets: 0, posted: [] as any[] };
+  const state = { posts: 0, gets: 0, posted: [] as any[], getUrls: [] as string[] };
   const server = http.createServer((req, res) => {
     let raw = '';
     req.on('data', (c) => (raw += c));
@@ -96,8 +96,9 @@ function startArkMock(onCreateSession: () => void) {
         state.posted.push(body);
         return res.end(JSON.stringify({ ok: true }));
       }
-      if (url.endsWith('/events') && req.method === 'GET') {
+      if (url.startsWith('/api/v3/sessions/') && url.indexOf('/events') >= 0 && req.method === 'GET') {
         state.gets++;
+        state.getUrls.push(url);
         // 第一次 GET 只返回历史事件（我们的代码用它做「已见集合」基线）
         if (state.gets === 1) return res.end(JSON.stringify({ data: [{ id: 'sevt-old', type: 'agent.message', content: [{ type: 'text', text: '历史回答' }] }] }));
         // 之后返回：知识库 Skill 的 tool_result（实测就是这个结构） + 最终回答 + 会话空闲
@@ -136,7 +137,7 @@ function startArkMock(onCreateSession: () => void) {
       res.end('{}');
     });
   });
-  return new Promise<{ url: string; posted: any[]; eventGets: number; close: () => Promise<void> }>((resolve) => {
+  return new Promise<{ url: string; posted: any[]; eventGets: number; getUrls: string[]; close: () => Promise<void> }>((resolve) => {
     server.listen(0, '127.0.0.1', () => {
       const { port } = server.address() as AddressInfo;
       resolve({
@@ -145,6 +146,7 @@ function startArkMock(onCreateSession: () => void) {
         get eventGets() {
           return state.gets;
         },
+        getUrls: state.getUrls,
         close: () => new Promise<void>((r) => server.close(() => r())),
       });
     });
@@ -238,6 +240,11 @@ async function main() {
   check('显式 ARK_SESSION_ID 优先：没有再去新建会话', createdSession === false, { createdSession });
   check('向指定 session 发了 user.message', ark.posted.length > 0 && /王小明/.test(JSON.stringify(ark.posted)), ark.posted);
   check('轮询的是该 session 的 events 接口', ark.eventGets > 1, ark.eventGets);
+  check(
+    '读取事件带 ?limit=（默认 50 会让新事件落在窗口外，是「答完了却报超时」的真凶）',
+    ark.getUrls.length > 0 && ark.getUrls.every((u) => /limit=\d+/.test(u)) && /limit=(\d{3,})/.test(ark.getUrls[0]),
+    ark.getUrls
+  );
   check('从 agent.tool_result 抽出了知识库原文切片', items4.some((i) => i.source === 'ark-kb' && /WLJ-2024-0001/.test(i.content || '')), items4.map((i) => i.source));
   check('同时保留智能体的最终回答', items4.some((i) => i.source === 'ark-agent'), items4.map((i) => i.source));
   check('切片排在同一条结果里靠前的位置（便于模型引用原文）', items4[0]?.source === 'ark-kb', items4.map((i) => i.source));
