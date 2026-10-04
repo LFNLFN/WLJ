@@ -115,6 +115,55 @@ function extractHtml(raw: string): ExtractResult {
 }
 
 /**
+ * PDF 文字抽取（纯 JS，依赖 pdf-parse@1.1.1）。
+ *
+ * - 依赖是可选的：没装（例如服务器没跑 npm install）或解析失败时，返回空 text + 说明，
+ *   不会让上传接口 500；扫描件/图片型 PDF 本来就没有文字层，会给出"请传火山知识库"的提示。
+ * - 惰性 require，避免把 30MB 的 pdf.js 拖进每次请求的模块图。
+ */
+async function extractPdf(buf: Buffer, name: string): Promise<ExtractResult> {
+  let pdfParse: ((data: Buffer) => Promise<{ text: string; numpages?: number }>) | null = null;
+  try {
+    // 直接取内层模块：pdf-parse 的 index.js 开头有「!module.parent 就进 debug 模式」的逻辑，
+    // 在 Next/webpack 打包后的模块语义下会误判成 debug，去读它自带的 test/data 文件并抛错。
+    // lib/pdf-parse.js 没有这段，是同一个实现，安全。
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    pdfParse = require('pdf-parse/lib/pdf-parse.js');
+  } catch {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      pdfParse = require('pdf-parse');
+    } catch {
+      pdfParse = null;
+    }
+  }
+
+  if (!pdfParse) {
+    return {
+      text: '',
+      note: `${name} 是 PDF，但服务端未安装 PDF 解析库（npm install 未完成？），未能抽取文字；` +
+        '也可以把这份 PDF 上传到火山知识库（那边由火山侧解析）',
+    };
+  }
+
+  try {
+    const parsed = await pdfParse(buf);
+    const text = String(parsed?.text || '');
+    if (!text.trim()) {
+      return {
+        text: '',
+        note: `${name} 里没有可抽取的文字（可能是扫描件 / 图片型 PDF，${parsed?.numpages ?? 0} 页）：` +
+          '请上传到火山知识库（火山侧支持 OCR/版面解析），或提供文字版',
+      };
+    }
+    const result = clip(text);
+    return { ...result, note: result.note || `${name} 共 ${parsed?.numpages ?? 0} 页，已抽取文字` };
+  } catch (err) {
+    return { text: '', note: `${name} 解析失败：${(err as Error)?.message || '未知错误'}` };
+  }
+}
+
+/**
  * 把上传的文件抽成纯文本。
  * 不会抛出异常：无法解析时返回空 text + note 说明。
  */
@@ -145,7 +194,7 @@ export async function extractTextFromBuffer(
       };
     }
     if (ext === 'pdf') {
-      return { text: '', note: `${name} 是 PDF，服务端未装 PDF 解析库，未能抽取文字` };
+      return await extractPdf(buf, name);
     }
     if (isTextLikeFile(name, mimeType) || ext === '') {
       const raw = buf.toString('utf8');

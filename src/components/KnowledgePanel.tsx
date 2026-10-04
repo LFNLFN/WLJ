@@ -29,7 +29,7 @@ import {
 const CATEGORIES = ['机构制度', '课程体系', '评估量表', '教案', '训练计划', '康复档案', '其它'];
 
 const ACCEPT =
-  '.txt,.md,.markdown,.csv,.tsv,.json,.log,.html,.htm,.xml,.yml,.yaml,.xlsx,.xls,.xlsm,.docx';
+  '.txt,.md,.markdown,.csv,.tsv,.json,.log,.html,.htm,.xml,.yml,.yaml,.xlsx,.xls,.xlsm,.docx,.pdf';
 
 function formatSize(bytes?: number | null) {
   const n = Number(bytes || 0);
@@ -136,7 +136,7 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
       const msg = err?.message || '上传失败';
       setError(
         /PDF|抽取不到文字|未能从/.test(msg)
-          ? `${msg}　→　这类文件请改用下方「🌋 火山知识库」上传（那边支持 PDF / Office，由火山侧解析）`
+          ? `${msg}　→　若是扫描件/图片型 PDF，请改用下方「🌋 火山知识库」上传（火山侧支持版面解析/OCR）`
           : msg
       );
     } finally {
@@ -275,8 +275,8 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
             </div>
 
             <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">
-              ⚠️ 平台知识库只收<strong>能抽取纯文本</strong>的文件（txt / md / csv / xlsx / docx…），存进业务库、问答直接引用；
-              <strong>PDF、扫描件、PPT</strong> 请用下方「🌋 火山知识库」上传（由火山侧解析切片，支持 PDF/Office）。
+              平台知识库收 <strong>txt / md / csv / xlsx / docx / PDF（有文字层的）</strong>，抽成纯文本存进业务库、问答直接引用；
+              <strong>扫描件 / 图片型 PDF / PPT</strong> 抽不出文字，请用下方「🌋 火山知识库」上传（火山侧支持版面解析/OCR）。
             </p>
 
             <div className="flex flex-wrap items-center gap-3 mt-3">
