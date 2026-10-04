@@ -173,6 +173,32 @@ async function run() {
   });
   check('students 支持模糊搜索', searchStudents.ok === true, searchStudents);
 
+  // 业务库查不到人时要引导模型去知识库再查一遍（儿童档案常只上传到知识库：
+  // 实测「王小明的康复档案里写了什么？」只查了业务库、直接回"系统里没有这个学生"，而知识库里有这份档案）
+  const noHit = await executeTool('query_database', {
+    action: 'students',
+    params: { search: '绝对不存在的学生名xyzq', limit: 5 },
+  });
+  check(
+    '业务库 0 条时给出"去知识库再查一次"的 hint',
+    noHit.ok === true &&
+      (noHit.result as any).total === 0 &&
+      typeof (noHit.result as any).hint === 'string' &&
+      (noHit.result as any).hint.includes('search_knowledge_base'),
+    (noHit as any).result
+  );
+  check(
+    '业务库有命中时不加 hint（不干扰正常回答）',
+    students.ok === true && (students.result as any).hint === undefined,
+    (students as any).result
+  );
+  const noSearch = await executeTool('query_database', { action: 'students', params: { limit: 1 } });
+  check(
+    '没有 search 关键字（纯列表）时不加 hint',
+    noSearch.ok === true && (noSearch.result as any).hint === undefined,
+    (noSearch as any).result
+  );
+
   const missingTable = await executeTool('query_database', { action: 'lesson_plans' });
   if (!missingTable.ok) {
     check('缺失数据表返回清晰错误', /不存在|尚未初始化/.test((missingTable as any).error), missingTable);

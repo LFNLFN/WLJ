@@ -1137,13 +1137,34 @@ export async function queryDatabase(
     values
   );
 
+  const total = countRes.rows[0]?.total ?? 0;
+
+  /**
+   * 业务库查不到人时，别让模型直接回「系统里没有这个学生」。
+   *
+   * 实测（2026-10-04）：问「王小明的康复档案里写了什么？」，模型只调了 query_database，
+   * 三次都 0 条（学生表里确实没有王小明），于是回答"当前业务系统中没有名为王小明的学生档案"，
+   * 建议用户补充信息 —— 而知识库里就躺着《康复训练档案_王小明》这份 PDF。
+   * 儿童的个人档案（康复档案 / 评估报告等）常常只上传到知识库，业务库里并没有对应学生记录，
+   * 所以这里在工具结果里明确给出下一步（模型读得到），要求它再去知识库查一遍。
+   */
+  const hint =
+    total === 0 && search
+      ? `业务库的 ${entity.table} 里没有匹配「${search}」的记录。` +
+        '若问的是某个儿童的个人档案（康复训练档案 / 评估报告 / 学习能力评估表等），' +
+        '这类资料常以 PDF 形式存在知识库里：请再用 search_knowledge_base 以该姓名检索一次，' +
+        '并把检索到的内容如实转述；只有业务库与知识库都没有命中时，才可以说"没有查到"，' +
+        '且要说明已经查过这两处。'
+      : undefined;
+
   return JSON.stringify({
     ok: true,
     action: key,
-    total: countRes.rows[0]?.total ?? 0,
+    total,
     limit,
     offset,
     items: listRes.rows,
+    ...(hint ? { hint } : {}),
   });
 }
 

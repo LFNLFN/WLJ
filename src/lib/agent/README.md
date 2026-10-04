@@ -57,6 +57,10 @@
   - ⚠️ 托管智能体依赖会话绑定的 vault 凭证；凭证无效时 Skill 会返回 `authentication_error / invalid api key`，
     此时工具仍返回回答，但会附带 `notice` 说明该回答不基于知识库
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
+  - 带 `search` 但 0 条命中时，结果里会多一个 `hint`：明确要求模型**再用 `search_knowledge_base` 查一次**，
+    因为儿童的个人档案（康复训练档案 / 评估报告等 PDF）常常只上传到知识库、业务库里没有对应学生记录。
+    实测（2026-10-04）：没有这个 hint 时，问「王小明的康复档案里写了什么？」模型只查业务库、回
+    "系统里没有名为王小明的学生档案"并让用户补充信息；加上后同一次提问会去知识库取到那份档案并如实转述。
 - `generate_file(type, filename, content)`：生成 Excel(`excel`) / Word(`word`) / **PPT(`ppt`)** 并返回下载地址
   - `ppt` 的 content：`{ title, subtitle, slides:[{ title, bullets:[…], text, table:{headers,rows} }] }`；
     也可以只给 `{ title, text }` —— 会按 Markdown 的 `#` 标题自动分页（实测封面 + 每页标题/要点/表格都能正确写入 pptx）

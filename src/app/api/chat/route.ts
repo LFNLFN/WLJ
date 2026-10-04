@@ -30,7 +30,10 @@ const SYSTEM_PROMPT = [
   '回答前先取证据，不要凭记忆编造：',
   '1) 涉及课程体系、评估量表、教案、训练计划、机构制度等资料性问题，先调用 search_knowledge_base 检索；',
   '2) 涉及具体业务数据（学生 / 教师 / 课程 / 评估记录等），先调用 query_database 查询；',
-  '3) 用户要求导出或生成文件时调用 generate_file（支持 Excel / Word / **PPT**），并把返回的下载地址（/generated/...）明确告诉用户；'
+  '3) 儿童的个人档案（康复训练档案 / 评估报告等 PDF）常常只上传到知识库、业务库里没有对应学生记录：'
+  + 'query_database 查某个学生 0 条时，**必须**再用 search_knowledge_base 以该姓名检索一次，'
+  + '把两处结果合起来回答；两处都没有命中才能说"没有查到"（并说明查过哪两处）；',
+  '4) 用户要求导出或生成文件时调用 generate_file（支持 Excel / Word / **PPT**），并把返回的下载地址（/generated/...）明确告诉用户；'
   + '做演示稿用 type=ppt，content 给 { title, subtitle, slides:[{title, bullets:[…], table:{headers,rows}}] }，也可以只给 { title, text }（按 Markdown 标题分页）。',
   '用户可能随提问附带图片或文件：',
   '  · 图片会以图片形式给你，请直接看图回答；',

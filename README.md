@@ -422,6 +422,23 @@ Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签�
   `git pull → npm install → npm run build → 重启`（见「部署与运行」）。判断线上是不是旧版本：
   `curl -s https://www.weilaijia20210101.com/api/knowledge | grep hint`（有 `hint` 说明已含本修复所在版本）。
 
+### 问某个孩子（如王小明），却被回「系统里没有这个学生」？
+
+儿童的个人档案（康复训练档案 / 评估报告等）**不一定要在业务库里**：很多是 PDF 直接上传到知识库，
+`students` 表里并没有这名学生。实测就是这么翻车的 —— 问「王小明的康复档案里写了什么？」，
+模型只调了 `query_database`（0 条），然后回"业务系统里没有名为王小明的学生档案，建议你补充信息"，
+而知识库里正躺着那份《康复训练档案_王小明》。
+
+两层修法（都在服务端）：
+
+1. **工具结果里直接给出下一步**：`query_database` 带 `search` 且 0 条命中时，返回里会多一个 `hint`，
+   要求模型**再用 `search_knowledge_base` 按姓名查一次**，两处都没有命中才可以说"没有查到"（并说明查过哪两处）；
+2. **system prompt 里写死这条规则**：`/api/chat` 的提示词第 3 条即"业务库 0 条 → 必须再查知识库"。
+
+回归测试：`npm run test:agent-tools`（新增 3 条断言：0 条命中带 hint、有命中不带、纯列表不带）。
+实测效果：「王小明的情况怎么样？」现在会 `query_database + search_knowledge_base` 一起查，
+并答出档案编号 WLJ-2024-0001、出生日期、评估表项目等正文内容。
+
 ## 创建管理员账号
 
 三种方式，任选其一：
