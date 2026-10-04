@@ -393,6 +393,20 @@ process.on('unhandledRejection', (reason) => {
   console.error('[wlj] unhandledRejection（已记录，服务继续运行）:', reason);
 });
 
+// 优雅关闭：重启/部署时主动 end() 掉连接池，别让数据库继续挂着没人用的后端进程
+async function gracefulShutdown(signal) {
+  console.log(`[wlj] 收到 ${signal}，关闭数据库连接池后退出…`);
+  try {
+    if (db) await Promise.race([db.end(), new Promise((resolve) => setTimeout(resolve, 3000))]);
+    console.log('[wlj] 数据库连接池已关闭');
+  } catch (err) {
+    console.error('[wlj] 关闭连接池出错:', err && err.message);
+  }
+  process.exit(0);
+}
+process.once('SIGTERM', () => void gracefulShutdown('SIGTERM'));
+process.once('SIGINT', () => void gracefulShutdown('SIGINT'));
+
 // ==================== 微信小程序数据同步 ====================
 
 const assessmentSync = require('./assessment-sync');

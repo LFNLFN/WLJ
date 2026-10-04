@@ -74,6 +74,9 @@ function getPoolOptions() {
     connectionTimeoutMillis: intEnv('PG_CONNECT_TIMEOUT_MS', 10_000),
     // 空闲超过 10s 就断开重连，避免捡到一条已经被数据库/云防火墙掐断的死连接
     idleTimeoutMillis: intEnv('PG_IDLE_TIMEOUT_MS', 10_000),
+    // 连接最长存活时间（默认 30 分钟）：到点就换一条新连接，
+    // 避免长期沿用一条被中间设备（NAT / 云防火墙）悄悄失效的 TCP 连接
+    maxLifetimeSeconds: intEnv('PG_MAX_LIFETIME_SEC', 1800),
     // 单条 SQL 最长执行时间（0 = 不限制，默认不限制，避免影响 AI 侧的大查询）
     ...(statementTimeout > 0 ? { statement_timeout: statementTimeout } : {}),
     // TCP keepalive：让中间设备知道这条连接还活着
@@ -82,6 +85,41 @@ function getPoolOptions() {
     // 在数据库 pg_stat_activity 里一眼看出这是应用连的（排障用）
     application_name: process.env.PG_APP_NAME || `wlj-next-${process.pid}`,
   };
+}
+
+/** 进程退出前主动 end() 掉连接池：部署/重启时别让数据库继续挂着一堆没人用的后端进程 */
+export async function closeDb(): Promise<void> {
+  const g = globalThis as unknown as Record<string, DbConfig | undefined>;
+  const cfg = g[POOL_KEY];
+  if (!cfg) return;
+
+  // 先摘掉引用，避免关闭过程中又有请求用到正在关闭的池
+  g[POOL_KEY] = undefined;
+
+  try {
+    await cfg.pg.end();
+    console.log('[db] 连接池已关闭（所有数据库连接已释放）');
+  } catch (err: any) {
+    console.error('[db] 关闭连接池出错:', err?.message);
+  }
+}
+
+let shutdownHooked = false;
+
+/** 安装 SIGTERM / SIGINT 钩子：优雅关闭（可用 WLJ_NO_GRACEFUL_SHUTDOWN=1 关闭该行为） */
+function installShutdownHooks() {
+  if (shutdownHooked || process.env.WLJ_NO_GRACEFUL_SHUTDOWN === '1') return;
+  shutdownHooked = true;
+
+  const shutdown = async (signal: string) => {
+    console.log(`[db] 收到 ${signal}，关闭连接池后退出…`);
+    // 最多等 3 秒：池里有卡住的查询时不要把重启流程拖死（pm2 到点会 SIGKILL）
+    await Promise.race([closeDb(), new Promise((resolve) => setTimeout(resolve, 3000))]);
+    process.exit(0);
+  };
+
+  process.once('SIGTERM', () => void shutdown('SIGTERM'));
+  process.once('SIGINT', () => void shutdown('SIGINT'));
 }
 
 function createPool(): Pool {
@@ -117,6 +155,7 @@ export async function getDb(): Promise<Pool> {
   if (!g[POOL_KEY]) {
     const pool = createPool();
     g[POOL_KEY] = { type: 'postgres', pg: pool };
+    installShutdownHooks();
     console.log(`✅ PostgreSQL 数据库连接池已创建（application_name=${pool.options.application_name}）`);
   }
 

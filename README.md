@@ -308,19 +308,33 @@ curl -X POST https://www.weilaijia20210101.com/api/auth/login \
    （`node_modules/pg-pool/index.js` 的 `_acquireClient`），此时 socket 报错会 `client.emit('error')` → 同样没人监听 → 进程退出。
 
 所以链路是「数据库/中间设备重置连接 → 用户看到 500（还带着驱动原始报错）→ 服务重启一次」，重启次数就会越滚越多。
-回归测试：`npm run test:db-resilience`——故意掐断自己的一条连接，断言「修复前进程必死、修复后进程存活且连接池自动恢复」。
+回归测试：`npm run test:db-resilience`（16 条断言）——故意掐断自己的一条连接，断言「修复前进程必死、修复后进程存活且连接池自动恢复」；
+  另外实测「SIGKILL / 优雅关闭之后，数据库侧不会留下任何连接」。
 
 ### 已经做的加固
 
 | 位置 | 改动 |
 |---|---|
-| `src/lib/api/db.ts` | 连接池改成 **globalThis 单例**（Next 会把该文件内联进 4 个路由 bundle，原来一个进程可能建 4 个池）；`pool.on('error')` + `pool.on('connect')` 给**每个 client 常驻** error 监听；`connectionTimeoutMillis=10s`（原来没设，实测请求挂 20s+ 不返回）、`idleTimeoutMillis=10s`、`keepAlive`；连接在 `pg_stat_activity` 里显示为 `application_name=wlj-next-<pid>`；可用 `PG_POOL_MAX / PG_CONNECT_TIMEOUT_MS / PG_IDLE_TIMEOUT_MS / PG_STATEMENT_TIMEOUT_MS / PG_APP_NAME` 覆盖 |
+| `src/lib/api/db.ts` | 连接池改成 **globalThis 单例**（Next 会把该文件内联进 4 个路由 bundle，原来一个进程可能建 4 个池）；`pool.on('error')` + `pool.on('connect')` 给**每个 client 常驻** error 监听；连接池限制参数补齐：`connectionTimeoutMillis=10s`（原来没设，实测请求挂 20s+ 不返回）、`idleTimeoutMillis=10s`、`maxLifetimeSeconds=1800`（到点换新连接，避免沿用被中间设备悄悄失效的长连接）、`keepAlive`；连接在 `pg_stat_activity` 里显示为 `application_name=wlj-next-<pid>`；可用 `PG_POOL_MAX / PG_CONNECT_TIMEOUT_MS / PG_IDLE_TIMEOUT_MS / PG_MAX_LIFETIME_SEC / PG_STATEMENT_TIMEOUT_MS / PG_APP_NAME` 覆盖 |
+| `src/lib/api/db.ts` | 新增 **优雅关闭**：收到 `SIGTERM`/`SIGINT` 先 `closeDb()`（`pool.end()`，最多等 3 秒）再退出，重启/部署时不让数据库继续挂着没人用的后端进程；设 `WLJ_NO_GRACEFUL_SHUTDOWN=1` 可关掉该行为。（`next start` 自己也注册了 SIGTERM 处理，可能先于我们退出，但连接由内核释放，结果一样） |
 | `db.ts` | 新增 `isTransientDbError()` / `withDbRetry()`：ECONNRESET、57P01/57P03（数据库重启中）等瞬时错误自动重试一次 |
 | `src/app/api/auth/login/route.ts` | 登录的数据库操作走 `withDbRetry`；瞬时错误返回「数据库连接被重置，请稍后重试」+ 错误码（503），不再把 `read ECONNRESET` 这种驱动原文甩给用户 |
 | `src/lib/auth/store.ts` | `ensureAuthSchema` 每个连接池只跑一次（原来**每个认证请求**都跑 16 条 DDL，其中 `ALTER TABLE` 会拿 ACCESS EXCLUSIVE 锁，白拖慢登录） |
 | `src/app/api/health/route.ts` | 改成**强制动态 + 真的跑 `SELECT 1`**。原来它是被 Next 静态缓存的（响应头 `x-nextjs-cache: HIT`），**数据库已经连不上它还返回 `{"status":"ok"}`**（`scripts/setup-pg.sh` 就是靠它判断"数据库正常"的，等于一直失明）。现在返回 `pid / uptimeSec / pool / dbLatencyMs`，失败时 503 + `error.code`（IP、连接串已打码） |
 | `src/instrumentation.ts` + `next.config.js` | 全局兜底：`uncaughtException` / `unhandledRejection` 只记录日志、不让进程退出（想恢复「一有未捕获异常就退出」设 `WLJ_STRICT_CRASH=1`） |
 | `server/index.js` | 老 express 入口（`npm run server` / `dev:full`）同样加池监听；数据库初始化失败改为指数退避重试，**不再 `process.exit(1)`**（原来这也是一个重启风暴来源） |
+
+### 顺带排除的两个猜测（都做了实测）
+
+有人怀疑是「连接池缺参数 + 进程频繁重启没销毁旧池 → 数据库主动重置残留的半开连接」。这个说法**和实测不符**：
+
+1. **数据库根本没有"主动清理空闲连接"的机制**：线上 `idle_session_timeout = 0`、`tcp_keepalives_idle = 7200`（2 小时），PostgreSQL 只会在**自己重启 / 后端被 OOM 杀掉 / 被 `pg_terminate_backend`** 时才断开连接；而故障期间 `pg_postmaster_start_time()` 一直连续（没有重启）。
+2. **应用连接压根没到数据库**：故障时对着登录接口连打 3 次请求、同时 24 秒采样 `pg_stat_activity`，**一条来自服务器的连接都没有出现**（只有排查用的连接）。
+   连接在到达 PostgreSQL 之前就被网络路径（安全组 / 防火墙 / NAT 回环）丢包或 RST 了——否则 Postgres 至少会先接受它，再按 `pg_hba` 给出正常报错，而不是 `read ECONNRESET`。
+3. **进程死掉不会残留连接**：进程无论怎么死（连 `SIGKILL`），内核都会关掉它的全部 socket，`PostgreSQL` 立刻回收对应后端进程——不需要应用"销毁旧连接池"。
+   `npm run test:db-resilience` 第 4 组就是实测这个：子进程连上后数据库里是 1 条连接，`SIGKILL` 之后 1.5 秒内变回 0；优雅关闭（`SIGTERM` → `closeDb()`）同样立刻归零。
+
+所以「池参数」该补（已补），但 **RST 的来源是服务器 → 数据库这段网络，不是 PostgreSQL 在重置连接**，别在数据库侧找原因。
 
 ### 上线后怎么确认修好了
 
