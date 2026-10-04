@@ -71,20 +71,43 @@ export interface KnowledgeItem {
 }
 
 /**
- * 把自然语言问题切成检索词。
- *
- * 直接拿整句去 ILIKE 是查不到的（「孤独症 ABC 量表怎么计分」不是任何文档里的连续子串），
- * 所以：按标点/空白切分 → 抽出英文数字串与中文串 → 长中文串再补 2-gram → 去掉疑问/口语停用词。
- * 多个检索词之间是 OR，命中词数多的排前面。
+ * 疑问 / 口语停用词：这些词几乎每句话都有，命中了也不代表资料相关。
  */
 const QUERY_STOPWORDS = new Set([
   '怎么', '如何', '什么', '哪些', '哪个', '多少', '请问', '一下', '可以', '是否', '有没有',
   '我们', '咱们', '机构', '中心', '这个', '那个', '这些', '那些', '以及', '还有', '就是', '的话',
 ]);
 
-function queryTokens(query: string): string[] {
+/**
+ * 中文功能字（虚词 / 代词 / 助词 / 量词）。
+ *
+ * 长句按标点切分后做 2-gram 会切出「构的」「的课」「有哪」「些课」这类跨词边界的噪声，
+ * 命中它们纯属巧合；只要 2-gram 里含功能字就丢掉，留下的基本是
+ * 「课程」「体系」「王小」「小明」这种有信息量的片段。
+ */
+const FUNCTION_CHARS = new Set('的了和与及或是为在就不都也还我你他她它们这那哪些吗呢吧啊么嘛之其着过被把怎谁啥');
+
+interface QueryTokens {
+  /** 英文 / 数字串（ABC、MCH、2026）：最具体，单独命中即可认为查到 */
+  alnum: string[];
+  /** 参与匹配的检索词：alnum + 中文 2-gram */
+  matchable: string[];
+  /** 只参与打分的整句 / 长词：命中说明「这句原话」在资料里出现过 */
+  scoring: string[];
+}
+
+/**
+ * 把自然语言问题切成检索词。
+ *
+ * 直接拿整句去 ILIKE 是查不到的（「孤独症 ABC 量表怎么计分」不是任何文档里的连续子串），
+ * 所以：按标点/空白切分 → 抽出英文数字串与中文串 → 中文长串补 2-gram → 去掉功能字与疑问/口语停用词。
+ *
+ * ⚠️ 注意区分「匹配词」和「打分词」：整句只能用来打分，**绝不能当成必须命中的条件**
+ * （踩过的坑：把整句当强检索词要求命中，导致「王小明最近训练得怎么样」这种正常提问一条都查不到，
+ * 明明库里有王小明的资料 —— 见 npm run test:kb-search）。
+ */
+function queryTokens(query: string): QueryTokens {
   const text = String(query || '').toLowerCase();
-  const tokens: string[] = [];
 
   /** 收集 source 里所有匹配（不用 matchAll：tsconfig 的 target 较低） */
   const findAll = (source: string, re: RegExp): string[] => {
@@ -98,55 +121,89 @@ function queryTokens(query: string): string[] {
     return out;
   };
 
-  // 英文 / 数字串（如 ABC、MCH、FS）
-  tokens.push(...findAll(text, /[a-z0-9][a-z0-9._-]{1,}/g));
+  const alnum = findAll(text, /[a-z0-9][a-z0-9._-]{1,}/g);
+  const runs: string[] = [];
+  const bigrams: string[] = [];
 
-  // 中文串：先按标点/空白切分，再抽出连续中文；长串额外补 2-gram，避免整句匹配不上
   const chunks = text.split(/[\s,，。！？、；：:;!?()（）【】\[\]"'“”‘’/\\|+*&=<>~`#@$%^\-]+/);
   for (const chunk of chunks) {
     for (const run of findAll(chunk, /[\u4e00-\u9fa5]{2,}/g)) {
-      tokens.push(run);
-      if (run.length > 4) {
-        for (let i = 0; i + 2 <= run.length; i++) tokens.push(run.slice(i, i + 2));
-      }
+      runs.push(run);
+      for (let i = 0; i + 2 <= run.length; i++) bigrams.push(run.slice(i, i + 2));
     }
   }
 
-  return Array.from(new Set(tokens.filter((t) => t.length >= 2 && !QUERY_STOPWORDS.has(t)))).slice(0, 12);
+  const dedupe = (arr: string[]) => Array.from(new Set(arr));
+  const isContent = (t: string) => t.length >= 2 && !QUERY_STOPWORDS.has(t);
+  const contentBigrams = dedupe(bigrams)
+    .filter(isContent)
+    .filter((t) => !Array.from(t).some((ch) => FUNCTION_CHARS.has(ch)));
+
+  const alnumTokens = dedupe(alnum).filter(isContent);
+
+  return {
+    alnum: alnumTokens.slice(0, 6),
+    matchable: dedupe([...alnumTokens, ...contentBigrams]).slice(0, 12),
+    scoring: dedupe(runs).filter(isContent).filter((t) => t.length >= 3).slice(0, 6),
+  };
 }
 
 /**
- * 用检索词拼「OR 模糊匹配」的 WHERE，并按命中情况排序：
- * - 命中一个「强检索词」（≥3 字）算 2 分，命中一个 2-gram 算 1 分，分高者靠前
- * - 只要查询里存在强检索词，就要求结果至少命中一个强检索词，
- *   否则「问题」「完全」这类通用 2-gram 会把整个库都捞出来（实测过）
+ * 用检索词拼匹配条件。
+ *
+ * 相关判定（gate）：
+ * - 查询里有英文/数字串（ABC、MCH）时：命中该串即算相关；或命中至少 2 个不同的中文词。
+ *   （注意不能因为「带了 xyzzy123」就放宽到「随便命中一个中文词」，否则「问题」这种词会把整库捞出来）
+ * - 纯中文查询：要求命中至少 2 个不同的中文词；查询本身就只剩 1 个词时放宽到 1。
+ *
+ * 排序（score）：整句原话(4) > 英文/数字串(3) > 中文 2-gram(1)。
  */
-function buildTokenFilter(tokens: string[], columns: string[]) {
+function buildTokenFilter(tokens: QueryTokens, columns: string[]) {
   const params: unknown[] = [];
-  const parts = tokens.map((token) => {
+
+  const toPart = (token: string, weight: number) => {
     params.push(`%${token}%`);
     const idx = params.length;
     return {
       sql: `(${columns.map((c) => `${c} ILIKE $${idx}`).join(' OR ')})`,
-      weight: token.length >= 3 ? 2 : 1,
+      weight,
     };
-  });
-
-  return {
-    where: parts.map((p) => p.sql).join(' OR '),
-    strongWhere: parts.filter((p) => p.weight === 2).map((p) => p.sql).join(' OR '),
-    score: parts.map((p) => `(CASE WHEN ${p.sql} THEN ${p.weight} ELSE 0 END)`).join(' + '),
-    params,
   };
+
+  const alnumParts = tokens.alnum.map((t) => toPart(t, t.length >= 3 ? 3 : 2));
+  const cnParts = tokens.matchable.filter((t) => !tokens.alnum.includes(t)).map((t) => toPart(t, 1));
+  const scoreParts = [...alnumParts, ...cnParts, ...tokens.scoring.map((t) => toPart(t, 4))];
+
+  const countExpr = (parts: { sql: string }[]) =>
+    parts.length ? parts.map((p) => `(CASE WHEN ${p.sql} THEN 1 ELSE 0 END)`).join(' + ') : '0';
+  const scoreExpr = scoreParts.length
+    ? scoreParts.map((p) => `(CASE WHEN ${p.sql} THEN ${p.weight} ELSE 0 END)`).join(' + ')
+    : '0';
+
+  const matchableCount = alnumParts.length + cnParts.length;
+  const requiredCn = Math.min(2, cnParts.length);
+
+  let gate = 'FALSE';
+  if (alnumParts.length) {
+    const alnCond = `(${countExpr(alnumParts)}) >= 1`;
+    gate = cnParts.length ? `(${alnCond} OR (${countExpr(cnParts)}) >= ${requiredCn})` : `(${alnCond})`;
+  } else if (cnParts.length) {
+    gate = `(${countExpr(cnParts)}) >= ${requiredCn}`;
+  }
+
+  return { matchableCount, gate, score: scoreExpr, params };
 }
+
+/** 带命中分的检索结果（内部用，返回给模型前会去掉 __score） */
+type ScoredKnowledgeItem = KnowledgeItem & { __score: number };
 
 /** 库内知识检索：不依赖任何外部凭证，直接查业务库中的课程 / 量表 / 课堂记录 / 教案 / 知识库资料等 */
 async function searchLocalKnowledge(keyword: string, limit: number): Promise<KnowledgeItem[]> {
   const tokens = queryTokens(keyword);
-  if (tokens.length === 0) return [];
+  if (tokens.matchable.length === 0) return [];
 
   const db = await getDb();
-  const items: KnowledgeItem[] = [];
+  const items: ScoredKnowledgeItem[] = [];
 
   const safeQuery = async (sql: string, params: unknown[]) => {
     try {
@@ -159,12 +216,16 @@ async function searchLocalKnowledge(keyword: string, limit: number): Promise<Kno
 
   const clip = (v: unknown, n = 500) => String(v ?? '').slice(0, n);
 
-  /** 在单张表上做「多词 OR + 命中词数排序」检索 */
+  /** 在单张表上做「多词 OR + 命中权重排序」检索 */
   const searchTable = async (table: string, columns: string[], map: (row: any) => KnowledgeItem) => {
     const filter = buildTokenFilter(tokens, columns);
-    const gate = filter.strongWhere ? `(${filter.where}) AND (${filter.strongWhere})` : `(${filter.where})`;
-    const sql = `SELECT * FROM ${table} WHERE ${gate} ORDER BY (${filter.score}) DESC LIMIT $${filter.params.length + 1}`;
-    for (const row of await safeQuery(sql, [...filter.params, limit])) items.push(map(row));
+    if (filter.matchableCount === 0) return;
+    const sql =
+      `SELECT *, (${filter.score}) AS __score FROM ${table}` +
+      ` WHERE ${filter.gate} ORDER BY __score DESC LIMIT $${filter.params.length + 1}`;
+    for (const row of await safeQuery(sql, [...filter.params, limit])) {
+      items.push({ ...map(row), __score: Number(row.__score) || 0 });
+    }
   };
 
   await searchTable('lesson_plans', ['title', 'content'], (r) => ({
@@ -216,7 +277,11 @@ async function searchLocalKnowledge(keyword: string, limit: number): Promise<Kno
     source: 'knowledge_documents',
   }));
 
-  return items.slice(0, limit * 2);
+  // 按命中权重全局排序：否则「知识库资料」排在最后查，很容易被下面的 slice 截掉
+  return items
+    .sort((a, b) => b.__score - a.__score)
+    .slice(0, limit * 2)
+    .map(({ __score, ...rest }) => rest);
 }
 
 /**
