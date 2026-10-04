@@ -233,16 +233,91 @@ export async function deleteLessonPlan(id: string) {
 // ==================== AI 智能助理（火山方舟） ====================
 
 /** 与智能助理对话（服务端自动完成工具调用循环） */
-export async function agentChat(messages: { role: string; content: string }[]) {
+/** 提问时附带的图片 / 文件（dataUrl 由前端 FileReader 生成；text 为已抽好的文本） */
+export interface ChatAttachmentPayload {
+  name: string;
+  mimeType?: string;
+  dataUrl?: string;
+  text?: string;
+}
+
+export async function agentChat(
+  messages: { role: string; content: string }[],
+  attachments?: ChatAttachmentPayload[]
+) {
   return request('/chat', {
     method: 'POST',
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, ...(attachments?.length ? { attachments } : {}) }),
   });
 }
 
 /** 工具列表 + 接入状态（不含密钥），用于页面的就绪检查与配置面板 */
 export async function getAgentTools() {
   return request('/ai/tools');
+}
+
+// ==================== 知识库（📚 上传的资料） ====================
+
+export interface KnowledgeDocumentSummary {
+  id: string;
+  title: string;
+  category: string;
+  content: string;
+  contentLength?: number;
+  filename?: string | null;
+  mimetype?: string | null;
+  size?: number;
+  source?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface KnowledgeListResult {
+  total: number;
+  limit: number;
+  offset: number;
+  items: KnowledgeDocumentSummary[];
+  categories?: string[];
+}
+
+export async function listKnowledgeDocuments(
+  params: { q?: string; category?: string; limit?: number; offset?: number } = {}
+): Promise<KnowledgeListResult> {
+  const search = new URLSearchParams();
+  if (params.q) search.set('q', params.q);
+  if (params.category) search.set('category', params.category);
+  if (params.limit) search.set('limit', String(params.limit));
+  if (params.offset) search.set('offset', String(params.offset));
+  const qs = search.toString();
+  return request(`/knowledge${qs ? `?${qs}` : ''}`);
+}
+
+export async function getKnowledgeDocument(id: string): Promise<KnowledgeDocumentSummary> {
+  return request(`/knowledge/${encodeURIComponent(id)}`);
+}
+
+export async function deleteKnowledgeDocument(id: string) {
+  return request(`/knowledge/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+/** 粘贴文本入库 */
+export async function createKnowledgeText(data: { title: string; category?: string; content: string }) {
+  return request('/knowledge', { method: 'POST', body: JSON.stringify(data) });
+}
+
+/** 上传文件入库（multipart，不能复用 request()——它会强塞 JSON 头） */
+export async function uploadKnowledgeFile(file: File, meta: { title?: string; category?: string } = {}) {
+  const form = new FormData();
+  form.append('file', file);
+  if (meta.title) form.append('title', meta.title);
+  if (meta.category) form.append('category', meta.category);
+
+  const res = await fetch('/api/knowledge', { method: 'POST', body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: '上传失败' }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
 }
 
 // ==================== 训练阶段计划 ====================

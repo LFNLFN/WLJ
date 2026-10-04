@@ -170,6 +170,46 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - **小程序家长端**「历史评估记录」页：每条记录显示 `⏳ 待批阅` / `✅ 已批阅`（含批阅人与批阅时间），
   有批阅意见时一并显示；统计条新增「待批阅」计数。
 
+## AI 智能助理（首页）：提问附带图片/文件 + 页面内知识库上传
+
+首页 `/` 是 AI 智能助理，由火山方舟模型 + 服务端工具层驱动（工具细节见 `src/lib/agent/README.md`）。
+
+### 提问时附带图片与文件
+
+- 输入框左侧 📎 选择图片/文件（也可直接粘贴图片）；最多 4 个，单个 ≤ 8MB。
+- **图片** → 以多模态 `image_url` 内容块发给模型。若接入点不支持图片输入，服务端自动降级为纯文本重试，
+  并在回答下方说明「当前模型接入点不支持图片输入，已忽略图片」。
+- **文本 / 表格 / Word**（txt、md、csv、json、xlsx、xls、docx …）→ 服务端先抽取文字，再用
+  `<file name="…">…</file>` 包住拼进这句提问（历史消息只保留文本，不重放附件）。
+- **解析不了的类型**（PDF、旧版 `.doc`、音视频）不会假装读过：会在回答下方明确列出「未解析 + 原因」，
+  system prompt 也要求模型如实告知用户没读到该附件。
+
+接口 `POST /api/chat`：body `{ messages, attachments?: [{ name, mimeType, dataUrl }] }`，
+返回 `{ reply, steps?, attachments? }`（`attachments` 为附件处理说明；即使模型调用失败也会一并返回）。
+
+### 知识库上传资料（在页面上操作）
+
+页头「📚 知识库」→ 上传文件或粘贴文本 → 选分类入库；支持关键词/分类搜索、查看正文、删除。
+
+- 存储：业务库的 `knowledge_documents` 表（**只存抽取后的纯文本**，不存二进制）。
+  首次调用 `/api/knowledge` 时**幂等自动建表**；也可手动跑 `node scripts/init-knowledge-table.js`
+  （加 `--list` 只列出已有资料，不建表）。
+- 入库的资料会被 AI 工具 `search_knowledge_base` 检索到（返回里 `source = knowledge_documents`），
+  上传完直接问助理「我刚传的资料里……」即可。
+- 可解析格式：`txt / md / markdown / csv / tsv / json / log / html / xml / yml / yaml / xlsx / xls / xlsm / docx`，
+  单文件 ≤ 8MB。PDF、旧版 `.doc` 会返回 400 并说明原因（服务端未安装 PDF 解析库，不做假解析）。
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/knowledge?q=&category=&limit=&offset=` | 列表 / 搜索（列表只回传正文预览） |
+| GET | `/api/knowledge?id=kb_xxx` | 读取某条资料的完整正文 |
+| POST | `/api/knowledge` | JSON `{ title, category, content }`，或 `multipart/form-data` 上传 `file` |
+| GET / DELETE | `/api/knowledge/[id]` | 单条资料详情 / 删除 |
+
+> **与「火山方舟知识库」的区别**：上面这套是**平台自己的知识库**（数据在业务库里，随时可读写）。
+> 方舟侧的知识库（`ARK_KNOWLEDGE_BASE_ID`）目前只能通过托管智能体**检索**——方舟开放接口没有文档上传路径
+> （`/api/v3/knowledge/*` 返回 404），要往方舟知识库里加资料只能在方舟控制台手动操作。
+
 ## 创建管理员账号
 
 三种方式，任选其一：

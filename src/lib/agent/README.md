@@ -14,8 +14,9 @@
 
 ## 已有工具
 
-- `search_knowledge_base(query)`：检索内部知识库。**默认走库内检索**（课程 / 量表 / 课堂记录 / 教案 / 训练计划），
-  不依赖外部凭证；若配置了方舟知识库接入方式则额外合并其结果，未配置或调用失败会自动降级并给出 `notice`
+- `search_knowledge_base(query)`：检索内部知识库。**默认走库内检索**（课程 / 量表 / 课堂记录 / 教案 / 训练计划 /
+  平台上「📚 知识库」上传的 `knowledge_documents`），不依赖外部凭证；若配置了方舟知识库接入方式则额外合并其结果，
+  未配置或调用失败会自动降级并给出 `notice`
   - 方式一（推荐）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
     知识库以 Skill（`viking-knowledge-search`）挂在智能体上，是方舟**唯一**能真正检索知识库的路径：
     `POST /sessions/{id}/events` 发问题 → 轮询 `GET /sessions/{id}/events` 取 `agent.message`。
@@ -68,6 +69,8 @@ node scripts/check-ark-kb.js <候选ID>                            # 自检某�
 
 node scripts/push-agent-prompt.js --dry-run                      # 查看将推送到方舟的 system prompt 差异
 node scripts/push-agent-prompt.js --name 名称 --description 描述  # 推送（自动备份到 .ark-backup/）
+
+node scripts/init-knowledge-table.js --list                      # 查看平台上「📚 知识库」已上传的资料
 ```
 
 智能体的 system prompt 源文本在 `wlj-system-prompt.md`（面向未来家儿童康复业务），纳入版本管理；

@@ -70,7 +70,7 @@ export interface KnowledgeItem {
   source: string;
 }
 
-/** 库内知识检索：不依赖任何外部凭证，直接查业务库中的课程 / 量表 / 课堂记录 / 教案等 */
+/** 库内知识检索：不依赖任何外部凭证，直接查业务库中的课程 / 量表 / 课堂记录 / 教案 / 知识库资料等 */
 async function searchLocalKnowledge(keyword: string, limit: number): Promise<KnowledgeItem[]> {
   const db = await getDb();
   const like = `%${keyword}%`;
@@ -120,6 +120,20 @@ async function searchLocalKnowledge(keyword: string, limit: number): Promise<Kno
     [like, limit]
   )) {
     items.push({ type: '课堂记录', id: r.id, title: r.courseName, content: clip(r.content), source: 'class_records' });
+  }
+
+  // 平台上「📚 知识库」上传的资料（/api/knowledge → knowledge_documents）
+  for (const r of await safeQuery(
+    `SELECT id, title, category, content FROM knowledge_documents WHERE title ILIKE $1 OR content ILIKE $1 OR category ILIKE $1 LIMIT $2`,
+    [like, limit]
+  )) {
+    items.push({
+      type: '知识库资料',
+      id: r.id,
+      title: r.title,
+      content: clip(r.content),
+      source: 'knowledge_documents',
+    });
   }
 
   return items.slice(0, limit * 2);
@@ -497,8 +511,9 @@ export function getAgentConfigStatus() {
 /**
  * 检索内部知识库。
  *
- * 默认使用业务库中的本地知识（课程 / 量表 / 课堂记录 / 教案 / 训练计划），
- * 不依赖外部凭证；若 .env.local 配置了合法的火山方舟凭证，则额外合并其检索结果。
+ * 默认使用业务库中的本地知识（课程 / 量表 / 课堂记录 / 教案 / 训练计划 /
+ * 平台上「📚 知识库」上传的 knowledge_documents），不依赖外部凭证；
+ * 若 .env.local 配置了合法的火山方舟凭证，则额外合并其检索结果。
  *
  * @param query 检索关键词或自然语言问题
  */
