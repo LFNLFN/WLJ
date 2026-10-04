@@ -17,6 +17,7 @@
     "test:db-resilience": "tsc scripts/test-db-resilience.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-db-resilience.js",
     "db:doctor": "node scripts/db-doctor.js",
     "kb:doctor": "node scripts/kb-doctor.js",
+    "session:watch": "node scripts/session-watch.js",
     "test:kb-api": "tsc scripts/test-kb-api.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-api.js",
     "test:kb-search": "tsc scripts/test-kb-search.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-search.js"
   },

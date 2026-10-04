@@ -57,6 +57,21 @@
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
 - `generate_file(type, filename, content)`：生成 Excel/Word 并返回下载地址
 
+### 盯着会话跑：`npm run session:watch`
+
+不想手拼 `curl -N` 的话，用脚本：它把「建会话 → 开 SSE 流 → 发 user.message → 逐帧打印 → 打最终回答」
+连起来，并给每帧标注相对时间（新建的临时会话结束时自动删除）：
+
+```bash
+npm run session:watch -- "王小明的出生日期是什么？"
+npm run session:watch -- "接着上一条继续" --session sesn-20261004055646-hqst3
+npm run session:watch -- "问题" --keep --timeout 90000      # 保留会话 / 放宽超时
+```
+
+实测输出（21 帧 / 18.5s）：`: ready` 心跳 → `session.status_running` → `user.message` →
+`span.model_request_start|end` 与 `agent.thinking`（多轮、增量）→ `agent.tool_use` + `agent.tool_result`
+（知识库检索结果）→ `agent.message` → `session.thread_status_idle`，最后打印最终回答。
+
 ## 使用方式
 
 ### 1. 直接执行（服务端）
