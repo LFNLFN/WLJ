@@ -199,6 +199,25 @@ async function run() {
     (noSearch as any).result
   );
 
+  // 历史库里同一列有两套大小写（studentName / studentname），数据只落在其中一套：
+  // 实测「小米」在 studentName（驼峰）里 0 条、studentname（小写）里 2 条 —— 只搜驼峰就会漏，
+  // 模型于是回"没有该学生的评估记录，建议联系主课老师查询"（用户实际看到的就是这种回复）。
+  const dupCols = await executeTool('query_database', {
+    action: 'student_scale_records',
+    params: { search: '小米', limit: 5 },
+  });
+  if (dupCols.ok) {
+    const rows = ((dupCols.result as any).items || []) as any[];
+    const names = rows.map((r) => r.studentname || r.studentName).filter(Boolean);
+    check(
+      '大小写重复列（studentName/studentname）都纳入搜索，按姓名能搜到评估记录',
+      (dupCols.result as any).total > 0 && names.length > 0,
+      { total: (dupCols.result as any).total, names }
+    );
+  } else {
+    console.log(`    （跳过：数据库不可用 -> ${(dupCols as any).error}）`);
+  }
+
   const missingTable = await executeTool('query_database', { action: 'lesson_plans' });
   if (!missingTable.ok) {
     check('缺失数据表返回清晰错误', /不存在|尚未初始化/.test((missingTable as any).error), missingTable);

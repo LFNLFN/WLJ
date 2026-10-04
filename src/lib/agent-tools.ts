@@ -1039,6 +1039,34 @@ async function getTableColumns(db: { query: (sql: string, values?: unknown[]) =>
 
 type EntityKey = keyof typeof DB_ENTITIES;
 
+/**
+ * 把「声明的搜索字段」展开成表里**真实存在的大小写变体**。
+ *
+ * 为什么需要（真实事故，2026-10-04）：历史库里同一列存在两套写法 ——
+ * `student_scale_records` 同时有 `studentName`(驼峰) 与 `studentname`(小写)、`createdAt` / `createdat`，
+ * 而小程序的写入落在**小写**那套上。DB_ENTITIES 里声明的是驼峰 `studentName`（小写那套根本不在表里的是
+ * `scaleName`，实际列叫 `scalename`），于是按姓名搜评估记录时查的是一个全空的列：
+ * 实测 `select count(*) where "studentName" ilike '%小米%'` = 0，而 `studentname ilike '%小米%'` = 2
+ * → 模型拿到"0 条"，就回"系统里没有这名学生的评估记录，建议联系主课老师查询"。
+ * 所以这里把每个字段展开成所有同名的表列，一个都不漏。
+ */
+function expandSearchFields(fields: string[], columns: Set<string>): string[] {
+  const byLower = new Map<string, string[]>();
+  for (const c of Array.from(columns)) {
+    const key = c.toLowerCase();
+    const list = byLower.get(key);
+    if (list) list.push(c);
+    else byLower.set(key, [c]);
+  }
+  const out: string[] = [];
+  for (const f of fields) {
+    for (const variant of byLower.get(f.toLowerCase()) || []) {
+      if (!out.includes(variant)) out.push(variant);
+    }
+  }
+  return out;
+}
+
 const ENTITY_ALIASES: Record<string, EntityKey> = {
   student: 'students',
   teacher: 'teachers',
@@ -1115,8 +1143,9 @@ export async function queryDatabase(
   const offset = clampInt(safeParams.offset, 0, 1_000_000, 0);
   const search = typeof safeParams.search === 'string' ? safeParams.search.trim() : '';
 
-  // 只使用库中真实存在的列做搜索 / 排序，避免历史库列名大小写差异导致 SQL 报错
-  const searchFields = entity.searchFields.filter((f) => columns.has(f));
+  // 只使用库中真实存在的列做搜索 / 排序，避免历史库列名大小写差异导致 SQL 报错；
+  // ⚠️ 同时要把同名的两套大小写列都纳入搜索（见 expandSearchFields 注释里的事故）
+  const searchFields = expandSearchFields([...entity.searchFields], columns);
   const orderColumn =
     ['createdAt', 'createdat', 'updatedAt', 'updatedat', 'id'].find((c) => columns.has(c)) || 'id';
 

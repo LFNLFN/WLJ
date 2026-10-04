@@ -57,6 +57,10 @@
   - ⚠️ 托管智能体依赖会话绑定的 vault 凭证；凭证无效时 Skill 会返回 `authentication_error / invalid api key`，
     此时工具仍返回回答，但会附带 `notice` 说明该回答不基于知识库
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
+  - 搜索字段会自动展开成表里**同名的大小写变体**：`student_scale_records` 同时有 `studentName`(驼峰)
+    与 `studentname`(小写) 两套列，小程序写入的是小写那套，声明里是驼峰 → 只搜驼峰会漏数据
+    （实测「小米」驼峰列 0 条、小写列 2 条，模型就回"没有该学生的评估记录，建议联系主课老师"）。
+    见 `expandSearchFields()`
   - 带 `search` 但 0 条命中时，结果里会多一个 `hint`：明确要求模型**再用 `search_knowledge_base` 查一次**，
     因为儿童的个人档案（康复训练档案 / 评估报告等 PDF）常常只上传到知识库、业务库里没有对应学生记录。
     实测（2026-10-04）：没有这个 hint 时，问「王小明的康复档案里写了什么？」模型只查业务库、回

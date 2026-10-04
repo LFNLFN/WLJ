@@ -444,6 +444,29 @@ Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签�
 实测效果：「王小明的情况怎么样？」现在会 `query_database + search_knowledge_base` 一起查，
 并答出档案编号 WLJ-2024-0001、出生日期、评估表项目等正文内容。
 
+### 按姓名查评估记录查不到？（`studentName` / `studentname` 两套列）
+
+`student_scale_records` 这张历史表里**同一列有两套写法**：
+
+```sql
+-- 小程序写入落在小写那套上，驼峰那套是空的
+select count(*) from student_scale_records where "studentName"  ilike '%小米%';  -- 0
+select count(*) from student_scale_records where studentname    ilike '%小米%';  -- 2
+```
+
+而 `src/lib/agent-tools.ts` 的 `DB_ENTITIES.student_scale_records.searchFields` 里声明的是驼峰
+（`scaleName` 更极端 —— 表里根本没有这一列，实际列叫 `scalename`），于是"按姓名搜评估记录"查的是一个**全空的列**，
+0 条 → 模型只能回"系统里没有这名学生的评估记录，建议联系主课老师查询"。
+
+修法：`expandSearchFields()` 把每个声明的搜索字段展开成表里**所有同名的大小写变体**，两边都搜。
+实测修后同一个问题：`query_database(student_scale_records, search=小米)` → 2 条，
+助理能答出「儿童感觉统合检查表 / 2026-09-08 / 标化分 3.3125 / 各维度得分 / 审核状态 pending」。
+
+另外提示词里也加了一条：系统里确实没有的资料，要说清"系统里没有查到"并列出查过哪几处，
+**不要把「请联系 XX 老师 / 中心管理人员查询」当成回答**。
+
+回归测试：`npm run test:agent-tools`（新增 1 条断言：按姓名能搜到评估记录）。
+
 ## 创建管理员账号
 
 三种方式，任选其一：
