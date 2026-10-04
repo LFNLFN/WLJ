@@ -29,13 +29,29 @@ const PUBLIC_API_PREFIXES = [
   '/api/student-scale-records', // ⚠️ 小程序直连写入评估记录
 ];
 
-/** 静态资源扩展名，直接放行 */
-const STATIC_FILE = /\.(?:png|jpe?g|gif|svg|ico|webp|css|js|mjs|map|txt|woff2?|ttf|docx?|xlsx?|pdf|html)$/i;
+/**
+ * 纯静态资源目录，直接放行（不做登录门禁）。
+ *
+ * `/generated/` 是应用产出与中转文件的公开下载目录：AI 工具导出的 Excel/Word、
+ * 以及「上传到火山知识库」时临时落盘的文件 —— 知识库服务要按 URL 来抓取，必须公网可达。
+ */
+const PUBLIC_STATIC_PREFIXES = ['/generated/'];
+
+/**
+ * 静态资源扩展名，直接放行。
+ * ⚠️ 之前漏了 md / markdown / csv / json / pptx 等（知识库上传支持这些类型），
+ * 导致 `/generated/xxx.md` 会被重定向到登录页，知识库抓到的就不是文件内容了。
+ */
+const STATIC_FILE = /\.(?:png|jpe?g|gif|svg|ico|webp|css|js|mjs|map|txt|md|markdown|csv|tsv|json|xml|ya?ml|woff2?|ttf|docx?|xlsx?|pptx?|pdf|html)$/i;
 
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
-  if (pathname.startsWith('/_next') || STATIC_FILE.test(pathname)) {
+  if (
+    pathname.startsWith('/_next') ||
+    PUBLIC_STATIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
+    STATIC_FILE.test(pathname)
+  ) {
     return NextResponse.next();
   }
 

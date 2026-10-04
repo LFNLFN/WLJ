@@ -335,6 +335,11 @@ DELETE /api/knowledge/viking?docId=x       # 删除（doc/delete，异步生效�
 （与 Python SDK 封的是同一批 `/api/knowledge/*`），鉴权用控制台「知识库 → API Key」（`Authorization: Bearer`，实测可用）；
 Python SDK 用的 AK/SK V4 签名（service = `air`）以后若要切换，签名逻辑可直接复用 `@volcengine/openapi` 的 SignerV4。
 
+⚠️ 中间件必须放行这个中转目录：`src/middleware.ts` 里把 `/generated/` 整目录加入 `PUBLIC_STATIC_PREFIXES`
+（并把 `md / markdown / csv / tsv / json / xml / ya?ml / pptx?` 补进 `STATIC_FILE`）。
+之前白名单只认 pdf/docx/txt/html 等，`/generated/xxx.md` 会被 307 重定向到登录页 ——
+知识库服务抓这个地址只会抓到登录页，解析必然失败（实测：`.pdf` 200、`.md`/`.csv` 307）。
+
 **上传为什么要先落到公网地址**：API Key 身份下 `add_type="tos_fe"`（控制台拖文件那种）会返回
 `not support tos_fe for user:xxxx`（无权限），唯一可用的是 `add_type="url"` —— **由知识库服务按 URL 自己去抓取文件**。
 所以上传流程是：文件 → 临时写到 `public/generated/`（部署后即 `/generated/xxx`，公网可访问）→
