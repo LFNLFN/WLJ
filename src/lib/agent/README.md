@@ -57,6 +57,21 @@
 - `query_database(action, params)`：查询业务库（`stats` 或表名；支持 `id` / `search` / `limit` / `offset`）
 - `generate_file(type, filename, content)`：生成 Excel/Word 并返回下载地址
 
+### 盯着会话跑：`npm run session:watch` / `bash scripts/session-watch.sh`
+
+两个版本（Node / bash）做同一件事；bash 版就是手拼 `curl -N ... &` 那套的成品，踩过两个坑已写在脚本注释里：
+
+1. **会话回到 idle 后 SSE 连接不会自动断开**（只继续发 `: heartbeat`）→ 必须自己从帧里判定
+   `session.status_idle` 才结束，否则 `wait $STREAM_PID` 会一直挂到超时（脚本里用 python 的 SIGALRM 自限时）。
+2. **变量后面紧跟中文全角字符时必须写 `${VAR}`**：`echo "会话 $SID（新建）"` 在部分 locale 下会被 bash
+   当成变量名 `SID（` → `unbound variable`（脚本里全是 `${SID}` 这种写法）。
+
+```bash
+bash scripts/session-watch.sh                      # 用内置默认问题
+bash scripts/session-watch.sh "问题" sesn-xxxx      # 复用会话
+KEEP=1 TIMEOUT=180 bash scripts/session-watch.sh "问题"
+```
+
 ### 盯着会话跑：`npm run session:watch`
 
 不想手拼 `curl -N` 的话，用脚本：它把「建会话 → 开 SSE 流 → 发 user.message → 逐帧打印 → 打最终回答」
