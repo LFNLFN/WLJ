@@ -133,7 +133,12 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
       if (fileRef.current) fileRef.current.value = '';
       await refresh('', category);
     } catch (err: any) {
-      setError(err?.message || '上传失败');
+      const msg = err?.message || '上传失败';
+      setError(
+        /PDF|抽取不到文字|未能从/.test(msg)
+          ? `${msg}　→　这类文件请改用下方「🌋 火山知识库」上传（那边支持 PDF / Office，由火山侧解析）`
+          : msg
+      );
     } finally {
       setUploading(false);
     }
@@ -268,6 +273,11 @@ export default function KnowledgePanel({ open, onClose }: { open: boolean; onClo
                 ))}
               </select>
             </div>
+
+            <p className="text-[11px] text-gray-500 mt-3 leading-relaxed">
+              ⚠️ 平台知识库只收<strong>能抽取纯文本</strong>的文件（txt / md / csv / xlsx / docx…），存进业务库、问答直接引用；
+              <strong>PDF、扫描件、PPT</strong> 请用下方「🌋 火山知识库」上传（由火山侧解析切片，支持 PDF/Office）。
+            </p>
 
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <input
