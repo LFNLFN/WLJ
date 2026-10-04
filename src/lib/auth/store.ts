@@ -87,8 +87,30 @@ const CREATE_RESET_LOG_TABLE = `
   );
 `;
 
-/** 幂等建表 + 兼容旧表结构（补列） */
-export async function ensureAuthSchema(db: Pool): Promise<void> {
+/**
+ * 建表/补列的结果缓存。
+ *
+ * 原来每个认证请求（登录 / 注册 / 找回密码 / 管理后台）都会跑一遍这 16 条 DDL：
+ * CREATE TABLE 是幂等的，但 ALTER TABLE ... ADD COLUMN 会拿 ACCESS EXCLUSIVE 锁，
+ * 并发登录时会互相排队，白白拖慢登录。这里保证「同一个连接池、每个进程只跑一次」。
+ * 失败（例如连接被重置）不缓存，下一个请求会重试。
+ */
+const schemaPromises = new WeakMap<Pool, Promise<void>>();
+
+/** 幂等建表 + 兼容旧表结构（补列）；每个连接池只实际执行一次 */
+export function ensureAuthSchema(db: Pool): Promise<void> {
+  const cached = schemaPromises.get(db);
+  if (cached) return cached;
+
+  const pending = runAuthSchemaMigration(db).catch((err) => {
+    schemaPromises.delete(db);
+    throw err;
+  });
+  schemaPromises.set(db, pending);
+  return pending;
+}
+
+async function runAuthSchemaMigration(db: Pool): Promise<void> {
   await db.query(CREATE_USERS_TABLE);
   for (const sql of [
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active'`,

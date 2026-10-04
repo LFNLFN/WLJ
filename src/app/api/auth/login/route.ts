@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/api/db';
+import { getDb, isTransientDbError, withDbRetry } from '@/lib/api/db';
 import { SESSION_COOKIE, SESSION_MAX_AGE, sessionCookieOptions } from '@/lib/auth/config';
 import { authenticateUser } from '@/lib/auth/service';
 import { createSessionToken } from '@/lib/auth/session';
@@ -19,10 +19,13 @@ export async function POST(req: NextRequest) {
     if (!phone) return NextResponse.json({ error: '请输入手机号' }, { status: 400 });
     if (!password) return NextResponse.json({ error: '请输入密码' }, { status: 400 });
 
-    const db = await getDb();
-    await ensureAuthSchema(db);
-
-    const result = await authenticateUser(db, body);
+    // 建表 + 校验账号密码：遇到「连接被重置 / 数据库重启」这类瞬时错误自动重试一次，
+    // 不要把 ECONNRESET 直接甩给正在登录的用户
+    const result = await withDbRetry(async () => {
+      const db = await getDb();
+      await ensureAuthSchema(db);
+      return authenticateUser(db, body);
+    });
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status });
     }
@@ -42,6 +45,18 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (err: any) {
     console.error('登录失败:', err);
+
+    // 连接被重置 / 数据库正在重启：给用户一句人话，错误码留给管理员排查
+    if (isTransientDbError(err)) {
+      return NextResponse.json(
+        {
+          error: '数据库连接被重置，请稍后重试（若持续出现，请联系管理员查看 /api/health）',
+          code: err?.code || 'DB_CONNECTION_RESET',
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json({ error: err.message || '登录失败，请稍后重试' }, { status: 500 });
   }
 }

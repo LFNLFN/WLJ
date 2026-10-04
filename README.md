@@ -295,6 +295,68 @@ curl -X POST https://www.weilaijia20210101.com/api/auth/login \
   -H 'Content-Type: application/json' -d '{"phone":"13800000000","password":"你的密码"}'
 ```
 
+## 排障：登录报 `read ECONNRESET` / 服务反复重启
+
+现象：登录接口返回 `500 {"error":"read ECONNRESET"}`，同时 `pm2 list` 里 wlj 的 ↺（重启次数）一直涨（线上出现过 **704 次**）。
+
+### 为什么一个数据库抖动会让整个服务重启
+
+根因在 `src/lib/api/db.ts` 的 pg 连接池漏了 `'error'` 监听，而 Node 的 EventEmitter 在没有 `'error'` 监听器时会把异常**直接抛成未捕获异常** → 进程退出 → pm2/systemd 判定崩溃并重启：
+
+1. **空闲连接被重置**：pg-pool 会 `pool.emit('error')` → 没人监听 → 进程退出；
+2. **查询进行中的连接被重置**（本次的登录场景）：pg-pool 在把 client 交给查询前执行了 `client.removeListener('error', idleListener)`
+   （`node_modules/pg-pool/index.js` 的 `_acquireClient`），此时 socket 报错会 `client.emit('error')` → 同样没人监听 → 进程退出。
+
+所以链路是「数据库/中间设备重置连接 → 用户看到 500（还带着驱动原始报错）→ 服务重启一次」，重启次数就会越滚越多。
+回归测试：`npm run test:db-resilience`——故意掐断自己的一条连接，断言「修复前进程必死、修复后进程存活且连接池自动恢复」。
+
+### 已经做的加固
+
+| 位置 | 改动 |
+|---|---|
+| `src/lib/api/db.ts` | 连接池改成 **globalThis 单例**（Next 会把该文件内联进 4 个路由 bundle，原来一个进程可能建 4 个池）；`pool.on('error')` + `pool.on('connect')` 给**每个 client 常驻** error 监听；`connectionTimeoutMillis=10s`（原来没设，实测请求挂 20s+ 不返回）、`idleTimeoutMillis=10s`、`keepAlive`；连接在 `pg_stat_activity` 里显示为 `application_name=wlj-next-<pid>`；可用 `PG_POOL_MAX / PG_CONNECT_TIMEOUT_MS / PG_IDLE_TIMEOUT_MS / PG_STATEMENT_TIMEOUT_MS / PG_APP_NAME` 覆盖 |
+| `db.ts` | 新增 `isTransientDbError()` / `withDbRetry()`：ECONNRESET、57P01/57P03（数据库重启中）等瞬时错误自动重试一次 |
+| `src/app/api/auth/login/route.ts` | 登录的数据库操作走 `withDbRetry`；瞬时错误返回「数据库连接被重置，请稍后重试」+ 错误码（503），不再把 `read ECONNRESET` 这种驱动原文甩给用户 |
+| `src/lib/auth/store.ts` | `ensureAuthSchema` 每个连接池只跑一次（原来**每个认证请求**都跑 16 条 DDL，其中 `ALTER TABLE` 会拿 ACCESS EXCLUSIVE 锁，白拖慢登录） |
+| `src/app/api/health/route.ts` | 改成**强制动态 + 真的跑 `SELECT 1`**。原来它是被 Next 静态缓存的（响应头 `x-nextjs-cache: HIT`），**数据库已经连不上它还返回 `{"status":"ok"}`**（`scripts/setup-pg.sh` 就是靠它判断"数据库正常"的，等于一直失明）。现在返回 `pid / uptimeSec / pool / dbLatencyMs`，失败时 503 + `error.code`（IP、连接串已打码） |
+| `src/instrumentation.ts` + `next.config.js` | 全局兜底：`uncaughtException` / `unhandledRejection` 只记录日志、不让进程退出（想恢复「一有未捕获异常就退出」设 `WLJ_STRICT_CRASH=1`） |
+| `server/index.js` | 老 express 入口（`npm run server` / `dev:full`）同样加池监听；数据库初始化失败改为指数退避重试，**不再 `process.exit(1)`**（原来这也是一个重启风暴来源） |
+
+### 上线后怎么确认修好了
+
+```bash
+curl -s https://www.weilaijia20210101.com/api/health     # 应返回 pid / uptimeSec / pool / dbLatencyMs
+pm2 list                                                 # ↺ 计数不再增长；restart 后 pid 不再频繁变化
+```
+
+```sql
+-- 数据库侧看应用连接：修复后一定带 wlj-next- 前缀
+select application_name, client_addr, state, count(*), max(now() - state_change) as 空闲时长
+  from pg_stat_activity group by 1, 2, 3 order by 4 desc;
+```
+
+### 如果健康检查还是报错：去服务器上按顺序跑这几条
+
+```bash
+cd <项目目录>
+echo "${DATABASE_URL:0:30}..."                 # 只确认开头，别把密码贴到聊天/工单里
+psql "$DATABASE_URL" -c 'select 1'             # ① 决定性的：这一条能区分「应用 env 问题」还是「服务器→数据库链路问题」
+#   这里也 ECONNRESET / 超时 → 服务器到数据库这一段有问题：安全组 / 防火墙 / 出方向规则 / 数据库在重启
+#   这里正常            → 是应用进程自己的环境变量或进程问题：拿它和 pm2 环境里的 DATABASE_URL 对比
+journalctl -u postgresql --since '-2 hours' | tail -60      # ② 数据库是否被重启 / 报了 OOM
+sudo tail -100 /var/log/postgresql/postgresql-14-main.log
+sudo dmesg -T | grep -iE 'oom|killed process' | tail -20
+df -h; free -m                                              # ③ 磁盘满 / 内存不足（都会让 Postgres 掉线重启）
+sudo ss -tanp | grep -E '3001|5432' | head -20              # ④ 连接是否堆积在 CLOSE_WAIT
+sudo iptables -S | head -40; sudo ufw status                # ⑤ 有没有 REJECT/DROP 掉 5432 的规则
+pm2 logs wlj --lines 150 --nostream                         # ⑥ 崩溃栈与 [db] 日志
+```
+
+> 本次线上故障的实测结论（供参考）：**开发机能直连 `8.148.240.144:5432`，但服务器上的应用连不上**。
+> 登录接口那套 SQL（`ensureAuthSchema` 的 16 条 DDL + 查用户）在开发机上完整复刻一遍 ~300ms 全部通过、
+> 期间 Postgres 也没有重启 —— 说明**数据库本身是好的，问题在「服务器 → 数据库」这一段**，
+> 优先查 ①②⑤（安全组 / 防火墙 / 服务器上那份 `DATABASE_URL`）。
+
 ## 本地开发
 
 ```bash

@@ -26,6 +26,23 @@ async function initDb() {
   db = new Pool({
     connectionString: DATABASE_URL,
     ssl: (process.env.PGSSLMODE || '').toLowerCase() === 'disable' ? false : { rejectUnauthorized: false },
+    max: Number(process.env.PG_POOL_MAX || 10),
+    connectionTimeoutMillis: Number(process.env.PG_CONNECT_TIMEOUT_MS || 10000),
+    idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS || 10000),
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
+    application_name: process.env.PG_APP_NAME || `wlj-express-${process.pid}`,
+  });
+  // ⚠️ 必须监听：连接被数据库/中间设备重置时 pg-pool 会 emit('error')，
+  // 没有监听器时 EventEmitter 会直接抛出未捕获异常 → 进程退出 → pm2 反复重启。
+  db.on('error', (err) => {
+    console.error(`[db] 空闲连接出错（已忽略，服务继续运行）: ${err && err.code ? '[' + err.code + '] ' : ''}${err && err.message}`);
+  });
+  // 查询进行中的 client 会被 pg-pool 摘掉 idle listener，这里补一个常驻监听
+  db.on('connect', (client) => {
+    client.on('error', (err) => {
+      console.error(`[db] 查询期间连接出错（已忽略）: ${err && err.code ? '[' + err.code + '] ' : ''}${err && err.message}`);
+    });
   });
   isPg = true;
 
@@ -246,7 +263,22 @@ function createCRUD(route, tableName, filterFields = []) {
 
 // ==================== 初始化数据库并注册路由 ====================
 
-initDb().then(() => {
+/**
+ * 初始化数据库；失败不退出进程，改为指数退避重试。
+ *
+ * 原来这里是 `process.exit(1)`：数据库/网络抖动时会被 pm2/systemd 判成崩溃，
+ * 于是「启动失败 → 退出 → 重启 → 再失败」无限循环（线上重启计数就是这样涨上去的）。
+ */
+function initDbWithRetry(attempt = 1) {
+  return initDb().catch((err) => {
+    const delay = Math.min(30000, 1000 * Math.pow(2, Math.min(attempt, 5)));
+    console.error(`❌ 数据库初始化失败（第 ${attempt} 次）：${err.message}`);
+    console.error(`   ${delay / 1000}s 后重试；进程保持存活，避免 pm2 反复重启。`);
+    return new Promise((resolve) => setTimeout(resolve, delay)).then(() => initDbWithRetry(attempt + 1));
+  });
+}
+
+initDbWithRetry().then(() => {
   // 注册 CRUD
   createCRUD('teachers', 'teachers');
   createCRUD('students', 'students');
@@ -348,8 +380,17 @@ initDb().then(() => {
     });
   }
 }).catch(err => {
-  console.error('❌ 数据库初始化失败:', err);
-  process.exit(1);
+  // 正常情况下走不到这里（initDbWithRetry 内部已重试）；真到了也别退出进程
+  console.error('❌ 服务初始化失败（进程保持存活，请检查配置）:', err);
+  process.exitCode = 1;
+});
+
+// ==================== 全局兜底：不要让单个 socket 错误杀死整个服务 ====================
+process.on('uncaughtException', (err) => {
+  console.error('[wlj] uncaughtException（已记录，服务继续运行）:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[wlj] unhandledRejection（已记录，服务继续运行）:', reason);
 });
 
 // ==================== 微信小程序数据同步 ====================
