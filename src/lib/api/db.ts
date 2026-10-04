@@ -156,7 +156,14 @@ export async function getDb(): Promise<Pool> {
     const pool = createPool();
     g[POOL_KEY] = { type: 'postgres', pg: pool };
     installShutdownHooks();
-    console.log(`✅ PostgreSQL 数据库连接池已创建（application_name=${pool.options.application_name}）`);
+
+    // 把生效的池参数打出来：服务器上 `pm2 logs wlj` 一眼就能确认参数真的生效了
+    const o = pool.options as any;
+    console.log(
+      `✅ PostgreSQL 连接池已创建：max=${o.max} idleTimeoutMillis=${o.idleTimeoutMillis} ` +
+        `connectionTimeoutMillis=${o.connectionTimeoutMillis} maxLifetimeSeconds=${o.maxLifetimeSeconds} ` +
+        `application_name=${o.application_name}`
+    );
   }
 
   return (g[POOL_KEY] as DbConfig).pg;

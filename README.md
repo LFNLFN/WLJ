@@ -315,7 +315,7 @@ curl -X POST https://www.weilaijia20210101.com/api/auth/login \
 
 | 位置 | 改动 |
 |---|---|
-| `src/lib/api/db.ts` | 连接池改成 **globalThis 单例**（Next 会把该文件内联进 4 个路由 bundle，原来一个进程可能建 4 个池）；`pool.on('error')` + `pool.on('connect')` 给**每个 client 常驻** error 监听；连接池限制参数补齐：`connectionTimeoutMillis=10s`（原来没设，实测请求挂 20s+ 不返回）、`idleTimeoutMillis=10s`、`maxLifetimeSeconds=1800`（到点换新连接，避免沿用被中间设备悄悄失效的长连接）、`keepAlive`；连接在 `pg_stat_activity` 里显示为 `application_name=wlj-next-<pid>`；可用 `PG_POOL_MAX / PG_CONNECT_TIMEOUT_MS / PG_IDLE_TIMEOUT_MS / PG_MAX_LIFETIME_SEC / PG_STATEMENT_TIMEOUT_MS / PG_APP_NAME` 覆盖 |
+| `src/lib/api/db.ts` | 连接池改成 **globalThis 单例**（Next 会把该文件内联进 4 个路由 bundle，原来一个进程可能建 4 个池）；`pool.on('error')` + `pool.on('connect')` 给**每个 client 常驻** error 监听；连接池限制参数补齐：`connectionTimeoutMillis=10s`（原来没设，实测请求挂 20s+ 不返回）、`idleTimeoutMillis=10s`、`maxLifetimeSeconds=1800`（到点换新连接，避免沿用被中间设备悄悄失效的长连接）、`keepAlive`；连接在 `pg_stat_activity` 里显示为 `application_name=wlj-next-<pid>`；可用 `PG_POOL_MAX / PG_CONNECT_TIMEOUT_MS / PG_IDLE_TIMEOUT_MS / PG_MAX_LIFETIME_SEC / PG_STATEMENT_TIMEOUT_MS / PG_APP_NAME` 覆盖。启动时会打一行 `✅ PostgreSQL 连接池已创建：max=… idleTimeoutMillis=… connectionTimeoutMillis=…`，服务器上 `pm2 logs wlj` 就能确认参数真的生效；**多实例（pm2 cluster）时注意「实例数 × PG_POOL_MAX」要小于数据库 `max_connections`（线上是 100）** |
 | `src/lib/api/db.ts` | 新增 **优雅关闭**：收到 `SIGTERM`/`SIGINT` 先 `closeDb()`（`pool.end()`，最多等 3 秒）再退出，重启/部署时不让数据库继续挂着没人用的后端进程；设 `WLJ_NO_GRACEFUL_SHUTDOWN=1` 可关掉该行为。（`next start` 自己也注册了 SIGTERM 处理，可能先于我们退出，但连接由内核释放，结果一样） |
 | `db.ts` | 新增 `isTransientDbError()` / `withDbRetry()`：ECONNRESET、57P01/57P03（数据库重启中）等瞬时错误自动重试一次 |
 | `src/app/api/auth/login/route.ts` | 登录的数据库操作走 `withDbRetry`；瞬时错误返回「数据库连接被重置，请稍后重试」+ 错误码（503），不再把 `read ECONNRESET` 这种驱动原文甩给用户 |

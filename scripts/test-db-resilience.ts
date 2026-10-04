@@ -74,6 +74,22 @@ async function childHold() {
   setInterval(() => {}, 1000); // 保持进程存活；SIGTERM 由 db.ts 里安装的优雅关闭钩子处理
 }
 
+async function childPoolOptions() {
+  const pool = await getDb();
+  const o = (pool as any).options;
+  console.log(
+    'POOL_OPTIONS ' +
+      JSON.stringify({
+        max: o.max,
+        idle: o.idleTimeoutMillis,
+        connect: o.connectionTimeoutMillis,
+        lifetime: o.maxLifetimeSeconds,
+      })
+  );
+  await closeDb();
+  process.exit(0);
+}
+
 async function childBroken() {
   // 复刻「修复前」的连接池：参数一样，但没有 pool.on('error') / client.on('error')
   const { Pool } = require('pg');
@@ -121,6 +137,45 @@ async function childFixed() {
   console.log('FIXED_SURVIVED');
   await pool.end();
   process.exit(0);
+}
+
+// ==================== 主流程 ====================
+
+// ==================== 第 2 组：连接池参数与单例 ====================
+
+async function poolConfigScenarios() {
+  console.log('\n== 3. 连接池参数与单例（max / idleTimeoutMillis / connectionTimeoutMillis / 退出时清理）==');
+
+  const pool = await getDb();
+  const o = (pool as any).options;
+
+  check('max 生效（默认 10，可用 PG_POOL_MAX 覆盖）', o.max === 10, o.max);
+  check('idleTimeoutMillis 生效（默认 10000）', o.idleTimeoutMillis === 10_000, o.idleTimeoutMillis);
+  check('connectionTimeoutMillis 生效（默认 10000，原来没设会一直挂着）', o.connectionTimeoutMillis === 10_000, o.connectionTimeoutMillis);
+  check('maxLifetimeSeconds 生效（默认 1800）', o.maxLifetimeSeconds === 1800, o.maxLifetimeSeconds);
+  check('连接串已配置且非空（内容不打印）', typeof o.connectionString === 'string' && o.connectionString.length > 0);
+  check('application_name 可辨识', String(o.application_name).startsWith('wlj-'), o.application_name);
+  check('pool 上有 error 监听（空闲连接被重置时不会让进程退出）', (pool as any).listenerCount('error') >= 1, (pool as any).listenerCount('error'));
+  check('pool 上有 connect 监听（给每个 client 常驻 error 兜底）', (pool as any).listenerCount('connect') >= 1, (pool as any).listenerCount('connect'));
+  check('getDb() 多次调用返回同一个池（globalThis 单例，Next 内联多份也只建一个）', (await getDb()) === pool);
+
+  await closeDb();
+  check('closeDb() 之后旧池已结束', (pool as any).ended === true);
+  const pool2 = await getDb();
+  check('closeDb() 之后能重新建池（关闭流程不会把应用卡死）', pool2 !== pool);
+  await closeDb();
+  check('再次 closeDb() 幂等、不抛错', true);
+
+  // 环境变量覆盖要在独立进程里验（单例在本进程已经建好了）
+  const child = spawnSync(process.execPath, [__filename, 'pool-options'], {
+    encoding: 'utf8',
+    env: { ...process.env, PG_POOL_MAX: '3', PG_IDLE_TIMEOUT_MS: '4000' },
+  });
+  check(
+    'PG_POOL_MAX / PG_IDLE_TIMEOUT_MS 能覆盖默认值（服务器上不用改代码）',
+    child.status === 0 && /"max":3/.test(child.stdout) && /"idle":4000/.test(child.stdout),
+    { status: child.status, out: child.stdout.trim(), err: child.stderr.trim() }
+  );
 }
 
 // ==================== 主流程 ====================
@@ -176,7 +231,7 @@ async function unitTests() {
 }
 
 async function connectionResetScenarios() {
-  console.log('\n== 3. 连接被重置：修复前 vs 修复后（真实数据库，只掐自己这条连接）==');
+  console.log('\n== 4. 连接被重置：修复前 vs 修复后（真实数据库，只掐自己这条连接）==');
 
   const broken = runChild('broken');
   check(
@@ -270,7 +325,7 @@ async function withObserver<T>(fn: (count: (appName: string) => Promise<number>)
 }
 
 async function processExitCleanupScenarios() {
-  console.log('\n== 4. 进程退出后连接会不会残留（“旧连接池没销毁”这个假设的实测）==');
+  console.log('\n== 5. 进程退出后连接会不会残留（“旧连接池没销毁”这个假设的实测）==');
   console.log('   （说明：用真实的 PostgreSQL，通过 application_name 只统计本测试自己的子进程连接）');
 
   const done = await withObserver(async (count) => {
@@ -311,8 +366,10 @@ async function main() {
   if (scenario === 'broken') return childBroken();
   if (scenario === 'fixed') return childFixed();
   if (scenario === 'hold') return childHold();
+  if (scenario === 'pool-options') return childPoolOptions();
 
   await unitTests();
+  await poolConfigScenarios();
   await connectionResetScenarios();
   await processExitCleanupScenarios();
 
