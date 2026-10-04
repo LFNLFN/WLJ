@@ -81,17 +81,43 @@ export async function POST(req: NextRequest) {
 
     const steps: { name: string; ok: boolean; elapsedMs: number; error?: string }[] = [];
 
-    /** 调用模型；若接入点不支持图片输入，自动降级为「纯文本 + 说明」重试一次 */
+    /**
+     * 思考（thinking）开关。
+     *
+     * 实测同一个接入点（doubao-seed-2-1-pro）问「用一句话说明你是哪个模型」：
+     *   · 默认（带 thinking）：7.7s，reasoning_tokens=299
+     *   · thinking={type:'disabled'}：1.1s，reasoning_tokens=0   ← 快 7 倍
+     *   · thinking={type:'auto'}：400 InvalidParameter（该模型不支持 auto）
+     * 助理这里要的是「查资料 + 照格式回答」，不需要长思考，所以默认关掉；
+     * 想恢复模型默认（复杂推理更稳）就把 ARK_CHAT_THINKING=default。
+     * 注意：只对支持该参数/字段的接入点有效，不支持时会自动去掉参数重试一次。
+     */
+    const thinkingMode = (process.env.ARK_CHAT_THINKING || '').trim().toLowerCase();
+    const thinking =
+      thinkingMode === 'default' || thinkingMode === 'on' || thinkingMode === 'enabled'
+        ? undefined
+        : { type: 'disabled' };
+
+    /** 调用模型；去掉不被支持的参数/图片后自动重试一次 */
     const completeOnce = async () => {
+      const payload: any = { model, messages: runnerMessages, tools, tool_choice: 'auto' };
+      if (thinking) payload.thinking = thinking;
       try {
-        return await client.chat.completions.create({ model, messages: runnerMessages, tools, tool_choice: 'auto' });
+        return await client.chat.completions.create(payload);
       } catch (err) {
         const raw = String((err as Error)?.message || err);
+        // 接入点不认识 thinking 参数：去掉它重试（不影响功能，只是慢一点）
+        if (thinking && /thinking/i.test(raw)) {
+          delete payload.thinking;
+          return await client.chat.completions.create(payload);
+        }
         if (!augmented.usedImages || !looksLikeVisionUnsupported(raw)) throw err;
         const reason = raw.slice(0, 160);
         runnerMessages = dropImageParts(runnerMessages as any, reason) as ChatCompletionMessageParam[];
         attachmentNotes.push(`当前模型接入点不支持图片输入，已忽略图片并重试（${reason}）`);
-        return await client.chat.completions.create({ model, messages: runnerMessages, tools, tool_choice: 'auto' });
+        const retryPayload: any = { model, messages: runnerMessages, tools, tool_choice: 'auto' };
+        if (thinking) retryPayload.thinking = thinking;
+        return await client.chat.completions.create(retryPayload);
       }
     };
 

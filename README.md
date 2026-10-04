@@ -217,6 +217,21 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 | 变量 | 说明 |
 |---|---|
+### 回答慢？先关掉 thinking
+
+接入点 `doubao-seed-2-1-pro` 是**思考型模型**，默认每轮都先生成一大段 reasoning。同一个问题的实测对比
+（`POST /api/v3/chat/completions`，问「用一句话说明你是哪个模型」）：
+
+| 参数 | 耗时 | reasoning_tokens |
+|---|---|---|
+| 默认（带 thinking） | **7.7s** | 299 |
+| `"thinking": {"type": "disabled"}` | **1.1s** | 0 |
+| `"thinking": {"type": "auto"}` | 400 InvalidParameter（该模型不支持） | — |
+
+所以 `/api/chat` 现在**默认带上 `thinking: {type:'disabled'}`**（助理主要是「查资料 + 照格式回答」，
+不需要长思考）；想恢复模型默认（复杂推理更稳、但慢）就设 `ARK_CHAT_THINKING=default`。
+接入点不支持这个字段时会自动去掉参数重试一次，不会因此报错。
+
 | `KB_API_KEY` | 火山知识库 API Key（控制台「知识库 → API Key」生成，**不是** `ark-*` 的方舟 Key） |
 | `KB_COLLECTION_NAME` | 知识库名称；不填则退回 `ARK_KNOWLEDGE_BASE_ID` |
 | `KB_RESOURCE_ID` | 可选，方舟里的 `kb-xxx`；给了它检索范围更准 |
