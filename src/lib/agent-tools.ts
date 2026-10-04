@@ -363,6 +363,42 @@ interface ArkSearchResult {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * 从 `agent.tool_result` 文本里抽出知识库**原文切片**。
+ *
+ * 实测（session sesn-20261004055646-hqst3 的事件流）：托管智能体的知识库 Skill 返回的就是
+ * search_knowledge 的响应体，被包在 `exit_code: 0 --- stdout --- {...}` 里：
+ *   {"ok":true,"data":{"result_list":[{"id":"415467-_sys_auto_gen_doc_id-...","content":"档案编号：WLJ-2024-0001 … 儿童姓名：王小明"}]}}
+ * 抽出来当 KnowledgeItem 用，模型就能引用**原文**，而不是只拿到一段生成好的回答。
+ */
+function extractKnowledgeChunks(text: string, limit: number): KnowledgeItem[] {
+  if (!text || !/result_list/.test(text)) return [];
+
+  const candidates: string[] = [text];
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start >= 0 && end > start) candidates.push(text.slice(start, end + 1));
+
+  for (const candidate of candidates) {
+    try {
+      const parsed: any = JSON.parse(candidate);
+      const list = parsed?.data?.result_list ?? parsed?.result_list;
+      if (!Array.isArray(list) || list.length === 0) continue;
+      return list.slice(0, limit).map((p: any) => ({
+        type: '火山知识库',
+        id: String(p?.id ?? p?.point_id ?? p?.chunk_id ?? '') || undefined,
+        title: String(p?.chunk_title ?? p?.doc_info?.doc_name ?? '').slice(0, 200) || undefined,
+        content: String(p?.content ?? '').slice(0, 800),
+        source: 'ark-kb',
+        score: Number(p?.rerank_score ?? p?.score ?? 0) || undefined,
+      }));
+    } catch {
+      /* 换下一个候选串继续试 */
+    }
+  }
+  return [];
+}
+
 /** 从 GET /sessions/{id}/events 的事件流里提取文本（agent.message / agent.thinking 等） */
 function eventText(event: any): string {
   const content = event?.content;
@@ -403,9 +439,11 @@ async function searchViaManagedAgent(
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` };
   const timeoutMs = clampInt(process.env.ARK_AGENT_TIMEOUT_MS, 5_000, 180_000, 110_000);
 
-  // 配了 environment + vault 就为每次检索新建一个干净会话（避免与人工对话互相污染上下文），用完即删
+  // 会话来源优先级：显式配置的 ARK_SESSION_ID（用户指定固定会话，沿用它的上下文）> 自动新建临时会话。
+  // ⚠️ 以前是「只要配了 environment+vault 就一定新建」，会把 ARK_SESSION_ID 悄悄忽略掉，
+  //    导致「明明指定了 session、却不在那个 session 里跑」；显式配置现在优先。
   let tempSession = false;
-  if (environmentId && vaultId) {
+  if (!sessionId && environmentId && vaultId) {
     try {
       const created = await fetchWithTimeout(`${baseUrl}/sessions`, {
         method: 'POST',
@@ -424,7 +462,11 @@ async function searchViaManagedAgent(
   }
 
   if (!ARK_SESSION_ID_FORMAT.test(sessionId)) {
-    return { ok: false, items: [], notice: `ARK_SESSION_ID "${sessionId}" 格式不正确（应为 sesn-xxxx）` };
+    return {
+      ok: false,
+      items: [],
+      notice: `没有可用会话：ARK_SESSION_ID "${sessionId}" 格式不正确（应为 sesn-xxxx），且未配 ARK_ENVIRONMENT_ID + ARK_VAULT_ID 无法自动新建`,
+    };
   }
 
   const eventsUrl = `${baseUrl}/sessions/${sessionId}/events`;
@@ -454,7 +496,10 @@ async function searchViaManagedAgent(
     // 轮询事件流，直到会话回到 idle
     const deadline = Date.now() + timeoutMs;
     const answers: string[] = [];
+    /** 知识库 Skill 返回的原文切片（即便最终回答没及时出来，这些也应该给到模型） */
+    const kbChunks: KnowledgeItem[] = [];
     let toolError = '';
+    let rateLimited = false;
     let idle = false;
 
     while (Date.now() < deadline) {
@@ -470,9 +515,15 @@ async function searchViaManagedAgent(
         if (event.type === 'agent.message') {
           const text = eventText(event);
           if (text) answers.push(text);
+        } else if (event.type === 'agent.thinking') {
+          if (/限流|rate.?limit|too many requests|429/i.test(eventText(event))) rateLimited = true;
         } else if (event.type === 'agent.tool_result') {
           const text = eventText(event);
           if (/authentication_error|invalid api key|鉴权/i.test(text)) toolError ||= text;
+          if (/限流|rate.?limit|too many requests|429/i.test(text)) rateLimited = true;
+          for (const chunk of extractKnowledgeChunks(text, limit)) {
+            if (!kbChunks.some((c) => c.id && c.id === chunk.id)) kbChunks.push(chunk);
+          }
         } else if (event.type === 'session.status_idle' || event.type === 'session.thread_status_idle') {
           idle = true;
         }
@@ -480,7 +531,17 @@ async function searchViaManagedAgent(
       if (idle) break;
     }
 
-    if (answers.length === 0) {
+    // 多轮检索时中途也会有 agent.message，最终答复取最后一条
+    const finalText = answers.length ? answers[answers.length - 1] : '';
+    const items: KnowledgeItem[] = [
+      // 原文切片放前面：模型可以直接引用
+      ...kbChunks,
+      ...(finalText
+        ? [{ type: '知识库回答', title: query, content: finalText.slice(0, 2000), source: 'ark-agent' }]
+        : []),
+    ];
+
+    if (items.length === 0) {
       return {
         ok: false,
         items: [],
@@ -489,12 +550,6 @@ async function searchViaManagedAgent(
           : `方舟智能体在 ${timeoutMs}ms 内未返回结果（可调大 ARK_AGENT_TIMEOUT_MS，或该问题的推理耗时较长）`,
       };
     }
-
-    // 多轮检索时中途也会有 agent.message，最终答复取最后一条
-    const finalText = answers[answers.length - 1];
-    const items: KnowledgeItem[] = [
-      { type: '知识库回答', title: query, content: finalText.slice(0, 2000), source: 'ark-agent' },
-    ];
 
     const notices: string[] = [];
     if (toolError) {
@@ -506,8 +561,12 @@ async function searchViaManagedAgent(
     if (!idle) {
       notices.push(
         `注意：方舟智能体在 ${timeoutMs}ms 内未结束（返回的是阶段性回答，可能不完整）；` +
+          `已尽量返回检索到的知识库原文${kbChunks.length ? `（${kbChunks.length} 条切片）` : ''}；` +
           '可在 .env.local 调大 ARK_AGENT_TIMEOUT_MS'
       );
+    }
+    if (rateLimited) {
+      notices.push('注意：方舟知识库检索触发了限流，本次结果可能不全；可稍后重试，或改用直连知识库（KB_API_KEY）绕开该限制');
     }
 
     return { ok: true, items, ...(notices.length ? { notice: notices.join(' ') } : {}) };
@@ -607,7 +666,7 @@ async function searchViaKnowledgeApi(query: string, limit: number): Promise<ArkS
       ok: true,
       items: list.slice(0, limit).map((p: any) => ({
         type: '火山知识库',
-        id: String(p?.point_id ?? p?.chunk_id ?? '') || undefined,
+        id: String(p?.id ?? p?.point_id ?? p?.chunk_id ?? '') || undefined,
         title: String(p?.chunk_title ?? p?.doc_info?.doc_name ?? query).slice(0, 200),
         content: String(p?.content ?? '').slice(0, 800),
         source: 'ark-kb',

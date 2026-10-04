@@ -233,6 +233,33 @@ npm run kb:doctor "王小明"    # 指定检索词
 npm run test:kb-api          # 本地 mock 验证接线（不需要真实 key）
 ```
 
+#### 托管智能体会话（`ARK_SESSION_ID`）怎么调
+
+```bash
+# 1) 看某个会话已有的事件（可用来确认上一次问答/检索到底干了什么）
+curl -H "Authorization: Bearer $ARK_API_KEY" \
+  https://ark.cn-beijing.volces.com/api/v3/sessions/sesn-xxxx/events
+
+# 2) 往会话里提问（我们的实现就是这么做的）
+#    POST 同一地址，body: { "events":[{"type":"user.message","content":[{"type":"text","text":"问题"}]}] }
+#    然后每 3 秒 GET 一次，直到出现 session.status_idle
+```
+
+事件流里值得注意的两类（实测 `sesn-20261004055646-hqst3`）：
+
+- `agent.tool_result`：**知识库 Skill 的检索结果**，里面就是 `search_knowledge` 的响应体
+  （`{"ok":true,"data":{"result_list":[{"id":"...","content":"档案编号：WLJ-2024-0001 … 儿童姓名：王小明"}]}}`）。
+  本项目现在会把它解析出来，作为 `source=ark-kb` 的**原文切片**一起交给模型 —— 所以即使不配 `KB_API_KEY`，
+  模型也能引用知识库原文，而不是只看到一段生成好的回答。
+- `agent.thinking` / `agent.message`：推理过程与最终回答（多轮时最终答复取最后一条）。
+
+两个实测过的坑：
+
+1. **显式 `ARK_SESSION_ID` 现在优先**。以前只要配了 `ARK_ENVIRONMENT_ID + ARK_VAULT_ID` 就会自动新建临时会话，
+   把你指定的 session 悄悄忽略掉；现在「显式配置 > 自动新建」，想强制每次新建就不要再设 `ARK_SESSION_ID`。
+2. **它慢，而且会限流**：一次简单问答 ~10–20s，复杂问题实测 **113s 直接撞超时**，且日志里会出现「检索触发了限流」。
+   撞超时时我们仍会把已抓到的原文切片返回（`ok:true`），并附 `notice` 说明回答不完整。想稳定快，就配 `KB_API_KEY` 走直连。
+
 > 该服务上还有 `collection/search_and_generate`（检索+生成带依据的回答）、`service/rerank`、
 > `chat/completions`，以及 `doc/add`、`point/add`、`collection/create` 等**写入类**接口——
 > 也就是说，以后可以把平台「📚 知识库」上传的资料**同步进火山知识库**（当前未实现，留作后续）。

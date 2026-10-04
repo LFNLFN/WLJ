@@ -34,6 +34,10 @@
     ② 官方 SDK 的 AK/SK V4 签名（service 名为 `"air"`）。
     验证：`npm run kb:doctor`（ping → collection/list → search_knowledge 三步实测）、`npm run test:kb-api`（本地 mock 测接线）
   - 方式一（兜底）`ARK_AGENT_ID` + `ARK_ENVIRONMENT_ID` + `ARK_VAULT_ID`：方舟「托管智能体 (Managed Agents)」。
+    会话来源：**显式 `ARK_SESSION_ID` 优先**（沿用该会话上下文）；没设才用 environment+vault 自动新建临时会话、用完即删。
+    事件解析：`agent.message` 取最终回答；`agent.tool_result` 里是知识库 Skill 的 `search_knowledge` 响应体
+    （`{"data":{"result_list":[{"id","content"}]}}`），会被解析成 `source=ark-kb` 的**原文切片**一起返回；
+    `agent.thinking` 里出现「限流」时会写进 `notice`。超时但有切片时仍返回 `ok:true` + 不完整提示。
     知识库以 Skill（`viking-knowledge-search`）挂在智能体上：`POST /sessions/{id}/events` 发问题 →
     轮询 `GET /sessions/{id}/events` 取 `agent.message`。每次检索新建干净会话（绑定 vault 里的 Viking 凭证）并删除，
     也可用 `ARK_SESSION_ID` 复用固定会话。⚠️ 它返回的是**生成好的回答**且**慢**（实测 10~56 秒）
