@@ -485,6 +485,19 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
    「小米最近一次评估结果」的正例示范。
    → 托管智能体提示词已推送 **v7 → v8**（备份在 `.ark-backup/agent-7-*.json`，回退：`git` 回滚本文件后再 push）。
 
+### 数据库抖动时，助理会把"系统故障"说成「没有数据 / 请向管理员申请权限」？
+
+线上数据库一直有"TCP 通、PG 会话建不起来"的抖动（见下方《排障：登录报 `read ECONNRESET`》）。
+工具一失败，原来回给模型的 tool 消息只有一个 `{"ok":false,"error":"Connection terminated due to connection timeout"}`，
+模型很容易把它理解成"这份资料不存在 / 我没有权限"，于是回："系统里没有这名学生的评估记录，建议联系主课老师"、
+"请向管理员申请相应的数据访问权限" —— 用户看到的正是这些推责话术。
+
+修法（`src/lib/agent/tool-message.ts`）：工具失败时在 tool 消息里显式补一条 `hint` ——
+**"这是系统/数据库侧故障，不代表没有数据，也不代表权限问题；必须如实说明'系统暂时查不了、请稍后重试'，
+不许用'没有权限 / 请向管理员申请权限 / 联系 XX 老师 / 系统里没有这个学生'顶替"**；
+`/api/chat` 的 `SYSTEM_PROMPT` 也加了同义的第 4 条。
+回归测试：`npm run test:agent-tools` 的「6b. 工具失败时的 tool 消息」两条断言（成功时不加提示）。
+
 ## 创建管理员账号
 
 三种方式，任选其一：

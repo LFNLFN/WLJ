@@ -11,6 +11,7 @@ import path from 'path';
 import fs from 'fs';
 import { listToolSchemas, TOOL_DEFINITIONS } from '../src/lib/agent/registry';
 import { executeTool } from '../src/lib/agent/execute';
+import { toolResultPayload } from '../src/lib/agent/tool-message';
 
 // --- 载入 .env.local（不覆盖已存在的环境变量）---
 function loadEnvLocal() {
@@ -224,6 +225,26 @@ async function run() {
   } else {
     check('lesson_plans 表可用', Array.isArray((missingTable.result as any).items));
   }
+
+  console.log('\n== 6b. 工具失败时的 tool 消息 ==');
+  // 线上数据库抖动时，工具报错原来会被模型说成"系统里没有这名学生""请向管理员申请权限"（实测），
+  // 所以失败时要在 tool 消息里明确"这是系统故障，不是没有数据/没有权限"。
+  const failPayload = JSON.parse(
+    toolResultPayload({ ok: false, name: 'query_database', error: 'Connection terminated due to connection timeout', elapsedMs: 10002 })
+  );
+  check(
+    '工具失败：tool 消息带"系统故障、不是没数据/没权限"的提示',
+    failPayload.ok === false &&
+      /系统\/数据库侧故障|系统故障/.test(failPayload.hint) &&
+      failPayload.hint.includes('不要') &&
+      failPayload.hint.includes('权限') &&
+      failPayload.error.includes('Connection terminated'),
+    failPayload
+  );
+  const okPayload = JSON.parse(
+    toolResultPayload({ ok: true, name: 'query_database', result: { ok: true, total: 1 }, elapsedMs: 12 })
+  );
+  check('工具成功：tool 消息就是原样的工具结果（不加提示）', okPayload.total === 1 && okPayload.hint === undefined, okPayload);
 
   console.log('\n== 7. search_knowledge_base ==');
   const kb = await executeTool('search_knowledge_base', { query: '感觉统合' });
