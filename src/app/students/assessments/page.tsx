@@ -95,24 +95,32 @@ export default function StudentAssessmentsPage() {
     }
 
     const loadData = async () => {
-      try {
-        const [studentData, recordsData] = await Promise.all([
-          getStudent(sid),
-          getStudentScaleRecords(),
-        ]);
-        setStudent(studentData);
+      // 用 allSettled：学生信息 / 评估记录 任一失败，都不会连累另一个的展示。
+      const [studentRes, recordsRes] = await Promise.allSettled([
+        getStudent(sid),
+        getStudentScaleRecords(),
+      ]);
 
-        const studentRecords = (recordsData || []).filter(
+      if (studentRes.status === 'fulfilled') {
+        setStudent(studentRes.value);
+      } else {
+        console.warn('学生信息加载失败:', studentRes.reason?.message || studentRes.reason);
+      }
+
+      let studentRecords: any[] = [];
+      if (recordsRes.status === 'fulfilled') {
+        studentRecords = (recordsRes.value || []).filter(
           (r: any) => (r.studentId === sid || r._id === sid)
         );
-        setAllRecords(studentRecords);
-
-        if (studentRecords.length > 0) {
-          setSelectedScaleId(studentRecords[0]._id || studentRecords[0].id);
-        }
-      } catch (err) {
-        console.error('加载失败:', err);
+      } else {
+        console.warn('评估记录加载失败:', recordsRes.reason?.message || recordsRes.reason);
       }
+      setAllRecords(studentRecords);
+
+      if (studentRecords.length > 0) {
+        setSelectedScaleId(studentRecords[0]._id || studentRecords[0].id);
+      }
+
       setLoading(false);
     };
 

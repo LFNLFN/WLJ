@@ -8,6 +8,18 @@ import Table from '@/components/Table';
 import { getStudents, getCourses, getTrainingPlans, getLessonPlans, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
+/**
+ * 把「可能失败的接口」变成「永不 reject」：失败时退化为 fallback 值。
+ *
+ * 这样 Promise.all 里任何一个模块（课程 / 训练计划 / 教案）挂掉，
+ * 都不会让 .then 不执行 —— 学生列表照常渲染。
+ */
+const safe = <T,>(p: Promise<T>, label: string, fallback: T): Promise<T> =>
+  p.catch((err) => {
+    console.warn(`${label}加载失败，已降级处理：`, err?.message || err);
+    return fallback;
+  });
+
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<any[]>([]);
@@ -16,17 +28,20 @@ export default function StudentsPage() {
   const [lessonPlans, setLessonPlans] = useState<any[]>([]);
 
   const loadData = () => {
+    // ⚠️ 每个请求都用 safe() 包一层：任何接口 500（例如 training_plans /
+    // lesson_plans 表不存在）都只让该项降级成空数组，不能让 Promise.all reject。
+    // 原先裸用 Promise.all：一个 reject → .then 永不执行 → 学生列表恒为空。
     Promise.all([
-      getStudents(),
-      getCourses(),
-      getTrainingPlans(),
-      getLessonPlans()
+      safe(getStudents(), '学生列表', []),
+      safe(getCourses(), '课程', []),
+      safe(getTrainingPlans(), '训练计划', []),
+      safe(getLessonPlans(), '教案', []),
     ]).then(([studentsData, coursesData, plansData, lessonData]) => {
-      setStudents(studentsData);
-      setCourses(coursesData);
-      setTrainingPlans(plansData);
-      setLessonPlans(lessonData);
-    }).catch(err => console.error('加载失败:', err));
+      setStudents(studentsData || []);
+      setCourses(coursesData || []);
+      setTrainingPlans(plansData || []);
+      setLessonPlans(lessonData || []);
+    });
   };
 
   useEffect(() => { loadData(); }, []);
