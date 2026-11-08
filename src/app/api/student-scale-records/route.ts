@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHandlers, getDb, generateId, parseRow, parseRows, prepareSaveData } from '@/lib/api/crud';
+import {
+  RAWREPORTID_UNIQUE_INDEX_SQL,
+  findStudentScaleRecordByRawReportId,
+  isUniqueViolation,
+  normalizeRawReportId,
+} from '@/lib/api/scale-records';
 import { getSessionFromRequest } from '@/lib/auth/current';
 
 // 确保表结构存在（不删除已有数据）
@@ -60,6 +66,15 @@ async function ensureTable() {
         // PostgreSQL 9.6 以下不支持 IF NOT EXISTS，静默忽略
         if (!e.message?.includes('already exists')) throw e;
       }
+    }
+    // 3. rawreportid 唯一索引：同一条小程序报告（rawreportid）只允许入库一次，
+    //    用户连点 / 网络重试 / 批量重同步并发时由数据库兜底。
+    //    若表里已存在历史重复数据，这里会失败（下次请求还会重试）——用
+    //    `node scripts/dedupe-scale-records.js --apply` 清理后即可成功。
+    try {
+      await db.query(RAWREPORTID_UNIQUE_INDEX_SQL);
+    } catch (e: any) {
+      console.warn('创建 rawreportid 唯一索引失败（可能已存在重复数据）:', e.message);
     }
   } catch(e: any) {
     console.error('初始化 student_scale_records 表失败:', e.message);
@@ -138,14 +153,46 @@ export async function POST(req: NextRequest) {
     data.reviewStatus = 'pending';
     if (!data.status) data.status = 'completed';
 
+    // ===== 去重：同一条小程序报告（rawreportid）只入库一次 =====
+    // 网络重试 / 连点 / 批量重同步都会把同一条报告再发一次，
+    // 命中已存在的记录时直接返回它（200 + duplicate），不再插入新行。
+    const rawreportid = normalizeRawReportId(data.rawreportid);
+    data.rawreportid = rawreportid;
+    if (rawreportid) {
+      const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
+      if (existing) {
+        // 只回 id，不回整条记录：POST 免登录，避免用别人的 rawreportid 探测报告内容
+        return NextResponse.json(
+          { id: existing.id, duplicate: true, message: '该报告已提交过，已忽略重复提交' },
+          { status: 200 }
+        );
+      }
+    }
+
     const id = data.id || generateId();
     const columns = Object.keys(data).filter((k) => k !== 'id' && k !== '_id');
     const cols = columns.map((c) => `"${c}"`).join(',');
     const vals = columns.map((_, i) => `$${i + 2}`).join(',');
-    const result = await db.query(
-      `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
-      [id, ...columns.map((k) => data[k])]
-    );
+    let result;
+    try {
+      result = await db.query(
+        `INSERT INTO student_scale_records (id, ${cols}) VALUES ($1, ${vals}) RETURNING *`,
+        [id, ...columns.map((k) => data[k])]
+      );
+    } catch (err: any) {
+      // 并发兜底：两个请求同时通过了上面的查询，唯一索引会让后到的插入失败，
+      // 此时同样返回已存在的那条记录（不报 500、不产生重复行）。
+      if (isUniqueViolation(err) && rawreportid) {
+        const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
+        if (existing) {
+          return NextResponse.json(
+            { id: existing.id, duplicate: true, message: '该报告已提交过，已忽略重复提交' },
+            { status: 200 }
+          );
+        }
+      }
+      throw err;
+    }
     return NextResponse.json(parseRow(result.rows[0]), { status: 201 });
   } catch (err: any) {
     console.error('保存评估记录失败:', err.message);

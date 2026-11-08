@@ -163,6 +163,38 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > `/api/student-scale-records` 仍留在 middleware 白名单里（家长免登录提交），
 > 因此具体的读写权限是在各 route 内部按身份判定的，改动这些接口时请保留这套判定。
 
+#### 重复提交 / 重复报告（rawreportid 去重）
+
+小程序提交时会把报告自己的 id 作为 `rawreportid` 一起发上来。用户连点、手机超时重试、
+`/api/weapp-sync` 重复同步，都会让同一条报告被 POST 多次；每次插入都会生成新主键，
+数据库里就会出现「多张一模一样的报告」。
+
+现在两条写入路径（`POST /api/student-scale-records`、`POST /api/weapp-sync`）都会按
+`rawreportid` 做**幂等**：
+
+- 命中已存在的 `rawreportid` → **不再插入**，直接返回 `200 { id, duplicate: true }`
+  （只回 id，不回整条记录，避免免登录的 POST 被用来探测别人的报告内容）；
+- 并发情况下由唯一索引兜底，后到的插入触发 `23505` 后同样返回已有记录；
+- `rawreportid` 为空时不去重（兼容没有报告 id 的调用方）。
+
+```bash
+psql> CREATE UNIQUE INDEX idx_student_scale_records_rawreportid
+        ON student_scale_records (rawreportid)
+        WHERE rawreportid IS NOT NULL AND rawreportid <> '';
+```
+
+索引由接口 `ensureTable()` 自动建（幂等）。若表里**已有**历史重复数据，自动建索引会失败（只打警告），
+先跑清理脚本再建：
+
+```bash
+npm run records:dedupe            # 体检：列出重复的 rawreportid
+npm run records:dedupe -- --apply # 每组保留最早一条，其余删除 + 建唯一索引
+```
+
+小程序端配套：首页「生成评估报告」在保存失败重试时**沿用同一个报告 id**
+（`pendingReportId`），所以「第一次其实已入库、手机端超时」的重试会被服务端识别为重复；
+改动答案后换新 id（那是一份新报告）。
+
 ### 界面上怎么看批阅结果
 
 - **PC 后台**「量表评估记录」页（`/scales/records`）：新增「批阅状态」「批阅人（含批阅时间）」「批阅意见」三列，

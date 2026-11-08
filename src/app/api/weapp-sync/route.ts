@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, generateId } from '@/lib/api/crud';
+import {
+  RAWREPORTID_UNIQUE_INDEX_SQL,
+  findStudentScaleRecordByRawReportId,
+  isUniqueViolation,
+  normalizeRawReportId,
+} from '@/lib/api/scale-records';
 
 // ==================== 量表定义（与小程序一致） ====================
 
@@ -142,6 +148,14 @@ async function saveRecord(record: any) {
     + "updatedat TEXT DEFAULT to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
     + ")");
 
+  // ===== 去重：同一份报告（rawReportId）只入库一次 =====
+  // 同一个 id 再次同步（重复调用接口 / 客户端重试）时直接复用已有记录。
+  const rawreportid = normalizeRawReportId(record.rawReportId);
+  if (rawreportid) {
+    const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
+    if (existing) return { id: existing.id, duplicate: true };
+  }
+
   const id = generateId();
   const now = new Date().toISOString();
 
@@ -151,7 +165,7 @@ async function saveRecord(record: any) {
     evaluationdate: record.evaluationDate, scores: JSON.stringify(record.scores || []),
     summary: record.summary, recommendations: record.recommendations,
     status: record.status, source: record.source,
-    rawreportid: record.rawReportId, rawdata: record.rawData,
+    rawreportid: rawreportid || '', rawdata: record.rawData,
     age: record.age, grade: record.grade, gender: record.gender,
     createdat: now, updatedat: now,
   };
@@ -164,9 +178,18 @@ async function saveRecord(record: any) {
   const keys = Object.keys(cleanFields);
   const cols = keys.join(',');
   const placeholders = keys.map((_, i) => '$' + (i + 1)).join(',');
-  await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + placeholders + ")", Object.values(cleanFields));
-  
-  return id;
+  try {
+    await db.query("INSERT INTO student_scale_records (" + cols + ") VALUES (" + placeholders + ")", Object.values(cleanFields));
+  } catch (err: any) {
+    // 并发兜底：唯一索引拦下后到的插入，返回已有记录而不是报错
+    if (isUniqueViolation(err) && rawreportid) {
+      const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
+      if (existing) return { id: existing.id, duplicate: true };
+    }
+    throw err;
+  }
+
+  return { id, duplicate: false };
 }
 export async function POST(req: NextRequest) {
   try {
@@ -186,14 +209,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 幂等建 rawreportid 唯一索引：同一条报告只能入库一次（并发由数据库兜底）
+    try {
+      const db = await getDb();
+      await db.query(RAWREPORTID_UNIQUE_INDEX_SQL);
+    } catch (e: any) {
+      console.warn('创建 rawreportid 唯一索引失败（可能已存在重复数据）:', e.message);
+    }
+
     const results: any[] = [];
     const errors: any[] = [];
 
     for (const report of reports) {
       try {
         const record = convertReport(report);
-        const savedId = await saveRecord(record);
-        results.push({ id: report.id, savedId, success: true });
+        const saved = await saveRecord(record);
+        results.push({ id: report.id, savedId: saved.id, success: true, duplicate: !!saved.duplicate });
       } catch (err: any) {
         errors.push({ id: report.id, error: err.message });
       }
