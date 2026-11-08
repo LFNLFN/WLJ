@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, generateId } from '@/lib/api/crud';
 import {
   RAWREPORTID_UNIQUE_INDEX_SQL,
+  ensureStudentForReport,
+  ensureStudentLinkSchema,
   findStudentScaleRecordByRawReportId,
   isUniqueViolation,
   normalizeRawReportId,
@@ -156,11 +158,26 @@ async function saveRecord(record: any) {
     if (existing) return { id: existing.id, duplicate: true };
   }
 
+  // 联动：同步学生档案，并把报告挂到该学生（PC 学生管理 → 查看评估）
+  let studentLink: any = null;
+  try {
+    await ensureStudentLinkSchema(db);
+    studentLink = await ensureStudentForReport(db, {
+      name: record.studentName,
+      userid: record.userId,
+      age: record.age,
+    });
+  } catch (e: any) {
+    console.warn('[学生联动] 同步学生档案失败（不影响报告保存）:', e.message);
+  }
+
   const id = generateId();
   const now = new Date().toISOString();
 
   const fields: Record<string, any> = {
     id, userid: record.userId || '', studentname: record.studentName, scalename: record.scaleName,
+    studentId: studentLink ? studentLink.studentId : '',
+    studentName: studentLink ? studentLink.studentName : record.studentName,
     category: record.category, evaluator: record.evaluator,
     evaluationdate: record.evaluationDate, scores: JSON.stringify(record.scores || []),
     summary: record.summary, recommendations: record.recommendations,

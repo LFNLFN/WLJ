@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHandlers, getDb, generateId, parseRow, parseRows, prepareSaveData } from '@/lib/api/crud';
 import {
   RAWREPORTID_UNIQUE_INDEX_SQL,
+  ensureStudentForReport,
+  ensureStudentLinkSchema,
   findStudentScaleRecordByRawReportId,
   isUniqueViolation,
   normalizeRawReportId,
@@ -76,6 +78,8 @@ async function ensureTable() {
     } catch (e: any) {
       console.warn('创建 rawreportid 唯一索引失败（可能已存在重复数据）:', e.message);
     }
+    // 4. 小程序 → PC 学生管理联动所需字段（进程内只补一次）
+    await ensureStudentLinkSchema(db);
   } catch(e: any) {
     console.error('初始化 student_scale_records 表失败:', e.message);
   }
@@ -96,14 +100,23 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const session = await getSessionFromRequest(req);
 
+    const studentId = searchParams.get('studentId') || searchParams.get('studentid');
+
     if (session) {
       const reviewStatus = searchParams.get('reviewStatus') || searchParams.get('reviewstatus');
       const params: any[] = [];
+      const conditions: string[] = [];
       let sql = 'SELECT * FROM student_scale_records';
       if (reviewStatus) {
         params.push(reviewStatus);
-        sql += ` WHERE "reviewStatus" = $${params.length}`;
+        conditions.push(`"reviewStatus" = $${params.length}`);
       }
+      // 按学生过滤（PC「学生管理 → 查看评估」用）
+      if (studentId) {
+        params.push(studentId);
+        conditions.push(`"studentId" = $${params.length}`);
+      }
+      if (conditions.length > 0) sql += ' WHERE ' + conditions.join(' AND ');
       sql += ' ORDER BY "createdAt" DESC';
       const result = await db.query(sql, params);
       return NextResponse.json(parseRows(result.rows));
@@ -116,10 +129,14 @@ export async function GET(req: NextRequest) {
         { status: 401 }
       );
     }
-    const result = await db.query(
-      'SELECT * FROM student_scale_records WHERE userid = $1 ORDER BY "createdAt" DESC',
-      [userid]
-    );
+    const params: any[] = [userid];
+    let sql = 'SELECT * FROM student_scale_records WHERE userid = $1';
+    if (studentId) {
+      params.push(studentId);
+      sql += ` AND "studentId" = $${params.length}`;
+    }
+    sql += ' ORDER BY "createdAt" DESC';
+    const result = await db.query(sql, params);
     return NextResponse.json(parseRows(result.rows));
   } catch (err: any) {
     console.error('获取评估记录失败:', err.message);
@@ -167,6 +184,24 @@ export async function POST(req: NextRequest) {
           { status: 200 }
         );
       }
+    }
+
+    // ===== 联动：把报告里的学生同步到 PC 学生管理 =====
+    // 同名去重，没有就新建学生档案，并把报告挂到这个学生下面（PC「查看评估」按 studentId 过滤）。
+    // 放在去重判断之后：重复提交直接返回已有记录，不用再动学生档案。
+    // 联动失败不能影响报告提交，所以单独 try/catch。
+    try {
+      const link = await ensureStudentForReport(db, {
+        name: data.studentname || data.studentName,
+        userid,
+        age: data.age,
+      });
+      if (link) {
+        data.studentId = link.studentId;
+        data.studentName = link.studentName;
+      }
+    } catch (e: any) {
+      console.warn('[学生联动] 同步学生档案失败（不影响报告提交）:', e.message);
     }
 
     const id = data.id || generateId();

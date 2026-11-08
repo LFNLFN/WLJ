@@ -195,6 +195,28 @@ npm run records:dedupe -- --apply # 每组保留最早一条，其余删除 + �
 （`pendingReportId`），所以「第一次其实已入库、手机端超时」的重试会被服务端识别为重复；
 改动答案后换新 id（那是一份新报告）。
 
+### 小程序提交 → PC 学生管理 / 查看评估（联动）
+
+小程序家长端提交评估报告时，服务端会**自动把报告里的学生同步到 PC 学生管理**：
+
+- 按姓名找学生档案：同名 + 同设备号 → 同一个孩子；同名 + 后台手工建的学生（没有设备号）→ 认领并补上设备号；
+  同名但已绑定别的设备 → **新建**（宁可多一条档案，也不要把两个孩子的评估数据混在一起；同一家庭用两部手机会出现两个同名学生，可在 PC 端合并）。
+- 姓名为空 / 「未知」的报告不建档。
+- 报告写入 `student_scale_records."studentId"` 关联到该学生，`"studentName"` 同步姓名；
+  PC「学生管理 → 📊 查看评估」按 `studentId` 过滤，直接看到小程序提交的评估结果（维度得分 / 结论 / 康复建议）。
+- 联动失败**不会**阻断报告提交（单独 try/catch，只打日志）。
+- 两条写入路径都生效：`POST /api/student-scale-records`、`POST /api/weapp-sync`。
+- `GET /api/student-scale-records?studentId=xxx` 支持按学生过滤（PC 评估页用的就是这个）。
+
+历史报告（`studentId` 为空）用脚本一次性补齐：
+
+```bash
+npm run records:link-students            # 只体检：会关联多少份、要新建哪些学生
+npm run records:link-students -- --apply # 真正写入（建学生 + 关联报告）
+```
+
+> 设备号是 `students.userid`（小程序本地生成的标识）；表里没有该列时接口会自动 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`。
+
 ### 界面上怎么看批阅结果
 
 - **PC 后台**「量表评估记录」页（`/scales/records`）：新增「批阅状态」「批阅人（含批阅时间）」「批阅意见」三列，

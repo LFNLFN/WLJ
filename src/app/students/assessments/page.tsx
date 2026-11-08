@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudent, getStudentScaleRecords } from '@/lib/api';
+import { getStudent, getStudentScaleRecordsByStudent } from '@/lib/api';
 
 type ScaleScore = {
   fieldId: string;
@@ -98,7 +98,8 @@ export default function StudentAssessmentsPage() {
       // 用 allSettled：学生信息 / 评估记录 任一失败，都不会连累另一个的展示。
       const [studentRes, recordsRes] = await Promise.allSettled([
         getStudent(sid),
-        getStudentScaleRecords(),
+        // 只取该学生的报告（小程序提交时已把报告挂到 studentId 上）
+        getStudentScaleRecordsByStudent(sid),
       ]);
 
       if (studentRes.status === 'fulfilled') {
@@ -110,7 +111,7 @@ export default function StudentAssessmentsPage() {
       let studentRecords: any[] = [];
       if (recordsRes.status === 'fulfilled') {
         studentRecords = (recordsRes.value || []).filter(
-          (r: any) => (r.studentId === sid || r._id === sid)
+          (r: any) => r.studentId === sid
         );
       } else {
         console.warn('评估记录加载失败:', recordsRes.reason?.message || recordsRes.reason);
