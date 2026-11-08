@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
-import { getStudents, getCourses, getTrainingPlans, getLessonPlans, deleteStudent } from '@/lib/api';
+import { getStudents, getCourses, getTrainingPlans, getLessonPlans, getStudentScaleRecords, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 /**
@@ -26,6 +26,8 @@ export default function StudentsPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [trainingPlans, setTrainingPlans] = useState<any[]>([]);
   const [lessonPlans, setLessonPlans] = useState<any[]>([]);
+  // 小程序提交的评估报告（按 studentId 统计每个学生有几份，便于判断哪条学生档案有数据）
+  const [scaleRecords, setScaleRecords] = useState<any[]>([]);
 
   const loadData = () => {
     // ⚠️ 每个请求都用 safe() 包一层：任何接口 500（例如 training_plans /
@@ -36,11 +38,13 @@ export default function StudentsPage() {
       safe(getCourses(), '课程', []),
       safe(getTrainingPlans(), '训练计划', []),
       safe(getLessonPlans(), '教案', []),
-    ]).then(([studentsData, coursesData, plansData, lessonData]) => {
+      safe(getStudentScaleRecords(), '评估报告', []),
+    ]).then(([studentsData, coursesData, plansData, lessonData, recordsData]) => {
       setStudents(studentsData || []);
       setCourses(coursesData || []);
       setTrainingPlans(plansData || []);
       setLessonPlans(lessonData || []);
+      setScaleRecords(recordsData || []);
     });
   };
 
@@ -50,6 +54,12 @@ export default function StudentsPage() {
     if (confirm(`确定要删除学生 "${student.name}" 吗？`)) {
       deleteStudent(student._id).then(loadData).catch(err => alert('删除失败'));
     }
+  };
+
+  // 该学生有几份评估报告（小程序提交的报告已关联 studentId）
+  const getStudentAssessmentCount = (studentId: string) => {
+    if (!studentId) return 0;
+    return scaleRecords.filter((r: any) => r.studentId === studentId).length;
   };
 
   // 查找学生关联的课程
@@ -85,6 +95,22 @@ export default function StudentsPage() {
     },
     { key: 'parentName', label: '家长姓名' },
     { key: 'parentPhone', label: '家长电话' },
+    {
+      key: 'assessments', label: '评估报告',
+      render: (_: any, row: any) => {
+        const count = getStudentAssessmentCount(row._id || row.id);
+        if (count === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <button
+            onClick={() => goToAssessments(row)}
+            className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full whitespace-nowrap hover:bg-blue-100 transition-colors cursor-pointer"
+            title="点击查看该学生的评估报告"
+          >
+            {count} 份
+          </button>
+        );
+      }
+    },
     {
       key: 'courses', label: '关联课程',
       render: (_: any, row: any) => {

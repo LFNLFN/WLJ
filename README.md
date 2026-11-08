@@ -207,6 +207,8 @@ npm run records:dedupe -- --apply # 每组保留最早一条，其余删除 + �
 - 联动失败**不会**阻断报告提交（单独 try/catch，只打日志）。
 - 两条写入路径都生效：`POST /api/student-scale-records`、`POST /api/weapp-sync`。
 - `GET /api/student-scale-records?studentId=xxx` 支持按学生过滤（PC 评估页用的就是这个）。
+- PC「学生管理」列表新增**「评估报告」**列（N 份，点击直接进该学生的评估结果）——
+  重名学生（历史遗留）也能一眼看出哪条档案上有报告。
 
 历史报告（`studentId` 为空）用脚本一次性补齐：
 
