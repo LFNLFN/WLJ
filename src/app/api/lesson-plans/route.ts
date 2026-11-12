@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, parseRows, generateId } from '@/lib/api/crud';
+import { ensureSchema } from '@/lib/api/schema';
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const { searchParams } = new URL(req.url);
     const keyword = searchParams.get('keyword');
@@ -36,6 +38,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const body = await req.json();
     const id = body.id || generateId();

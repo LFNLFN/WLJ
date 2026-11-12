@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHandlers, getDb, generateId, parseRows } from '@/lib/api/crud';
+import { ensureSchema } from '@/lib/api/schema';
 
 const baseHandlers = createHandlers('class_records');
 
 export async function GET(req: NextRequest) {
+  await ensureSchema();
   return baseHandlers.GET(req);
 }
 
 export async function POST(req: NextRequest) {
+  await ensureSchema();
   const url = new URL(req.url);
   const isBatch = url.searchParams.get('batch') === 'true';
 

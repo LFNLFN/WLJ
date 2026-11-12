@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/api/crud';
+import { ensureSchema } from '@/lib/api/schema';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const res = await db.query('SELECT * FROM training_plans WHERE id = $1', [params.id]);
     const row = res.rows[0];
@@ -26,6 +28,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const body = await req.json();
     const title = body.title || '';
@@ -47,6 +50,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const res = await db.query('DELETE FROM training_plans WHERE id = $1', [params.id]);
     if (res.rowCount === 0) return NextResponse.json({ error: '未找到' }, { status: 404 });

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, generateId, parseRows } from '@/lib/api/crud';
+import { ensureSchema } from '@/lib/api/schema';
 
 export async function GET() {
   try {
+    await ensureSchema();
     const db = await getDb();
     const res = await db.query('SELECT * FROM training_plans ORDER BY "updatedAt" DESC');
     const rows = res.rows;
@@ -30,6 +32,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureSchema();
     const db = await getDb();
     const body = await req.json();
     const id = generateId();
