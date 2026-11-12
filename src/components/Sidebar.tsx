@@ -12,6 +12,7 @@ const navItems = [
   { href: '/', label: 'AI 智能助理', icon: '🤖' },
   { href: '/lesson-plans', label: '教案中心', icon: '📖' },
   { href: '/training-plans', label: '训练阶段计划', icon: '📋' },
+  { href: '/scales/records', label: '评估记录', icon: '📏' },
 ];
 
 const adminNavItems = [
@@ -24,15 +25,6 @@ const subNavGroups = [
     icon: '📋',
     items: [
       { href: '/rehabilitation/mental-retardation', label: '智障儿童' },
-    ],
-  },
-  {
-    label: '量表管理',
-    icon: '📏',
-    items: [
-      { href: '/scales', label: '量表模板' },
-      { href: '/scales/records', label: '评估记录' },
-
     ],
   },
 ];
@@ -59,7 +51,6 @@ export default function Sidebar() {
 
   const [expandedGroup, setExpandedGroup] = useState<string | null>(() => {
     if (pathname.startsWith('/rehabilitation')) return '康复档案';
-    if (pathname.startsWith('/scales')) return '量表管理';
     return null;
   });
 
