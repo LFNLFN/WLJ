@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
-import { getStudents, getCourses, getTrainingPlans, getLessonPlans, getStudentScaleRecords, deleteStudent } from '@/lib/api';
+import { getStudents, getCourses, getTrainingPlans, getStudentScaleRecords, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 /**
  * 把「可能失败的接口」变成「永不 reject」：失败时退化为 fallback 值。
  *
- * 这样 Promise.all 里任何一个模块（课程 / 训练计划 / 教案）挂掉，
+ * 这样 Promise.all 里任何一个模块（课程 / 训练计划 / 评估报告）挂掉，
  * 都不会让 .then 不执行 —— 学生列表照常渲染。
  */
 const safe = <T,>(p: Promise<T>, label: string, fallback: T): Promise<T> =>
@@ -25,7 +25,6 @@ export default function StudentsPage() {
   const [students, setStudents] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [trainingPlans, setTrainingPlans] = useState<any[]>([]);
-  const [lessonPlans, setLessonPlans] = useState<any[]>([]);
   // 小程序提交的评估报告（按 studentId 统计每个学生有几份，便于判断哪条学生档案有数据）
   const [scaleRecords, setScaleRecords] = useState<any[]>([]);
 
@@ -37,13 +36,11 @@ export default function StudentsPage() {
       safe(getStudents(), '学生列表', []),
       safe(getCourses(), '课程', []),
       safe(getTrainingPlans(), '训练计划', []),
-      safe(getLessonPlans(), '教案', []),
       safe(getStudentScaleRecords(), '评估报告', []),
-    ]).then(([studentsData, coursesData, plansData, lessonData, recordsData]) => {
+    ]).then(([studentsData, coursesData, plansData, recordsData]) => {
       setStudents(studentsData || []);
       setCourses(coursesData || []);
       setTrainingPlans(plansData || []);
-      setLessonPlans(lessonData || []);
       setScaleRecords(recordsData || []);
     });
   };
@@ -74,14 +71,6 @@ export default function StudentsPage() {
     if (!studentName) return [];
     return trainingPlans.filter((p: any) =>
       p.childName && p.childName.includes(studentName)
-    );
-  };
-
-  // 查找学生关联的教案
-  const getStudentLessonPlans = (studentName: string) => {
-    if (!studentName) return [];
-    return lessonPlans.filter((p: any) =>
-      p.studentName && p.studentName.includes(studentName)
     );
   };
 
@@ -141,10 +130,6 @@ export default function StudentsPage() {
     router.push(`/students/assessments?studentId=${student._id || student.id}`);
   };
 
-  const goToNewAssessment = (student: any) => {
-    router.push(`/scales/records/new?studentId=${student._id || student.id}`);
-  };
-
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -154,7 +139,7 @@ export default function StudentsPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-800">学生管理</h2>
-              <p className="text-gray-500 text-sm mt-1">管理学生信息，查看和录入量表评估</p>
+              <p className="text-gray-500 text-sm mt-1">管理学生信息，查看量表评估结果（评估由小程序提交）</p>
             </div>
             <button
               onClick={() => router.push('/students/new')}
@@ -168,7 +153,7 @@ export default function StudentsPage() {
             <span className="text-sm text-gray-500">共 {students.length} 位学生</span>
             <span className="text-gray-300">|</span>
             <span className="text-sm text-gray-500">
-              点击"查看评估"查看学生所有量表结果，点击"新建评估"快速录入
+              点击“查看评估”查看该学生的全部量表结果；评估由小程序提交后自动同步
             </span>
           </div>
 
@@ -185,12 +170,6 @@ export default function StudentsPage() {
                 hoverColor: 'hover:bg-blue-50',
               },
               {
-                label: '➕ 新建评估',
-                onClick: goToNewAssessment,
-                color: 'text-green-600',
-                hoverColor: 'hover:bg-green-50',
-              },
-              {
                 label: '📋 训练计划',
                 onClick: (row: any) => {
                   const studentPlans = getStudentTrainingPlans(row.name);
@@ -203,20 +182,6 @@ export default function StudentsPage() {
                 },
                 color: 'text-purple-600',
                 hoverColor: 'hover:bg-purple-50',
-              },
-              {
-                label: '📄 教案',
-                onClick: (row: any) => {
-                  const studentLP = getStudentLessonPlans(row.name);
-                  const lpIds = studentLP.map((p: any) => p._id).join(',');
-                  if (lpIds) {
-                    router.push(`/lesson-plans?ids=${lpIds}`);
-                  } else {
-                    router.push(`/lesson-plans`);
-                  }
-                },
-                color: 'text-orange-600',
-                hoverColor: 'hover:bg-orange-50',
               },
             ]}
           />

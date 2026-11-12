@@ -203,15 +203,9 @@ export default function StudentAssessmentsPage() {
                 </h2>
               </div>
               <p className="text-gray-500 text-sm mt-1 ml-9">
-                查看 {student?.name || '该学生'} 的所有量表评估记录
+                查看 {student?.name || '该学生'} 的所有量表评估记录（由小程序提交后同步）
               </p>
             </div>
-            <button
-              onClick={() => router.push(`/scales/records/new?studentId=${studentId}`)}
-              className="px-4 py-2 bg-[#F08020] text-white rounded-lg hover:bg-[#D06010] transition-colors"
-            >
-              ➕ 新建评估
-            </button>
           </div>
 
           {/* 学生信息卡片 */}
@@ -273,13 +267,7 @@ export default function StudentAssessmentsPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
               <p className="text-4xl mb-3">📋</p>
               <p className="text-gray-400 text-lg mb-2">暂无评估记录</p>
-              <p className="text-gray-400 text-sm mb-4">点击"新建评估"为该学生创建量表评估</p>
-              <button
-                onClick={() => router.push(`/scales/records/new?studentId=${studentId}`)}
-                className="px-4 py-2 bg-[#F08020] text-white rounded-lg hover:bg-[#D06010] transition-colors"
-              >
-                ➕ 新建评估
-              </button>
+              <p className="text-gray-400 text-sm">评估由家长或教师在小程序完成提交后，会自动同步到这里</p>
             </div>
           ) : (
             <div className="flex gap-6">

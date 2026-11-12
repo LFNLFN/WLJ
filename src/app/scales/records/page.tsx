@@ -154,14 +154,8 @@ export default function ScaleRecordsPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-800">量表评估记录</h2>
-              <p className="text-gray-500 text-sm mt-1">查看和管理学生的所有量表评估记录</p>
+              <p className="text-gray-500 text-sm mt-1">查看和管理小程序提交的量表评估记录（评估只能在小程序端填写）</p>
             </div>
-            <button
-              onClick={() => router.push('/scales/records/new')}
-              className="px-4 py-2 bg-[#F08020] text-white rounded-lg hover:bg-[#D06010] transition-colors"
-            >
-              ➕ 新建评估
-            </button>
           </div>
 
           {/* 统计卡片 */}
