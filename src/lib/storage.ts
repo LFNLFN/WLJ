@@ -110,33 +110,6 @@ export function deleteClassRecord(id: string): void {
   localStorage.setItem('records', JSON.stringify(records));
 }
 
-// --- 量表模板 APIs ---
-export function getScaleTemplates(): any[] {
-  if (typeof window === 'undefined') return [];
-  const data = localStorage.getItem('scaleTemplates');
-  return data ? JSON.parse(data) : [];
-}
-
-export function getScaleTemplate(id: string): any | undefined {
-  return getScaleTemplates().find(t => t.id === id);
-}
-
-export function saveScaleTemplate(template: any): void {
-  const templates = getScaleTemplates();
-  const idx = templates.findIndex(t => t.id === template.id);
-  if (idx >= 0) {
-    templates[idx] = template;
-  } else {
-    templates.push(template);
-  }
-  localStorage.setItem('scaleTemplates', JSON.stringify(templates));
-}
-
-export function deleteScaleTemplate(id: string): void {
-  const templates = getScaleTemplates().filter(t => t.id !== id);
-  localStorage.setItem('scaleTemplates', JSON.stringify(templates));
-}
-
 // --- 学生量表评估记录 APIs ---
 export function getStudentScaleRecords(): any[] {
   if (typeof window === 'undefined') return [];

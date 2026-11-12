@@ -140,33 +140,6 @@ export async function getStats() {
   return request('/stats');
 }
 
-// ==================== 量表模板 ====================
-
-export async function getScaleTemplates() {
-  return request('/scale-templates');
-}
-
-export async function getScaleTemplate(id: string) {
-  return request(`/scale-templates/${id}`);
-}
-
-export async function saveScaleTemplate(template: any) {
-  if (template.id || template._id) {
-    return request(`/scale-templates/${template.id || template._id}`, {
-      method: 'PUT',
-      body: JSON.stringify(template),
-    });
-  }
-  return request('/scale-templates', {
-    method: 'POST',
-    body: JSON.stringify(template),
-  });
-}
-
-export async function deleteScaleTemplate(id: string) {
-  return request(`/scale-templates/${id}`, { method: 'DELETE' });
-}
-
 // ==================== 学生量表评估记录 ====================
 
 export async function getStudentScaleRecords() {

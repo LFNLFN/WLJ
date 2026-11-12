@@ -46,7 +46,6 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
             'teachers',
             'courses',
             'class_records',
-            'scale_templates',
             'student_scale_records',
             'lesson_plans',
             'training_plans',

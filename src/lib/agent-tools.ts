@@ -255,14 +255,6 @@ async function searchLocalKnowledge(keyword: string, limit: number): Promise<Kno
     source: 'courses',
   }));
 
-  await searchTable('scale_templates', ['name', 'type'], (r) => ({
-    type: '评估量表',
-    id: r.id,
-    title: r.name,
-    content: clip(r.type),
-    source: 'scale_templates',
-  }));
-
   await searchTable('class_records', ['"courseName"', 'content'], (r) => ({
     type: '课堂记录',
     id: r.id,
@@ -1019,7 +1011,6 @@ const DB_ENTITIES = {
   teachers: { table: 'teachers', searchFields: ['name', 'phone'] },
   courses: { table: 'courses', searchFields: ['name', 'subject', 'teacherName'] },
   class_records: { table: 'class_records', searchFields: ['studentNames', 'courseName', 'teacherName', 'content'] },
-  scale_templates: { table: 'scale_templates', searchFields: ['name', 'type'] },
   student_scale_records: { table: 'student_scale_records', searchFields: ['studentName', 'scaleName'] },
   lesson_plans: { table: 'lesson_plans', searchFields: ['title', 'studentName'] },
   training_plans: { table: 'training_plans', searchFields: ['title', 'childName'] },
@@ -1072,7 +1063,6 @@ const ENTITY_ALIASES: Record<string, EntityKey> = {
   teacher: 'teachers',
   course: 'courses',
   class_record: 'class_records',
-  scale_template: 'scale_templates',
   student_scale_record: 'student_scale_records',
   lesson_plan: 'lesson_plans',
   training_plan: 'training_plans',

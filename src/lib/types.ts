@@ -89,26 +89,6 @@ export interface DashboardStats {
 
 // ==================== 量表 ====================
 
-// 量表模板定义
-export interface ScaleTemplate {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  fields: ScaleField[];
-  createdAt: string;
-}
-
-// 量表的评估字段
-export interface ScaleField {
-  id: string;
-  label: string;
-  type: 'score' | 'select' | 'text' | 'date';
-  options?: string[];
-  unit?: string;
-  sortOrder: number;
-}
-
 // 学生量表评估记录
 export interface StudentScaleRecord {
   id: string;

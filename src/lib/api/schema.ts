@@ -87,19 +87,5 @@ async function runMigrations(): Promise<void> {
     }
   }
 
-  // 量表模板：页面/接口使用 category、description，旧表没有这两列
-  const scaleTemplateColumns = [
-    `ALTER TABLE scale_templates ADD COLUMN IF NOT EXISTS category TEXT DEFAULT '其他'`,
-    `ALTER TABLE scale_templates ADD COLUMN IF NOT EXISTS description TEXT DEFAULT ''`,
-  ];
-
-  for (const sql of scaleTemplateColumns) {
-    try {
-      await db.query(sql);
-    } catch (err: any) {
-      console.warn('[schema] scale_templates 补列失败（忽略）:', err?.message);
-    }
-  }
-
-  console.log('[schema] training_plans / lesson_plans / class_records / courses / scale_templates 结构已就绪');
+  console.log('[schema] training_plans / lesson_plans / class_records / courses 结构已就绪');
 }

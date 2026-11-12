@@ -4,25 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudentScaleRecord, saveStudentScaleRecord, getStudents, getScaleTemplates } from '@/lib/api';
-
-type ScaleField = {
-  id: string;
-  label: string;
-  type: 'score' | 'select' | 'text' | 'date';
-  options?: string[];
-  unit?: string;
-  sortOrder: number;
-};
-
-type ScaleTemplate = {
-  _id: string;
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  fields: ScaleField[];
-};
+import { getStudentScaleRecord, saveStudentScaleRecord } from '@/lib/api';
 
 type ScoreValue = {
   fieldId: string;
@@ -36,8 +18,6 @@ function EditForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [loading, setLoading] = useState(true);
-  const [templates, setTemplates] = useState<ScaleTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<ScaleTemplate | null>(null);
 
   const [form, setForm] = useState({
     studentId: '',
@@ -81,13 +61,6 @@ function EditForm() {
             setRawData(raw);
           }
         }
-
-        const tmpls = await getScaleTemplates();
-        setTemplates(tmpls);
-        if (record?.scaleTemplateId) {
-          const tmpl = tmpls.find((t: any) => (t._id || t.id) === record.scaleTemplateId);
-          if (tmpl) setSelectedTemplate(tmpl);
-        }
       } catch (err) {
         console.error('加载失败:', err);
       }
@@ -96,10 +69,6 @@ function EditForm() {
 
     loadData();
   }, [id]);
-
-  const updateScore = (fieldId: string, value: string | number) => {
-    setScores(prev => prev.map(s => (s.fieldId === fieldId ? { ...s, value } : s)));
-  };
 
   // 渲染题目详情（支持 allResults / results / itemScores 等多种格式）
   const renderQuestions = (raw: any) => {
@@ -298,44 +267,6 @@ function EditForm() {
           </div>
         </div>
       </div>
-
-      {/* 评估分数 */}
-      {selectedTemplate && scores.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">评估维度</h3>
-          <div className="space-y-4">
-            {scores.map((score, idx) => {
-              const field = selectedTemplate.fields?.find(f => f.id === score.fieldId);
-              return (
-                <div key={score.fieldId} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-400 w-6">{idx + 1}.</span>
-                  <span className="text-sm font-medium text-gray-700 w-36">{score.fieldLabel}</span>
-                  <div className="flex-1">
-                    {field?.type === 'select' && field.options ? (
-                      <select value={score.value as string}
-                        onChange={e => updateScore(score.fieldId, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent text-sm">
-                        {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                    ) : field?.type === 'score' ? (
-                      <div className="flex items-center gap-2">
-                        <input type="number" value={score.value as number}
-                          onChange={e => updateScore(score.fieldId, Number(e.target.value))}
-                          className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent text-sm" />
-                        {field.unit && <span className="text-sm text-gray-500">{field.unit}</span>}
-                      </div>
-                    ) : (
-                      <input type="text" value={score.value as string}
-                        onChange={e => updateScore(score.fieldId, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent text-sm" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* 答题详情（来自小程序 rawData） */}
       {rawData && (
