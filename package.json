@@ -22,7 +22,8 @@
     "session:watch": "node scripts/session-watch.js",
     "deploy:verify": "node scripts/deploy-verify.js",
     "test:kb-api": "tsc scripts/test-kb-api.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-api.js",
-    "test:kb-search": "tsc scripts/test-kb-search.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-search.js"
+    "test:kb-search": "tsc scripts/test-kb-search.ts --outDir .agent-test-build --module commonjs --target es2020 --moduleResolution node --esModuleInterop --skipLibCheck --resolveJsonModule && node .agent-test-build/scripts/test-kb-search.js",
+    "bank:sync": "node scripts/generate-scale-question-bank.js"
   },
   "dependencies": {
     "@volcengine/ark": "^1.0.4",

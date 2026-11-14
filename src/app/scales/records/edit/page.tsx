@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { getStudentScaleRecord, saveStudentScaleRecord } from '@/lib/api';
+import { buildReviewRows, formatAnswer, formatOption } from '@/lib/scale-question-bank';
 
 type ScoreValue = {
   fieldId: string;
@@ -70,135 +71,99 @@ function EditForm() {
     loadData();
   }, [id]);
 
-  // 渲染题目详情（支持 allResults / results / itemScores 等多种格式）
+  // 渲染题目详情：题目原文 + 全部选项（标记-文字），选中项高亮
   const renderQuestions = (raw: any) => {
-    // 收集所有题目数据
-    let items: any[] = [];
+    const { rows, dimensionResults } = buildReviewRows(raw);
 
-    if (raw.allResults && Array.isArray(raw.allResults)) {
-      // 注意力等量表的逐题结果
-      items = raw.allResults.map((r: any, idx: number) => ({
-        index: idx + 1,
-        question: r.text || r.shortText || '',
-        answer: r.answer || '',
-        label: r.label || '',
-        score: r.score,
-      }));
-    } else if (raw.results && Array.isArray(raw.results)) {
-      // 感统评估的结果（按维度分组）
-      if (raw.results.length > 0 && raw.results[0].factorName) {
-        // 新版8维度格式
-        return (
-          <div className="space-y-4">
-            {raw.results.map((r: any, idx: number) => (
-              <div key={idx} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">{r.factorName || '维度' + (idx + 1)}</span>
-                  <span className="text-sm font-bold" style={{ color: (r.avgScore || 0) < 3 ? '#f56c6c' : '#67c23a' }}>
-                    {r.avgScore || 0} 分
-                  </span>
-                </div>
-                {r.level && <p className="text-xs text-gray-500 mt-1">{r.level}</p>}
-                {r.description && <p className="text-xs text-gray-500 mt-1">{r.description}</p>}
+    if (rows.length === 0 && dimensionResults.length > 0) {
+      return (
+        <div className="space-y-4">
+          {dimensionResults.map((r: any, idx: number) => (
+            <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">{r.factorName || '维度' + (idx + 1)}</span>
+                <span className="text-sm font-bold" style={{ color: (r.avgScore || 0) < 3 ? '#f56c6c' : '#67c23a' }}>
+                  {r.avgScore || 0} 分
+                </span>
               </div>
-            ))}
-          </div>
-        );
-      } else {
-        items = raw.results.map((r: any, idx: number) => ({
-          index: idx + 1,
-          question: r.text || r.shortText || r.factorName || '',
-          answer: r.answer || '',
-          label: r.label || r.description || '',
-          score: r.score ?? r.avgScore,
-        }));
-      }
-    } else if (raw.itemScores && Array.isArray(raw.itemScores)) {
-      // TML量表的逐题得分
-      items = raw.itemScores.map((r: any, idx: number) => ({
-        index: r.number || (idx + 1),
-        question: r.text || '',
-        answer: r.score !== null && r.score !== undefined ? String(r.score) : '未答',
-        label: '',
-        score: r.score,
-      }));
-    } else if (raw.part2Answers && typeof raw.part2Answers === 'object') {
-      // MCH-FS 喂养困难问卷
-      const qTexts = [
-        '你觉得你在喂养孩子过程中有困难吗？',
-        '你对孩子的喂养及进食感到担心吗？',
-        '你孩子的食欲如何？',
-        '你孩子每餐从什么时候开始拒绝进食？',
-        '你孩子每餐进食需要多少分钟？',
-        '你孩子进餐时表现如何（哭闹、玩玩具、看电视等）？',
-        '你孩子是否对进食某类食物有恶心、呕吐的现象？',
-        '你孩子是否有嘴中含着食物但不吞咽的现象？',
-        '你孩子在进食时是否需要逗引或追着喂？',
-        '你强迫孩子进食吗？',
-        '你孩子的咀嚼（或吮吸）能力如何？',
-        '你孩子的生长状况如何？',
-        '孩子的进食情况对你和孩子之间关系的影响如何？',
-        '孩子的进食情况对家庭成员之间关系的影响如何？'
-      ];
-      items = Object.entries(raw.part2Answers).map(([key, val]) => {
-        const idx = parseInt(key, 10) - 1;
-        return {
-          index: key,
-          question: qTexts[idx] || '题目' + key,
-          answer: val + '分',
-          label: '',
-          score: parseInt(String(val), 10),
-        };
-      });
-    } else if (raw.answers && typeof raw.answers === 'object') {
-      // 最简格式：只有 answers 对象
-      items = Object.entries(raw.answers).map(([key, val], idx) => ({
-        index: idx + 1,
-        question: '',
-        answer: String(val),
-        label: '',
-        score: null,
-      }));
+              {r.levelText && <p className="text-xs text-gray-500 mt-1">等级：{r.levelText}</p>}
+              {r.description && <p className="text-xs text-gray-500 mt-1">{r.description}</p>}
+            </div>
+          ))}
+        </div>
+      );
     }
 
-    if (items.length === 0) {
+    if (rows.length === 0) {
       return <p className="text-sm text-gray-400">无详细答题数据</p>;
     }
 
     return (
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {items.map((item, idx) => (
-          <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <div className="flex items-start gap-2">
-              <span className="text-xs text-gray-400 font-mono min-w-[1.5rem]">{item.index}.</span>
-              <div className="flex-1 min-w-0">
-                {item.question && (
-                  <p className="text-sm text-gray-700 mb-1">{item.question}</p>
-                )}
-                <div className="flex flex-wrap items-center gap-2">
-                  {item.answer && (
-                    <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700">
-                      回答：{item.answer}
-                    </span>
+      <div className="space-y-2 max-h-[32rem] overflow-y-auto">
+        {rows.map((row) => {
+          const valueList = Array.isArray(row.value) ? row.value.map((v: any) => String(v)) : null;
+          const valueStr = valueList ? '' : String(row.value === undefined || row.value === null ? '' : row.value);
+          const isSelected = (optValue: string) =>
+            valueList ? valueList.indexOf(optValue) >= 0 : valueStr === optValue;
+
+          const selectedOptions = row.options.filter((o) => isSelected(String(o.value)));
+          const selectedText = selectedOptions.length > 0
+            ? selectedOptions.map((o) => formatOption(o)).join('、')
+            : formatAnswer(row.value, row.label);
+
+          return (
+            <div key={row.key} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+              {row.section && <p className="text-[11px] text-gray-400 mb-1">{row.section}</p>}
+              <div className="flex items-start gap-2">
+                <span className="text-xs text-gray-400 font-mono min-w-[1.5rem]">{row.no}.</span>
+                <div className="flex-1 min-w-0">
+                  {row.question && <p className="text-sm text-gray-700 mb-1">{row.question}</p>}
+
+                  {row.options.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1.5 mb-1.5">
+                      {row.options.map((opt) => {
+                        const selected = isSelected(String(opt.value));
+                        return (
+                          <span
+                            key={String(opt.value)}
+                            className={
+                              selected
+                                ? 'text-xs px-2 py-0.5 rounded border border-[#F08020] bg-[#FFF0E0] text-[#C05010] font-medium'
+                                : 'text-xs px-2 py-0.5 rounded border border-gray-200 bg-white text-gray-400'
+                            }
+                          >
+                            {formatOption(opt)}
+                          </span>
+                        );
+                      })}
+                    </div>
                   )}
-                  {item.label && (
-                    <span className="text-xs text-gray-500">{item.label}</span>
-                  )}
-                  {item.score !== null && item.score !== undefined && (
-                    <span className="text-xs px-2 py-0.5 rounded font-medium"
-                      style={{
-                        backgroundColor: (item.score as number) >= 3 ? '#fef0f0' : '#f0f9eb',
-                        color: (item.score as number) >= 3 ? '#f56c6c' : '#67c23a'
-                      }}
-                    >
-                      得分：{item.score}
-                    </span>
-                  )}
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedText && (
+                      <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                        回答：{selectedText}
+                      </span>
+                    )}
+                    {row.score !== null && row.score !== undefined && (
+                      <span
+                        className="text-xs px-2 py-0.5 rounded font-medium"
+                        style={{
+                          backgroundColor: Number(row.score) >= 3 ? '#fef0f0' : '#f0f9eb',
+                          color: Number(row.score) >= 3 ? '#f56c6c' : '#67c23a',
+                        }}
+                      >
+                        得分：{row.score}
+                      </span>
+                    )}
+                  </div>
+
+                  {row.note && <p className="text-xs text-gray-500 mt-1">备注：{row.note}</p>}
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };

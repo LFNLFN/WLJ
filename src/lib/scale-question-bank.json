@@ -1,0 +1,8049 @@
+{
+  "sensory-4-5": {
+    "title": "未来家感觉统合发展评定量表 (4-5.5岁)",
+    "items": {
+      "p1": {
+        "text": "上课姿势不佳，坐不住",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "p2": {
+        "text": "虽然看到了，仍常碰撞桌椅、旁人、柱子、门、墙等",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "p3": {
+        "text": "上幼儿园的仍不会洗手、擦脸、使用筷子吃饭等生活自理能力较弱",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "p4": {
+        "text": "公共场合不敢向外人表达自己的想法，缺乏自信心",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "p5": {
+        "text": "不善于玩积木、组合东西、剪纸等手工动作，不擅于球类项目",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "p6": {
+        "text": "手脚笨拙，容易跌倒",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "v1": {
+        "text": "上课注意力不集中，经常左顾右盼",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v2": {
+        "text": "喜欢旋转或绕圈跑、玩旋转的旋转椅或游乐设施而感不累",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "v3": {
+        "text": "晕车、飞机",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "v4": {
+        "text": "语言理解、语言表达与语言组织能力不理想",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "v5": {
+        "text": "不安地扭动，东西乱扯，听不进劝阻，惩罚无效。喜欢惹人、闹事、恶作剧。",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v6": {
+        "text": "分不清左右方向，鞋子衣服常常穿反",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "t1": {
+        "text": "情绪不稳定，容易受到挫折",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "t2": {
+        "text": "适应新环境慢，害羞、不安",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "t3": {
+        "text": "上课时，有点风吹草动就被吸引过去，注意力比较分散",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "t4": {
+        "text": "喜欢独处，不喜欢和别人游戏中进行身体接触",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "t5": {
+        "text": "怕黑，不喜欢在空屋子里呆着，此处要人陪",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "t6": {
+        "text": "不喜欢剪指甲、洗脸、洗头或洗澡",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      }
+    }
+  },
+  "attention-sensory-3-4": {
+    "title": "未来家感觉统合发展评定量表 (3-4岁)",
+    "items": {
+      "p1": {
+        "text": "上课姿势不佳，坐不住",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "p2": {
+        "text": "虽然看到了，仍常碰撞桌椅、旁人、柱子、门、墙等",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "p3": {
+        "text": "上幼儿园时仍不会洗手、擦脸、使用筷子吃饭等生活自理能力较弱",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "p4": {
+        "text": "公共场合不敢向外人表达自己的想法，缺乏自信心",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "p5": {
+        "text": "不善于玩积木、组合东西、剪纸等手工动作，不擅长球类项目",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "p6": {
+        "text": "手脚笨拙，容易跌倒",
+        "section": "(一) 本体觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "v1": {
+        "text": "上课注意力不集中，经常左顾右盼",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v2": {
+        "text": "喜欢旋转或绕圈跑，玩旋转的秋千或游乐设施而不晕不累",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "v3": {
+        "text": "晕车、飞机",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "v4": {
+        "text": "语言理解、语言表达或语言组织能力不理想",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "v5": {
+        "text": "不安地扭乱动，东摸西扯，不听劝阻，处罚无效。喜欢惹人、捣蛋、恶作剧",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v6": {
+        "text": "分不清左右方向，鞋子衣服常穿反",
+        "section": "(二) 前庭觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "t1": {
+        "text": "情绪不稳定，容易受到挫折",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "t2": {
+        "text": "适应新环境慢，害羞、不安",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "t3": {
+        "text": "上课时，一点风吹草动就被吸引过去，注意力比较分散",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "t4": {
+        "text": "喜欢独处，不喜欢和别人游戏或在游戏中进行身体接触",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "t5": {
+        "text": "怕黑，不喜欢在空屋子里面，处处要人陪",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "t6": {
+        "text": "不喜欢剪指甲、洗脸、洗头或洗澡",
+        "section": "(三) 触觉",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      }
+    }
+  },
+  "attention-eval": {
+    "title": "未来家感觉统合发展评定量表 (5.5-8岁)",
+    "items": {
+      "p1": {
+        "text": "上课姿势不佳，坐不住",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "p2": {
+        "text": "虽然看到了，仍常碰撞桌椅、旁人、柱子、门、墙等",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "p3": {
+        "text": "生活自理能力较弱，不善于手部精细（如剪纸、系鞋带/纽扣等）动作",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "p4": {
+        "text": "公共场合不敢向外人表达自己的想法，缺乏自信心",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "p5": {
+        "text": "不擅于球类（单手连续拍球），以及跳绳",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "p6": {
+        "text": "手脚笨拙，容易碰伤",
+        "section": "(一) 本体觉 (Proprioception)",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "v1": {
+        "text": "上课注意力不集中，经常左顾右盼",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v2": {
+        "text": "喜欢旋转或绕圈跑、玩旋转的旋转椅或游乐设施而感不累",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "v3": {
+        "text": "晕车、飞机",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "v4": {
+        "text": "语言理解、语言表达与语言组织能力不理想",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "v5": {
+        "text": "拼读经常出错，阅读容易出现丢字、添字，写字笔划容易出错",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "v6": {
+        "text": "几何透视图容易数错",
+        "section": "(二) 前庭觉 (Vestibular Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      },
+      "t1": {
+        "text": "情绪不稳定，容易受到挫折",
+        "section": "(三) 触觉 (Tactile Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "常常"
+          }
+        ]
+      },
+      "t2": {
+        "text": "适应新环境慢，害羞、不安",
+        "section": "(三) 触觉 (Tactile Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "t3": {
+        "text": "上课时，有点风吹草动就被吸引过去，注意力比较分散",
+        "section": "(三) 触觉 (Tactile Sense)",
+        "options": [
+          {
+            "value": "A",
+            "label": "从不"
+          },
+          {
+            "value": "B",
+            "label": "很少"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "常常"
+          },
+          {
+            "value": "E",
+            "label": "总是"
+          }
+        ]
+      },
+      "s1": {
+        "text": "喜欢独处，不喜欢和别人游戏中进行身体接触",
+        "section": "(四) 社会适应/其他",
+        "options": [
+          {
+            "value": "A",
+            "label": "很少"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "总是"
+          },
+          {
+            "value": "D",
+            "label": "从不"
+          },
+          {
+            "value": "E",
+            "label": "偶尔"
+          }
+        ]
+      },
+      "s2": {
+        "text": "人际关系不佳",
+        "section": "(四) 社会适应/其他",
+        "options": [
+          {
+            "value": "A",
+            "label": "总是"
+          },
+          {
+            "value": "B",
+            "label": "常常"
+          },
+          {
+            "value": "C",
+            "label": "偶尔"
+          },
+          {
+            "value": "D",
+            "label": "很少"
+          },
+          {
+            "value": "E",
+            "label": "从不"
+          }
+        ]
+      },
+      "s3": {
+        "text": "不喜欢剪指甲、洗脸、洗头或洗澡",
+        "section": "(四) 社会适应/其他",
+        "options": [
+          {
+            "value": "A",
+            "label": "常常"
+          },
+          {
+            "value": "B",
+            "label": "偶尔"
+          },
+          {
+            "value": "C",
+            "label": "从不"
+          },
+          {
+            "value": "D",
+            "label": "总是"
+          },
+          {
+            "value": "E",
+            "label": "很少"
+          }
+        ]
+      }
+    }
+  },
+  "sensory-general": {
+    "title": "感觉统合评估量表",
+    "items": {
+      "q1": {
+        "text": "不喜欢脏的活动",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q2": {
+        "text": "不喜欢有质感、重量、黏度的食物",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q3": {
+        "text": "只吃同样温度的食物",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q4": {
+        "text": "不喜欢毛料或粗糙衣服",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q5": {
+        "text": "起风时紧张冲动",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q6": {
+        "text": "不喜欢剪发修指甲",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q7": {
+        "text": "不喜欢刷牙戴帽",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q8": {
+        "text": "不喜欢游泳洗澡",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q9": {
+        "text": "用笔/剪刀有困难",
+        "section": "一、触觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q10": {
+        "text": "喜欢脏活动",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q11": {
+        "text": "对轻摸没反应",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q12": {
+        "text": "未察觉嘴角食物",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q13": {
+        "text": "对痛无反应",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q14": {
+        "text": "2岁后仍用嘴测试玩具或磨牙",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q15": {
+        "text": "手中老拿着东西",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q16": {
+        "text": "碰撞别人/拍手",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q17": {
+        "text": "不停触摸/咬指甲",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q18": {
+        "text": "喜欢穿紧身衣",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q19": {
+        "text": "喜欢钻小空间",
+        "section": "一、触觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q20": {
+        "text": "怕高",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q21": {
+        "text": "脚离地就紧张",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q22": {
+        "text": "不喜欢旋转/秋千/滑梯",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q23": {
+        "text": "易晕车呕吐",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q24": {
+        "text": "平衡感差/不会单脚跳",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q25": {
+        "text": "动作笨拙不协调",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q26": {
+        "text": "怕摔跤",
+        "section": "二、前庭觉及本体觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q27": {
+        "text": "坐立不安",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q28": {
+        "text": "寻求强烈移动感（跳床翻跟头）",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q29": {
+        "text": "旋转很久不头晕",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q30": {
+        "text": "坐姿不好（爱趴着）",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q31": {
+        "text": "常将头靠在肩上",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q32": {
+        "text": "喜欢激烈大动作游戏",
+        "section": "二、前庭觉及本体觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q33": {
+        "text": "较喜欢黑暗",
+        "section": "三、视觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q34": {
+        "text": "常眨眼",
+        "section": "三、视觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q35": {
+        "text": "避开阳光",
+        "section": "三、视觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q36": {
+        "text": "爱玩开关灯/手电筒",
+        "section": "三、视觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q37": {
+        "text": "看重复动作/翻书",
+        "section": "三、视觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q38": {
+        "text": "在面前玩手指",
+        "section": "三、视觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q39": {
+        "text": "以奇怪角度看物",
+        "section": "三、视觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q40": {
+        "text": "对噪音/摩擦声焦虑捂耳",
+        "section": "四、听觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q41": {
+        "text": "喜欢轻声说话",
+        "section": "四、听觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q42": {
+        "text": "能听见极小声",
+        "section": "四、听觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q43": {
+        "text": "对说话反应小",
+        "section": "四、听觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q44": {
+        "text": "喜欢特定音乐/声音",
+        "section": "四、听觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q45": {
+        "text": "爱发声玩具",
+        "section": "四、听觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q46": {
+        "text": "喜欢夸张语调",
+        "section": "四、听觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q47": {
+        "text": "喜无味食物",
+        "section": "五、味觉及嗅觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q48": {
+        "text": "对香水敏感",
+        "section": "五、味觉及嗅觉 / 不足表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q49": {
+        "text": "喜重口味食物",
+        "section": "五、味觉及嗅觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "q50": {
+        "text": "用嗅觉/口感测试东西",
+        "section": "五、味觉及嗅觉 / 过度表现",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      }
+    }
+  },
+  "autism": {
+    "title": "自闭症儿童心理教育评核（第三版）",
+    "items": {
+      "pb1": {
+        "text": "缺乏或不适当的眼神接触、缺乏面部表情以及缺乏沟通上的身体语言",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb2": {
+        "text": "语言发展迟缓或完全不说话",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb3": {
+        "text": "经常投入在一个或多个重复的兴趣或活动，兴趣异常强烈，或者兴趣过于狭窄",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb4": {
+        "text": "不能如其他同龄孩子一样发展友谊",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb5": {
+        "text": "有适当的言语，但不能主动与人开展对话或与人保持对话",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb6": {
+        "text": "坚持某种或某些重复而没实际功能的常规或仪式",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb7": {
+        "text": "不会自发地与人分享开心的活动、有趣的事物或成功的事件",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb8": {
+        "text": "使用重复或古怪的言语",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb9": {
+        "text": "出现重复的身体活动，例如拍打或摇动手/手指，扭曲身体或作出复杂的身体动作",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb10": {
+        "text": "与人沟通时，不表达自己感受或不回应别人所表达的情绪",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb11": {
+        "text": "其他问题行为",
+        "section": "第一部分：问题行为",
+        "options": [
+          {
+            "value": "A",
+            "label": "A-没有出现"
+          },
+          {
+            "value": "B",
+            "label": "B-轻微/中度"
+          },
+          {
+            "value": "C",
+            "label": "C-严重"
+          }
+        ]
+      },
+      "pb_other": {
+        "text": "其他问题行为（请列出）",
+        "section": "第一部分：问题行为",
+        "options": []
+      },
+      "sc1": {
+        "text": "进餐/小食：能否拿走细小食物，咀嚼然后吞咽？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "不能",
+            "label": "不能"
+          },
+          {
+            "value": "需协助",
+            "label": "需协助"
+          }
+        ]
+      },
+      "sc2": {
+        "text": "进餐/小食：能否一只手拿起杯及饮用时不弄洒？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "不能",
+            "label": "不能"
+          },
+          {
+            "value": "需协助",
+            "label": "需协助"
+          }
+        ]
+      },
+      "sc3": {
+        "text": "进餐：能否以匙羹和叉自行进食？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "不能",
+            "label": "不能"
+          },
+          {
+            "value": "需协助",
+            "label": "需协助"
+          },
+          {
+            "value": "只能用一种工具",
+            "label": "只能用一种工具"
+          }
+        ]
+      },
+      "sc4": {
+        "text": "倒饮品：能否从容器倒进杯内而只有少许弄洒？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "不能",
+            "label": "不能"
+          },
+          {
+            "value": "尝试过",
+            "label": "尝试过"
+          }
+        ]
+      },
+      "sc5": {
+        "text": "洗手脸：饭后能否自行洗手和洗脸？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "不需要协助",
+            "label": "不需要协助"
+          },
+          {
+            "value": "尝试自行",
+            "label": "尝试自行"
+          },
+          {
+            "value": "需要成人协助",
+            "label": "需要成人协助"
+          }
+        ]
+      },
+      "sc6": {
+        "text": "洗澡：能否自行洗澡？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "不需要协助",
+            "label": "不需要协助"
+          },
+          {
+            "value": "尝试自行",
+            "label": "尝试自行"
+          },
+          {
+            "value": "需要成人协助",
+            "label": "需要成人协助"
+          }
+        ]
+      },
+      "sc7": {
+        "text": "刷牙：能否自行刷牙？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "尝试自行",
+            "label": "尝试自行"
+          },
+          {
+            "value": "需要成人协助",
+            "label": "需要成人协助"
+          }
+        ]
+      },
+      "sc8": {
+        "text": "脱衣服：能否自行脱衣服？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "需要很多协助",
+            "label": "需要很多协助"
+          },
+          {
+            "value": "尝试自行",
+            "label": "尝试自行"
+          }
+        ]
+      },
+      "sc9": {
+        "text": "穿衣服：能否自行穿衣（含绑鞋带）？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能自行",
+            "label": "能自行"
+          },
+          {
+            "value": "尝试完成但需协助",
+            "label": "尝试完成但需协助"
+          },
+          {
+            "value": "需很多协助",
+            "label": "需很多协助"
+          }
+        ]
+      },
+      "sc10": {
+        "text": "挑选衣服：能否挑选适合当日天气及活动的衣服？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能独立",
+            "label": "能独立"
+          },
+          {
+            "value": "在协助下能",
+            "label": "在协助下能"
+          },
+          {
+            "value": "未能独立",
+            "label": "未能独立"
+          }
+        ]
+      },
+      "sc11": {
+        "text": "如厕：能否使用厕所如厕？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "无需人协助",
+            "label": "无需人协助"
+          },
+          {
+            "value": "成人协助下能",
+            "label": "成人协助下能"
+          },
+          {
+            "value": "无法独立",
+            "label": "无法独立"
+          }
+        ]
+      },
+      "sc12": {
+        "text": "摆放位置：能否记得玩具/日常用品摆放位置？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "能",
+            "label": "能"
+          },
+          {
+            "value": "曾经",
+            "label": "曾经"
+          },
+          {
+            "value": "未能",
+            "label": "未能"
+          }
+        ]
+      },
+      "sc13": {
+        "text": "睡眠：是否整晚都能安睡？",
+        "section": "第二部分：个人自理",
+        "options": [
+          {
+            "value": "通常",
+            "label": "通常"
+          },
+          {
+            "value": "有时",
+            "label": "有时"
+          },
+          {
+            "value": "很少",
+            "label": "很少"
+          }
+        ]
+      },
+      "sc14": {
+        "text": "其他自理问题",
+        "section": "第二部分：个人自理",
+        "options": []
+      },
+      "ab1": {
+        "text": "转换活动：能否在一天中自发转换活动？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "自发转换",
+            "label": "自发转换"
+          },
+          {
+            "value": "在协助下能",
+            "label": "在协助下能"
+          },
+          {
+            "value": "偶然会尝试",
+            "label": "偶然会尝试"
+          }
+        ]
+      },
+      "ab2": {
+        "text": "眼神接触：望着周围的人？当有人对话时能否望着对方？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "有时",
+            "label": "有时"
+          },
+          {
+            "value": "避开眼神",
+            "label": "避开眼神"
+          }
+        ]
+      },
+      "ab3": {
+        "text": "拥抱回应：被拥抱时的反应？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "正面回应",
+            "label": "正面回应"
+          },
+          {
+            "value": "有时会有正面回应",
+            "label": "有时会有正面回应"
+          },
+          {
+            "value": "负面反应或表现被动",
+            "label": "负面反应或表现被动"
+          }
+        ]
+      },
+      "ab4": {
+        "text": "环境兴趣：对身边发生的事情有兴趣？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "常常观望",
+            "label": "常常观望"
+          },
+          {
+            "value": "有少许兴趣",
+            "label": "有少许兴趣"
+          },
+          {
+            "value": "没有兴趣",
+            "label": "没有兴趣"
+          }
+        ]
+      },
+      "ab5": {
+        "text": "同龄兴趣：能否望着周围的孩子并尝试加入？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "常主动接近",
+            "label": "常主动接近"
+          },
+          {
+            "value": "有时接近",
+            "label": "有时接近"
+          },
+          {
+            "value": "通常独自玩耍",
+            "label": "通常独自玩耍"
+          }
+        ]
+      },
+      "ab6": {
+        "text": "尝试新活动：能否参与新活动？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "毫无犹豫",
+            "label": "毫无犹豫"
+          },
+          {
+            "value": "尝试前犹豫",
+            "label": "尝试前犹豫"
+          },
+          {
+            "value": "不愿尝试",
+            "label": "不愿尝试"
+          }
+        ]
+      },
+      "ab7": {
+        "text": "学习技巧：能否快速学习新技巧？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "快速",
+            "label": "快速"
+          },
+          {
+            "value": "有时能",
+            "label": "有时能"
+          },
+          {
+            "value": "很少学习",
+            "label": "很少学习"
+          }
+        ]
+      },
+      "ab8": {
+        "text": "投入程度：是否投入每天发生的事情？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "全身心投入",
+            "label": "全身心投入"
+          },
+          {
+            "value": "有时投入",
+            "label": "有时投入"
+          },
+          {
+            "value": "很少投入",
+            "label": "很少投入"
+          }
+        ]
+      },
+      "ab9": {
+        "text": "假想游戏：玩玩具时是否有假想情节？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "有时",
+            "label": "有时"
+          },
+          {
+            "value": "没有",
+            "label": "没有"
+          }
+        ]
+      },
+      "ab10": {
+        "text": "避免受伤：能否表现出对危险的常识，避免意外受伤？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "有时",
+            "label": "有时"
+          },
+          {
+            "value": "玩耍时表现得很不小心",
+            "label": "玩耍时表现得很不小心"
+          }
+        ]
+      },
+      "ab11": {
+        "text": "安坐/立正：能否安静地坐定或立正，而没有摇晃、拍打手或其他怪异动作？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "站立时竖直",
+            "label": "站立时竖直"
+          },
+          {
+            "value": "有时站立竖直",
+            "label": "有时站立竖直"
+          },
+          {
+            "value": "在坐立时经常做出怪异动作",
+            "label": "在坐立时经常做出怪异动作"
+          }
+        ]
+      },
+      "ab12": {
+        "text": "成功表现：是否主动请你留意他/她的成功表现？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "经常主动",
+            "label": "经常主动"
+          },
+          {
+            "value": "很少或不经常",
+            "label": "很少或不经常"
+          },
+          {
+            "value": "不会因成功而表现满足",
+            "label": "不会因成功而表现满足"
+          }
+        ]
+      },
+      "ab13": {
+        "text": "与人玩耍：能否与其他孩子一起玩耍？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "会响应",
+            "label": "会响应"
+          },
+          {
+            "value": "对在场孩子没反应",
+            "label": "对在场孩子没反应"
+          },
+          {
+            "value": "会对在场孩子有兴趣",
+            "label": "会对在场孩子有兴趣"
+          }
+        ]
+      },
+      "ab14": {
+        "text": "房间移动：能否不需要协助从一个房间走到另一个房间？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "能独立",
+            "label": "能独立"
+          },
+          {
+            "value": "需要成人协助",
+            "label": "需要成人协助"
+          },
+          {
+            "value": "不常自行走动",
+            "label": "不常自行走动"
+          }
+        ]
+      },
+      "ab15": {
+        "text": "行人路行走：在行人路上行走、街角停顿等？",
+        "section": "第三部分：适应行为",
+        "options": [
+          {
+            "value": "会自行",
+            "label": "会自行"
+          },
+          {
+            "value": "需要协助",
+            "label": "需要协助"
+          },
+          {
+            "value": "不察觉街上所需注意事情",
+            "label": "不察觉街上所需注意事情"
+          }
+        ]
+      },
+      "ab16": {
+        "text": "其他异常表现",
+        "section": "第三部分：适应行为",
+        "options": []
+      }
+    }
+  },
+  "attention": {
+    "title": "未来家6-12岁注意力水平测评体系",
+    "items": {
+      "1": {
+        "text": "做作业时，您喜欢开着电视或听着音乐吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我觉得只有这样做作业才不会枯燥。"
+          },
+          {
+            "value": "B",
+            "label": "不是，我做作业一向很专心，一边看电视，一边做作业会相互干扰。"
+          },
+          {
+            "value": "C",
+            "label": "一般不会，但有时做作业时间长的时候会看看电视。"
+          }
+        ]
+      },
+      "2": {
+        "text": "听别人讲话时，您会常常想着另外一件事吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我会不由自主地想其它一些事情。"
+          },
+          {
+            "value": "B",
+            "label": "我会尽量应付讲话的人。"
+          },
+          {
+            "value": "C",
+            "label": "我不会一心二用，否则可能两件事情都做不好。"
+          }
+        ]
+      },
+      "3": {
+        "text": "您常常在做作业的时候还能耳听八方吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我在做作业时对周围的一切了如指掌。"
+          },
+          {
+            "value": "B",
+            "label": "我做作业时不关心周围的事情。"
+          },
+          {
+            "value": "C",
+            "label": "这种情况不常发生，除非我在抄习题。"
+          }
+        ]
+      },
+      "4": {
+        "text": "做暑假作业时，您花几天的时间就能将所有的作业做完吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，快速做完后，会有更多的时间用来玩。"
+          },
+          {
+            "value": "B",
+            "label": "基本不是，因为这样做会影响做功课的质量。"
+          },
+          {
+            "value": "C",
+            "label": "偶尔，如果有事想出去玩才会这样。"
+          }
+        ]
+      },
+      "5": {
+        "text": "您每次看书的时间有多长？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我一般最长能看一个小时左右。"
+          },
+          {
+            "value": "B",
+            "label": "大多数时候我看一会儿就想玩，坐不住。"
+          },
+          {
+            "value": "C",
+            "label": "我每次看书时间都很长，能坚持住两个小时左右。"
+          }
+        ]
+      },
+      "6": {
+        "text": "您经常在看完一页书后却不知书上讲的是什么吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我很难集中注意力。"
+          },
+          {
+            "value": "B",
+            "label": "我只能记住一点。"
+          },
+          {
+            "value": "C",
+            "label": "我看完书后，能记住书上所讲的内容。"
+          }
+        ]
+      },
+      "7": {
+        "text": "做试卷时，您会经常漏掉题目吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我很粗心，做题有点心不在焉。"
+          },
+          {
+            "value": "B",
+            "label": "不会，我做任何事情都很认真。"
+          },
+          {
+            "value": "C",
+            "label": "我几乎每次都要漏掉点什么。"
+          }
+        ]
+      },
+      "8": {
+        "text": "上课时，您是否经常想起昨天发生的事情？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我很容易想起昨天开心的事情。"
+          },
+          {
+            "value": "B",
+            "label": "上课的时候，我会跟着老师的节拍走。"
+          },
+          {
+            "value": "C",
+            "label": "当上课不紧张时，我会开一会儿小差。"
+          }
+        ]
+      },
+      "9": {
+        "text": "妈妈叫您拿碗筷，您却常常会拿错其他的东西吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "当我在看喜欢的动画片时会。"
+          },
+          {
+            "value": "B",
+            "label": "一般不会，我一向做事很准确。"
+          },
+          {
+            "value": "C",
+            "label": "是的，我会经常拿错东西。"
+          }
+        ]
+      },
+      "10": {
+        "text": "您放的东西经常会找不着吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我放的东西有条有理，除非别人挪动了位置。"
+          },
+          {
+            "value": "B",
+            "label": "我经常会乱放东西。"
+          },
+          {
+            "value": "C",
+            "label": "我常常找不到橡皮、尺子等小东西。"
+          }
+        ]
+      },
+      "11": {
+        "text": "上课时如果外面下雨，您会分心吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我会听一会儿雨声，然后再继续上课。"
+          },
+          {
+            "value": "B",
+            "label": "上课时外面的雨声不会让我分心。"
+          },
+          {
+            "value": "C",
+            "label": "是的，我会被雨声吸引。"
+          }
+        ]
+      },
+      "12": {
+        "text": "心里一有事，您就会在上课时坐不住吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，我常常会念念不忘心里的事。"
+          },
+          {
+            "value": "B",
+            "label": "我会将不愉快的事情放在一边。"
+          },
+          {
+            "value": "C",
+            "label": "我会在不影响上课的前提下想想心事。"
+          }
+        ]
+      },
+      "13": {
+        "text": "班上来了新老师，您会将注意力放在老师的穿着上吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我会花点时间想想新老师的事情。"
+          },
+          {
+            "value": "B",
+            "label": "我会像原来一样认真听课。"
+          },
+          {
+            "value": "C",
+            "label": "我会好奇地一直打量着新老师。"
+          }
+        ]
+      },
+      "14": {
+        "text": "当家里来了客人，您会取消做作业的计划吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "我会和客人聊一会儿再做作业。"
+          },
+          {
+            "value": "B",
+            "label": "是的，正好有理由热闹热闹。"
+          },
+          {
+            "value": "C",
+            "label": "不会，我会按照自己的计划做作业。"
+          }
+        ]
+      },
+      "15": {
+        "text": "一旦身体不舒服，您会请假不上学吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "如果不上新课的话我就请假。"
+          },
+          {
+            "value": "B",
+            "label": "正好有理由不去上课。"
+          },
+          {
+            "value": "C",
+            "label": "我不会因为小病而影响上课。"
+          }
+        ]
+      }
+    }
+  },
+  "attention-4-6": {
+    "title": "未来家儿童注意力水平测评体系 (4-6岁)",
+    "items": {
+      "1": {
+        "text": "难以在任务中保持注意力集中，三心二意，通过分心来降低或者逃避任务枯燥。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子是这样的，可能这种样子认为不会太枯燥吧。"
+          },
+          {
+            "value": "B",
+            "label": "孩子从不这样，做事很专心。"
+          },
+          {
+            "value": "C",
+            "label": "与他说话时，常常心不在焉，似听非听。"
+          }
+        ]
+      },
+      "2": {
+        "text": "与他说话时，常常心不在焉，似听非听。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子偶尔会这样。"
+          },
+          {
+            "value": "B",
+            "label": "孩子不会不由自主地这样。"
+          },
+          {
+            "value": "C",
+            "label": "孩子几乎不会这样。"
+          }
+        ]
+      },
+      "3": {
+        "text": "容易分心，听见任何声音都要去探望。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子是这样的。"
+          },
+          {
+            "value": "B",
+            "label": "孩子几乎不会这样，做事很耐心地关心周围事情。"
+          },
+          {
+            "value": "C",
+            "label": "孩子偶尔会这样，比如无聊或者枯燥的时候。"
+          }
+        ]
+      },
+      "4": {
+        "text": "完成任务急于求成，不顾质量，以便空余更多的时间玩耍。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，快速做完后，会有更多的时间用来玩。"
+          },
+          {
+            "value": "B",
+            "label": "基本不是，因为这样做会影响做任务的质量。"
+          },
+          {
+            "value": "C",
+            "label": "偶尔，如果有事想出去玩才会这样。"
+          }
+        ]
+      },
+      "5": {
+        "text": "做事难于持久，常常第一件事还没做完，又去干别的事。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "偶尔会这样。"
+          },
+          {
+            "value": "B",
+            "label": "是的，孩子没长性，做一会就想切换到下一项目。"
+          },
+          {
+            "value": "C",
+            "label": "几乎不会，孩子还是很专注于在做的任务。"
+          }
+        ]
+      },
+      "6": {
+        "text": "看完动画片能具象的记住故事情节以及表达出来吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "几乎不能，有时候看完以后不知所云，也难以表达出内容。"
+          },
+          {
+            "value": "B",
+            "label": "只能记住并表达出一部分内容，部分情节表述与实际不符。"
+          },
+          {
+            "value": "C",
+            "label": "内容记忆清晰，表述情节逻辑准确。"
+          }
+        ]
+      },
+      "7": {
+        "text": "完任务过程中，有心不在焉，丢三落四的情况吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子比较粗心，丢三落四的情况偶尔出现。"
+          },
+          {
+            "value": "B",
+            "label": "几乎不会，孩子做事很认真。"
+          },
+          {
+            "value": "C",
+            "label": "孩子几乎每次都会漏掉点什么。"
+          }
+        ]
+      },
+      "8": {
+        "text": "是否有思维跳跃的现象，从一个话题突然跳跃到另一个话题。",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子很容易从进行的话题，跳跃到另一个话题。"
+          },
+          {
+            "value": "B",
+            "label": "几乎不会，孩子会跟着家长或者老师节奏走。"
+          },
+          {
+            "value": "C",
+            "label": "偶尔会有这种情况。"
+          }
+        ]
+      },
+      "9": {
+        "text": "让孩子拿东西，孩子常常会拿错其他的东西吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "当孩子在看喜欢的动画片时会。"
+          },
+          {
+            "value": "B",
+            "label": "一般不会，孩子一向做事很准确。"
+          },
+          {
+            "value": "C",
+            "label": "是的，孩子会经常拿错东西。"
+          }
+        ]
+      },
+      "10": {
+        "text": "孩子放的东西经常会找不到吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "孩子放东西有条有理，除非别人挪动了位置。"
+          },
+          {
+            "value": "B",
+            "label": "经常会乱放东西。"
+          },
+          {
+            "value": "C",
+            "label": "常常找不到自己常用的小玩具。"
+          }
+        ]
+      },
+      "11": {
+        "text": "既定任务完成中，会因为外面不太大的干扰分心吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "会有影响，不过一会儿又会回到任务中。"
+          },
+          {
+            "value": "B",
+            "label": "几乎不会，孩子很认真，外部干扰很难干扰孩子。"
+          },
+          {
+            "value": "C",
+            "label": "会受到干扰，甚至忘了正在进行的任务。"
+          }
+        ]
+      },
+      "12": {
+        "text": "想着家里的玩具，会在其他地方念念不忘或者坐立不安吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "是的，孩子常常会这样。"
+          },
+          {
+            "value": "B",
+            "label": "告知孩子回家以后再玩，孩子能顺利投入到当前活动中，暂时忘记家里玩具。"
+          },
+          {
+            "value": "C",
+            "label": "孩子基本接受玩具暂时不在的现实，但是时不时念叨一下。"
+          }
+        ]
+      },
+      "13": {
+        "text": "外部环境有变化（比如天气变化，下雨、下雪），孩子会过度关注变化，而忽略任务吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "一定程度上，孩子会受影响。"
+          },
+          {
+            "value": "B",
+            "label": "不会的，孩子很快投入任务中，几乎不受影响。"
+          },
+          {
+            "value": "C",
+            "label": "基本被外部环境变化吸引，以至于忽略进行中的任务。"
+          }
+        ]
+      },
+      "14": {
+        "text": "家里来了客人，会取消既定任务或者计划吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "会和客人游戏一会，然后继续完成既定的任务或者计划。"
+          },
+          {
+            "value": "B",
+            "label": "会的，正好有理由热闹热闹。"
+          },
+          {
+            "value": "C",
+            "label": "不会，孩子会继续完成既定的任务或者计划。"
+          }
+        ]
+      },
+      "15": {
+        "text": "一旦身体不舒服，孩子会请假不上学吗？",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "如果没有特别严重的情况，比如演出等就请假。"
+          },
+          {
+            "value": "B",
+            "label": "正好有理由不去上课。"
+          },
+          {
+            "value": "C",
+            "label": "孩子不会因为小病而不去上课。"
+          }
+        ]
+      }
+    }
+  },
+  "mch-fs": {
+    "title": "婴幼儿喂养困难调查问卷 (MCH-FS)",
+    "items": {
+      "1": {
+        "text": "你觉得你在喂养孩子过程中有困难吗？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "2": {
+        "text": "你对孩子的喂养及进食感到担心吗？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "3": {
+        "text": "你孩子的食欲如何？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "4": {
+        "text": "你孩子每餐从什么时候开始拒绝进食？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "5": {
+        "text": "你孩子每餐进食需要多少分钟？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "6": {
+        "text": "你孩子进餐时表现如何（哭闹、玩玩具、看电视等）？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "7": {
+        "text": "你孩子是否对进食某类食物有恶心、呕吐的现象？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "8": {
+        "text": "你孩子是否有嘴中含着食物但不吞咽的现象？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "9": {
+        "text": "你孩子在进食时是否需要逗引或追着喂？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "10": {
+        "text": "你强迫孩子进食吗？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "11": {
+        "text": "你孩子的咀嚼（或吮吸）能力如何？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "12": {
+        "text": "你孩子的生长状况如何？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "13": {
+        "text": "孩子的进食情况对你和孩子之间关系的影响如何？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "14": {
+        "text": "孩子的进食情况对家庭成员之间关系的影响如何？",
+        "section": "核心评分量表（1 最好 / 7 最差）",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          },
+          {
+            "value": "4",
+            "label": "4"
+          },
+          {
+            "value": "5",
+            "label": "5"
+          },
+          {
+            "value": "6",
+            "label": "6"
+          },
+          {
+            "value": "7",
+            "label": "7"
+          }
+        ]
+      },
+      "infection_times": {
+        "text": "半年内感染次数",
+        "section": "基础信息",
+        "options": [
+          {
+            "value": "0次",
+            "label": "0次"
+          },
+          {
+            "value": "1次",
+            "label": "1次"
+          },
+          {
+            "value": "2次",
+            "label": "2次"
+          },
+          {
+            "value": "3次",
+            "label": "3次"
+          },
+          {
+            "value": "≥4次",
+            "label": "≥4次"
+          }
+        ]
+      },
+      "feeder": {
+        "text": "主要喂养人身份",
+        "section": "基础信息",
+        "options": [
+          {
+            "value": "母亲",
+            "label": "母亲"
+          },
+          {
+            "value": "父亲",
+            "label": "父亲"
+          },
+          {
+            "value": "祖母/外祖母",
+            "label": "祖母/外祖母"
+          },
+          {
+            "value": "祖父/外祖父",
+            "label": "祖父/外祖父"
+          },
+          {
+            "value": "保姆",
+            "label": "保姆"
+          },
+          {
+            "value": "其他",
+            "label": "其他"
+          }
+        ]
+      },
+      "feed_type": {
+        "text": "您的孩子主要喂养方式是什么？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "纯母乳",
+            "label": "纯母乳"
+          },
+          {
+            "value": "纯配方奶",
+            "label": "纯配方奶"
+          },
+          {
+            "value": "混合喂养",
+            "label": "混合喂养"
+          },
+          {
+            "value": "其他",
+            "label": "其他"
+          }
+        ]
+      },
+      "feed_freq": {
+        "text": "每天喂奶（或进食）的次数？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "<5次",
+            "label": "<5次"
+          },
+          {
+            "value": "5-6次",
+            "label": "5-6次"
+          },
+          {
+            "value": "7-8次",
+            "label": "7-8次"
+          },
+          {
+            "value": ">8次",
+            "label": ">8次"
+          }
+        ]
+      },
+      "meal_regular": {
+        "text": "孩子进餐时间是否规律？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "很规律",
+            "label": "很规律"
+          },
+          {
+            "value": "基本规律",
+            "label": "基本规律"
+          },
+          {
+            "value": "不太规律",
+            "label": "不太规律"
+          },
+          {
+            "value": "很不规律",
+            "label": "很不规律"
+          }
+        ]
+      },
+      "watch_tv": {
+        "text": "进食时是否看电视？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "从不",
+            "label": "从不"
+          },
+          {
+            "value": "偶尔",
+            "label": "偶尔"
+          },
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "总是",
+            "label": "总是"
+          }
+        ]
+      },
+      "play_toy": {
+        "text": "进食时是否玩玩具？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "从不",
+            "label": "从不"
+          },
+          {
+            "value": "偶尔",
+            "label": "偶尔"
+          },
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "总是",
+            "label": "总是"
+          }
+        ]
+      },
+      "feed_place": {
+        "text": "孩子是否有固定的进食场所？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "是",
+            "label": "是"
+          },
+          {
+            "value": "否",
+            "label": "否"
+          }
+        ]
+      },
+      "family_meal": {
+        "text": "是否和家人一起进餐？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "每次都是",
+            "label": "每次都是"
+          },
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "偶尔",
+            "label": "偶尔"
+          },
+          {
+            "value": "从不",
+            "label": "从不"
+          }
+        ]
+      },
+      "quiet_env": {
+        "text": "孩子进食时周围环境是否安静？",
+        "section": "行为调查",
+        "options": [
+          {
+            "value": "很安静",
+            "label": "很安静"
+          },
+          {
+            "value": "比较安静",
+            "label": "比较安静"
+          },
+          {
+            "value": "比较嘈杂",
+            "label": "比较嘈杂"
+          },
+          {
+            "value": "很嘈杂",
+            "label": "很嘈杂"
+          }
+        ]
+      },
+      "d6_milk_times": {
+        "text": "每日母乳/配方奶喂养次数？",
+        "section": "饮食结构（6月龄）",
+        "options": [
+          {
+            "value": "≤4次",
+            "label": "≤4次"
+          },
+          {
+            "value": "5-6次",
+            "label": "5-6次"
+          },
+          {
+            "value": "7-8次",
+            "label": "7-8次"
+          },
+          {
+            "value": "≥9次",
+            "label": "≥9次"
+          }
+        ]
+      },
+      "d6_solid_types": {
+        "text": "已添加的辅食种类？（可多选）",
+        "section": "饮食结构（6月龄）",
+        "options": [
+          {
+            "value": "米粉",
+            "label": "米粉"
+          },
+          {
+            "value": "蔬菜泥",
+            "label": "蔬菜泥"
+          },
+          {
+            "value": "水果泥",
+            "label": "水果泥"
+          },
+          {
+            "value": "蛋黄",
+            "label": "蛋黄"
+          },
+          {
+            "value": "肉泥/鱼泥",
+            "label": "肉泥/鱼泥"
+          },
+          {
+            "value": "尚未添加",
+            "label": "尚未添加"
+          }
+        ]
+      },
+      "d6_solid_freq": {
+        "text": "每日辅食次数？",
+        "section": "饮食结构（6月龄）",
+        "options": [
+          {
+            "value": "0次",
+            "label": "0次"
+          },
+          {
+            "value": "1次",
+            "label": "1次"
+          },
+          {
+            "value": "2次",
+            "label": "2次"
+          },
+          {
+            "value": "3次及以上",
+            "label": "3次及以上"
+          }
+        ]
+      },
+      "d6_accept": {
+        "text": "孩子对辅食的接受程度？",
+        "section": "饮食结构（6月龄）",
+        "options": [
+          {
+            "value": "很接受",
+            "label": "很接受"
+          },
+          {
+            "value": "较接受",
+            "label": "较接受"
+          },
+          {
+            "value": "较抗拒",
+            "label": "较抗拒"
+          },
+          {
+            "value": "很抗拒",
+            "label": "很抗拒"
+          }
+        ]
+      },
+      "d6_puree": {
+        "text": "进食糊状/半流质食物的能力？",
+        "section": "饮食结构（6月龄）",
+        "options": [
+          {
+            "value": "很好",
+            "label": "很好"
+          },
+          {
+            "value": "较好",
+            "label": "较好"
+          },
+          {
+            "value": "较差",
+            "label": "较差"
+          },
+          {
+            "value": "很差",
+            "label": "很差"
+          }
+        ]
+      },
+      "d12_weaned": {
+        "text": "是否已断奶？",
+        "section": "饮食结构（12月龄）",
+        "options": [
+          {
+            "value": "已断奶",
+            "label": "已断奶"
+          },
+          {
+            "value": "未断奶",
+            "label": "未断奶"
+          }
+        ]
+      },
+      "d12_three_meals": {
+        "text": "每日三餐规律性？",
+        "section": "饮食结构（12月龄）",
+        "options": [
+          {
+            "value": "三餐规律",
+            "label": "三餐规律"
+          },
+          {
+            "value": "两餐规律",
+            "label": "两餐规律"
+          },
+          {
+            "value": "一餐规律",
+            "label": "一餐规律"
+          },
+          {
+            "value": "不规律",
+            "label": "不规律"
+          }
+        ]
+      },
+      "d12_milk_vol": {
+        "text": "每日奶量（ml）？",
+        "section": "饮食结构（12月龄）",
+        "options": [
+          {
+            "value": "<300ml",
+            "label": "<300ml"
+          },
+          {
+            "value": "300-500ml",
+            "label": "300-500ml"
+          },
+          {
+            "value": "500-700ml",
+            "label": "500-700ml"
+          },
+          {
+            "value": ">700ml",
+            "label": ">700ml"
+          }
+        ]
+      },
+      "d12_chew": {
+        "text": "咀嚼固体食物的能力？",
+        "section": "饮食结构（12月龄）",
+        "options": [
+          {
+            "value": "很好",
+            "label": "很好"
+          },
+          {
+            "value": "较好",
+            "label": "较好"
+          },
+          {
+            "value": "较差",
+            "label": "较差"
+          },
+          {
+            "value": "很差",
+            "label": "很差"
+          }
+        ]
+      },
+      "d12_snack": {
+        "text": "进食零食情况？",
+        "section": "饮食结构（12月龄）",
+        "options": [
+          {
+            "value": "从不",
+            "label": "从不"
+          },
+          {
+            "value": "偶尔",
+            "label": "偶尔"
+          },
+          {
+            "value": "经常",
+            "label": "经常"
+          },
+          {
+            "value": "总是",
+            "label": "总是"
+          }
+        ]
+      }
+    }
+  },
+  "oral-motor": {
+    "title": "中文口腔运动功能评估表",
+    "items": {
+      "medical": {
+        "text": "医学/发育史",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "无特殊",
+            "label": "无特殊"
+          },
+          {
+            "value": "有",
+            "label": "有（详述）"
+          }
+        ]
+      },
+      "feeding_history": {
+        "text": "喂养史",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "典型",
+            "label": "典型"
+          },
+          {
+            "value": "延迟/困难",
+            "label": "延迟/困难"
+          }
+        ]
+      },
+      "swallow_breath": {
+        "text": "吞咽/呼吸",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "否",
+            "label": "否"
+          },
+          {
+            "value": "是",
+            "label": "是"
+          }
+        ]
+      },
+      "nutrition": {
+        "text": "营养/生长",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "无风险",
+            "label": "无风险"
+          },
+          {
+            "value": "需关注",
+            "label": "需关注"
+          }
+        ]
+      },
+      "gi_allergy": {
+        "text": "胃肠/过敏",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "否",
+            "label": "否"
+          },
+          {
+            "value": "是",
+            "label": "是"
+          }
+        ]
+      },
+      "medication": {
+        "text": "药物/警示",
+        "section": "二、病史与安全筛查",
+        "options": [
+          {
+            "value": "无",
+            "label": "无"
+          },
+          {
+            "value": "有",
+            "label": "有"
+          }
+        ]
+      },
+      "arousal": {
+        "text": "觉醒/参与",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "适宜",
+            "label": "适宜"
+          },
+          {
+            "value": "波动",
+            "label": "波动"
+          },
+          {
+            "value": "困难",
+            "label": "困难"
+          }
+        ]
+      },
+      "posture": {
+        "text": "姿势/稳定性",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "稳定",
+            "label": "稳定"
+          },
+          {
+            "value": "需支持",
+            "label": "需支持"
+          }
+        ]
+      },
+      "breath_voice": {
+        "text": "呼吸/发声",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "drool_bruxism": {
+        "text": "流涎/磨牙",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "无",
+            "label": "无"
+          },
+          {
+            "value": "偶发",
+            "label": "偶发"
+          },
+          {
+            "value": "明显",
+            "label": "明显"
+          }
+        ]
+      },
+      "involuntary": {
+        "text": "不自主运动",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "未见",
+            "label": "未见"
+          },
+          {
+            "value": "可见",
+            "label": "可见"
+          }
+        ]
+      },
+      "sensory_response": {
+        "text": "感觉反应",
+        "section": "三、整体状态与感觉运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "低反应",
+            "label": "低反应"
+          },
+          {
+            "value": "高反应",
+            "label": "高反应"
+          }
+        ]
+      },
+      "face": {
+        "text": "面部",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "lips_cheeks": {
+        "text": "嘴唇/面颊",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "jaw_tmj": {
+        "text": "下颌/TMJ",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "teeth_bite": {
+        "text": "牙齿/咬合",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "tongue_structure": {
+        "text": "舌",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "palate": {
+        "text": "硬腭/软腭",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "tonsil_pharynx": {
+        "text": "扁桃体/咽部",
+        "section": "四、口腔面部结构检查",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "异常/未查"
+          }
+        ]
+      },
+      "cn_v": {
+        "text": "V 三叉神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "对称/完整",
+            "label": "对称/完整"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "cn_vii": {
+        "text": "VII 面神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "对称/完整",
+            "label": "对称/完整"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "cn_ix": {
+        "text": "IX 舌咽神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "完整",
+            "label": "完整"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "cn_x": {
+        "text": "X 迷走神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "完整",
+            "label": "完整"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "cn_xi": {
+        "text": "XI 副神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "对称",
+            "label": "对称"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "cn_xii": {
+        "text": "XII 舌下神经",
+        "section": "六、颅神经相关观察",
+        "options": [
+          {
+            "value": "对称/完整",
+            "label": "对称/完整"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未查",
+            "label": "未查"
+          }
+        ]
+      },
+      "intake_method": {
+        "text": "摄取方式",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "有效",
+            "label": "有效"
+          },
+          {
+            "value": "需协助",
+            "label": "需协助"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          }
+        ]
+      },
+      "lip_accept": {
+        "text": "嘴唇接受",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "正常",
+            "label": "正常"
+          },
+          {
+            "value": "轻度异常",
+            "label": "轻度异常"
+          },
+          {
+            "value": "明显异常",
+            "label": "明显异常"
+          }
+        ]
+      },
+      "bite": {
+        "text": "咬断",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "有效",
+            "label": "有效"
+          },
+          {
+            "value": "困难",
+            "label": "困难"
+          },
+          {
+            "value": "未试",
+            "label": "未试"
+          }
+        ]
+      },
+      "chewing": {
+        "text": "咀嚼",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "成熟",
+            "label": "成熟"
+          },
+          {
+            "value": "不成熟",
+            "label": "不成熟"
+          },
+          {
+            "value": "无",
+            "label": "无"
+          }
+        ]
+      },
+      "tongue_lateral": {
+        "text": "舌侧移",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "有效",
+            "label": "有效"
+          },
+          {
+            "value": "受限",
+            "label": "受限"
+          },
+          {
+            "value": "无",
+            "label": "无"
+          }
+        ]
+      },
+      "bolus": {
+        "text": "食团形成/转运",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "有效",
+            "label": "有效"
+          },
+          {
+            "value": "延长",
+            "label": "延长"
+          },
+          {
+            "value": "无效",
+            "label": "无效"
+          }
+        ]
+      },
+      "swallow_start": {
+        "text": "吞咽启动",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "及时",
+            "label": "及时"
+          },
+          {
+            "value": "延迟/可疑",
+            "label": "延迟/可疑"
+          },
+          {
+            "value": "未判定",
+            "label": "未判定"
+          }
+        ]
+      },
+      "post_swallow": {
+        "text": "吞咽后表现",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "无",
+            "label": "无"
+          },
+          {
+            "value": "有",
+            "label": "有"
+          },
+          {
+            "value": "不确定",
+            "label": "不确定"
+          }
+        ]
+      },
+      "feeding_behavior": {
+        "text": "行为/感觉",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "适应",
+            "label": "适应"
+          },
+          {
+            "value": "需关注",
+            "label": "需关注"
+          }
+        ]
+      },
+      "efficiency": {
+        "text": "效率",
+        "section": "七、进食与饮水评估",
+        "options": [
+          {
+            "value": "足够",
+            "label": "足够"
+          },
+          {
+            "value": "降低",
+            "label": "降低"
+          }
+        ]
+      },
+      "sucking": {
+        "text": "吸吮型态",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "协调",
+            "label": "协调"
+          },
+          {
+            "value": "弱/不规律",
+            "label": "弱/不规律"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "suck_swallow_breath": {
+        "text": "吸-吞-呼吸协调",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "协调",
+            "label": "协调"
+          },
+          {
+            "value": "可疑/异常",
+            "label": "可疑/异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "primitive_reflex": {
+        "text": "原始反射",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "符合年龄",
+            "label": "符合年龄"
+          },
+          {
+            "value": "持续/缺失",
+            "label": "持续/缺失"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "hand_to_mouth": {
+        "text": "手到口/自主摄取",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "符合年龄",
+            "label": "符合年龄"
+          },
+          {
+            "value": "延迟",
+            "label": "延迟"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "spoon_cup": {
+        "text": "勺喂/杯饮",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "符合年龄",
+            "label": "符合年龄"
+          },
+          {
+            "value": "延迟",
+            "label": "延迟"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "texture_progress": {
+        "text": "质地进阶",
+        "section": "九、婴幼儿补充评估（如适用）",
+        "options": [
+          {
+            "value": "符合年龄",
+            "label": "符合年龄"
+          },
+          {
+            "value": "延迟/受限",
+            "label": "延迟/受限"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "sensory_modulation": {
+        "text": "感觉调节",
+        "section": "十、口腔感觉与食物接受度",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "高敏",
+            "label": "高敏"
+          },
+          {
+            "value": "低敏",
+            "label": "低敏"
+          },
+          {
+            "value": "混合",
+            "label": "混合"
+          }
+        ]
+      },
+      "food_traits": {
+        "text": "食物特征",
+        "section": "十、口腔感觉与食物接受度",
+        "options": [
+          {
+            "value": "广泛接受",
+            "label": "广泛接受"
+          },
+          {
+            "value": "选择性明显",
+            "label": "选择性明显"
+          }
+        ]
+      },
+      "sensory_behavior": {
+        "text": "行为表现",
+        "section": "十、口腔感觉与食物接受度",
+        "options": [
+          {
+            "value": "无明显",
+            "label": "无明显"
+          },
+          {
+            "value": "需关注",
+            "label": "需关注"
+          }
+        ]
+      },
+      "accept_change": {
+        "text": "可接受变化",
+        "section": "十、口腔感觉与食物接受度",
+        "options": [
+          {
+            "value": "可接受",
+            "label": "可接受"
+          },
+          {
+            "value": "困难",
+            "label": "困难"
+          }
+        ]
+      },
+      "voice": {
+        "text": "声音",
+        "section": "十一、发声与言语运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "resonance": {
+        "text": "共鸣",
+        "section": "十一、发声与言语运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "breath_voice_coord": {
+        "text": "呼吸-发声协调",
+        "section": "十一、发声与言语运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "articulation": {
+        "text": "构音运动",
+        "section": "十一、发声与言语运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "intelligibility": {
+        "text": "可懂度/一致性",
+        "section": "十一、发声与言语运动观察",
+        "options": [
+          {
+            "value": "适当",
+            "label": "适当"
+          },
+          {
+            "value": "异常",
+            "label": "异常"
+          },
+          {
+            "value": "未评",
+            "label": "未评"
+          }
+        ]
+      },
+      "jaw_open": {
+        "text": "下颌：张开/闭合",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "jaw_stable": {
+        "text": "下颌：稳定/力量",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "lip_close": {
+        "text": "嘴唇：闭合",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "lip_round": {
+        "text": "嘴唇：噘嘴/后缩",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "cheek": {
+        "text": "面颊：张力/抗阻",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "tongue_out": {
+        "text": "舌：伸出/后缩",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "tongue_up": {
+        "text": "舌：上抬/下压",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "tongue_side": {
+        "text": "舌：侧移",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "tongue_shape": {
+        "text": "舌：塑形/舌沟",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      },
+      "diadochokinesis": {
+        "text": "连续交替运动",
+        "section": "五、口腔运动功能",
+        "options": [
+          {
+            "value": "0",
+            "label": "0｜未能完成"
+          },
+          {
+            "value": "1",
+            "label": "1｜明显异常"
+          },
+          {
+            "value": "2",
+            "label": "2｜轻度异常"
+          },
+          {
+            "value": "3",
+            "label": "3｜功能正常"
+          },
+          {
+            "value": "N/O",
+            "label": "N/O｜未观察"
+          }
+        ]
+      }
+    }
+  },
+  "tml1": {
+    "title": "症状与学习成绩评估表",
+    "items": {
+      "30": {
+        "text": "未经批准逃学",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "31": {
+        "text": "对人残忍",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "32": {
+        "text": "偷窃有价值的东西",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "33": {
+        "text": "故意损毁公物或他人财产",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "34": {
+        "text": "使用可致严重伤害的物体如棒、刀、砖、枪等",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "35": {
+        "text": "残忍对待动物",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "36": {
+        "text": "纵火以至造成损害",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "37": {
+        "text": "擅自闯入他人的房屋、商店、汽车",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "38": {
+        "text": "未免许而夜归",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "39": {
+        "text": "半夜离家出走",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "40": {
+        "text": "强迫他人进行性活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "41": {
+        "text": "恐慌，焦虑，或担心",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "42": {
+        "text": "因害怕而不敢尝试新事物",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "43": {
+        "text": "自觉无用或自卑",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "44": {
+        "text": "自责，内疚",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "45": {
+        "text": "感到孤独，不受欢迎，不被别人喜欢",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "46": {
+        "text": "伤心，难过，抑郁",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "47": {
+        "text": "多愁善感",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "48": {
+        "text": "总体成绩(如:总评)",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "49": {
+        "text": "语文成绩",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "50": {
+        "text": "数学成绩",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "51": {
+        "text": "英语成绩",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "52": {
+        "text": "与父母关系",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "53": {
+        "text": "与兄弟姐妹关系",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "54": {
+        "text": "与同学关系",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      },
+      "55": {
+        "text": "与集体活动(如:团队精神)",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "无"
+          },
+          {
+            "value": "1",
+            "label": "轻度"
+          },
+          {
+            "value": "2",
+            "label": "中度"
+          },
+          {
+            "value": "3",
+            "label": "重度"
+          }
+        ]
+      }
+    }
+  },
+  "tml2": {
+    "title": "注意力缺陷-多动障碍(ADHD)评估量表",
+    "items": {
+      "1": {
+        "text": "不能仔细留意细节或常发生粗心大意所致的错误",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "2": {
+        "text": "在学习工作或活动时，注意力难以持久",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "3": {
+        "text": "与人对话时，心不在焉，似乎未听见",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "4": {
+        "text": "不听从指令而难以完成各项工作和任务",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "5": {
+        "text": "难以完成组织各项工作和活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "6": {
+        "text": "逃避、不喜欢或不愿参加那些需要精力持久的工作或活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "7": {
+        "text": "遗失作业或活动所需的东西，如玩具、作业本、铅笔或课本",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "8": {
+        "text": "易因声音或其他外界刺激而分心",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "9": {
+        "text": "遗忘日常活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "10": {
+        "text": "手或足有很多小动作或在座位扭动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "11": {
+        "text": "在要求安坐的场合擅自离开座位",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "12": {
+        "text": "在要求坐好的场合跑去或爬上爬下",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "13": {
+        "text": "不能安静地参加游戏或活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "14": {
+        "text": "似被发动机驱动地一刻不停地活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "15": {
+        "text": "讲话过多",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "16": {
+        "text": "在他人问题还没问完时就急于回答",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "17": {
+        "text": "难以静待轮换",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "18": {
+        "text": "在他人交谈时插嘴或打断他人的活动",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "19": {
+        "text": "发展气",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "20": {
+        "text": "经常拒绝大人的要求或不听劝告",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "21": {
+        "text": "生气或愤怒",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "22": {
+        "text": "不同一顿或冷漠",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "23": {
+        "text": "持强凌弱，威胁或恐吓他人",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "24": {
+        "text": "对他人物体攻击",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "25": {
+        "text": "为获得利益或逃避责任而说谎",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "26": {
+        "text": "对人残忍",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "27": {
+        "text": "偷窃有价值的东西",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      },
+      "28": {
+        "text": "故意损毁公物或他人财产",
+        "section": "",
+        "options": [
+          {
+            "value": "0",
+            "label": "从不"
+          },
+          {
+            "value": "1",
+            "label": "偶尔"
+          },
+          {
+            "value": "2",
+            "label": "经常"
+          },
+          {
+            "value": "3",
+            "label": "频繁"
+          }
+        ]
+      }
+    }
+  },
+  "tml3": {
+    "title": "社交反应量表 (SRS)",
+    "items": {
+      "1": {
+        "text": "在社交场合较难处地表现出明显孤独感",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "2": {
+        "text": "面部表情与当时说话的内容不相符",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "3": {
+        "text": "与别人互动时表现得很自信",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "4": {
+        "text": "当受到压力时表现出固定奇特的行为方式",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "5": {
+        "text": "不会意识到被别人利用",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "6": {
+        "text": "宁愿一个人待着也不愿与别人待在一起",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "7": {
+        "text": "能意识到别人的想法或感觉",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "8": {
+        "text": "行为方式独特、奇怪",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "9": {
+        "text": "粘着大人，对他们十分依赖",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "10": {
+        "text": "只能理解谈话的表面意思，不能理解其真正含义",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "11": {
+        "text": "很有自信心",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "12": {
+        "text": "能将自己传达给他的感受",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "13": {
+        "text": "不能理解别人的学业（如在交谈中不懂得轮流说话）",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "14": {
+        "text": "不能很好的与别人合作",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "15": {
+        "text": "能理解别人的话语及面部表情的意思",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "16": {
+        "text": "避免目光接触或有不正常的目光接触",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "17": {
+        "text": "能意识到事情的不公平",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "18": {
+        "text": "即使很努力，仍很难与别人做朋友",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "19": {
+        "text": "在谈话中理解别人的意思时受挫",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "20": {
+        "text": "有不同寻常的感官兴趣（如喃喃自语、旋转物体）或特别的玩耍方式",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "21": {
+        "text": "能模仿别人的动作",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "22": {
+        "text": "与同龄人能正常、恰当地玩耍",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "23": {
+        "text": "除非叫他去，否则不加入集体活动",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "24": {
+        "text": "较之其他儿童，他（她）很难接受常规的改变",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "25": {
+        "text": "不介意与别人不同步或与别人不同调",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "26": {
+        "text": "当别人伤心时能安慰别人",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "27": {
+        "text": "避免与同伴或成人开始社会交往",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "28": {
+        "text": "重复地想或重复谈论同一件事",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "29": {
+        "text": "被其他儿童认为古怪或奇特",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "30": {
+        "text": "在一个重复（很多事情同时发生）的环境中变得不高兴",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "31": {
+        "text": "他（她）一旦开始想一件事就会坚持想下去",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "32": {
+        "text": "个人卫生好",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "33": {
+        "text": "在交往时即使他（她）努力尝试礼貌，但是仍显得笨拙无礼",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "34": {
+        "text": "逃避想亲近他（她）的人",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "35": {
+        "text": "不能维持正常的交谈",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "36": {
+        "text": "与成人交流有困难",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "37": {
+        "text": "与同伴交流有困难",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "38": {
+        "text": "当别人的情绪或改变时能有恰当的反应",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "39": {
+        "text": "有不寻常的、残酷的兴趣",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "40": {
+        "text": "富有想象力，会假装（不脱离实际的）",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "41": {
+        "text": "毫无目的地在两个活动之间走动",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "42": {
+        "text": "对声音、质地或气味特别敏感",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "43": {
+        "text": "容易与抚养者分开",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "44": {
+        "text": "不能理解事件的分开关系（例如原因和结果），而同龄人可以",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "45": {
+        "text": "能注意别人看或听的地方",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "46": {
+        "text": "有过分严肃的面部表情",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "47": {
+        "text": "表现得很傻或突然大笑",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "48": {
+        "text": "有幽默感，能理解笑话",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "49": {
+        "text": "对一些任务完成得较好，但大多数任务不能完成得同样好",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "50": {
+        "text": "有重复的奇怪的行为如拍手或摇晃",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "51": {
+        "text": "不能直接回答问题且答非所问",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "52": {
+        "text": "会觉得他（她）正在大声地说话或制造了噪音",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "53": {
+        "text": "不能理解别人的语调与人谈话（例如像机器人说话或像在演讲）",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "54": {
+        "text": "对人的反应好像把他（她）当成物体",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "55": {
+        "text": "能意识到他（她）太靠近别人或侵犯了别人的空间",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "56": {
+        "text": "会走到两个正在谈话的人中间",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "57": {
+        "text": "经常被嘲弄",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "58": {
+        "text": "对事物的部分过于专注而忽视了整体",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "59": {
+        "text": "多疑",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "60": {
+        "text": "感情淡漠，不表达他（她）的感受",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "61": {
+        "text": "固执，要改变他（她）的想法很难",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "62": {
+        "text": "做事的原因很特别或不合逻辑",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "63": {
+        "text": "有人接触时方式特别（如碰触别人后不说话就走开）",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "64": {
+        "text": "在社交场合中特别紧张",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      },
+      "65": {
+        "text": "无目的地凝视或注视",
+        "section": "",
+        "options": [
+          {
+            "value": "1",
+            "label": "没有"
+          },
+          {
+            "value": "2",
+            "label": "有时"
+          },
+          {
+            "value": "3",
+            "label": "经常"
+          },
+          {
+            "value": "4",
+            "label": "总是"
+          }
+        ]
+      }
+    }
+  }
+}
