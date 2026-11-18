@@ -2,8 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { getDb, withDbRetry } from '@/lib/api/db';
+import { startDraftWorker } from '@/lib/ai/draft-queue';
 
 export const runtime = 'nodejs';
+
+// 服务启动/健康检查时确保 AI 草稿后台扫描已启动（幂等）
+startDraftWorker();
 
 /**
  * ⚠️ 必须强制动态，否则 Next 会把 GET 路由处理函数「静态缓存」掉：

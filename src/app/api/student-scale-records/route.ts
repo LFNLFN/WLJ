@@ -9,6 +9,7 @@ import {
   normalizeRawReportId,
 } from '@/lib/api/scale-records';
 import { getSessionFromRequest } from '@/lib/auth/current';
+import { enqueueAiDraftJob } from '@/lib/ai/draft-queue';
 
 // 确保表结构存在（不删除已有数据）
 async function ensureTable() {
@@ -196,6 +197,7 @@ export async function POST(req: NextRequest) {
       const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
       if (existing) {
         // 只回 id，不回整条记录：POST 免登录，避免用别人的 rawreportid 探测报告内容
+        await enqueueAiDraftJob(existing.id);
         return NextResponse.json(
           { id: existing.id, duplicate: true, message: '该报告已提交过，已忽略重复提交' },
           { status: 200 }
@@ -237,6 +239,7 @@ export async function POST(req: NextRequest) {
       if (isUniqueViolation(err) && rawreportid) {
         const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
         if (existing) {
+          await enqueueAiDraftJob(existing.id);
           return NextResponse.json(
             { id: existing.id, duplicate: true, message: '该报告已提交过，已忽略重复提交' },
             { status: 200 }
@@ -245,6 +248,7 @@ export async function POST(req: NextRequest) {
       }
       throw err;
     }
+    await enqueueAiDraftJob(id);
     return NextResponse.json(parseRow(result.rows[0]), { status: 201 });
   } catch (err: any) {
     console.error('保存评估记录失败:', err.message);

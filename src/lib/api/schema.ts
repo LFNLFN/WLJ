@@ -22,6 +22,11 @@ export function ensureSchema(): Promise<void> {
       g[SCHEMA_KEY] = undefined;
       throw err;
     });
+
+    // 启动 AI 评估草稿的后台扫描（幂等；失败不影响业务请求）
+    void import('../ai/draft-queue')
+      .then((mod) => mod.startDraftWorker())
+      .catch((err) => console.warn('[schema] AI 草稿 worker 启动失败（忽略）:', err?.message || err));
   }
   return g[SCHEMA_KEY] as Promise<void>;
 }

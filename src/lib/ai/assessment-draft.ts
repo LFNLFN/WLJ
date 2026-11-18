@@ -42,6 +42,13 @@ export interface DraftResult extends DraftPayload {
   meta: DraftMeta;
 }
 
+/** 把结构化建议转成可编辑的纯文本（每条一行） */
+export function formatDraftRecommendations(draft: Pick<DraftPayload, 'recommendations'>): string {
+  return draft.recommendations
+    .map((r, idx) => `${idx + 1}. ${r.domain ? '【' + r.domain + '】' : ''}${r.advice}`)
+    .join('\n');
+}
+
 export class DraftGenerationError extends Error {
   statusCode: number;
   constructor(message: string, statusCode = 502) {

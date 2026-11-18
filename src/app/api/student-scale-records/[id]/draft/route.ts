@@ -3,7 +3,7 @@ import { getDb, parseRow } from '@/lib/api/crud';
 import { ensureSchema } from '@/lib/api/schema';
 import { getSessionFromRequest } from '@/lib/auth/current';
 import { requireStaff } from '@/lib/auth/service';
-import { generateAssessmentDraft } from '@/lib/ai/assessment-draft';
+import { generateAssessmentDraft, formatDraftRecommendations } from '@/lib/ai/assessment-draft';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,9 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const draft = await generateAssessmentDraft(raw);
 
-    const recommendationsText = draft.recommendations
-      .map((r, idx) => `${idx + 1}. ${r.domain ? '【' + r.domain + '】' : ''}${r.advice}`)
-      .join('\n');
+    const recommendationsText = formatDraftRecommendations(draft);
 
     const detail = {
       strengths: draft.strengths,

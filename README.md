@@ -564,6 +564,16 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
 - 默认关闭 thinking（单条约 15–22 秒）；设 `ARK_DRAFT_THINKING=default` 可开启（更慢）
 - 不是自动诊断，不替代 FEES/VFSS 等仪器评估，必须由专业人员确认
 
+### 自动预生成（后台队列）
+
+小程序提交评估后会自动把记录加入 `ai_draft_jobs` 队列，Next 服务进程内的 worker 每 15 秒扫描一次，生成完成后评估员打开记录即可看到草稿（通常在 15–40 秒内）。
+
+- 队列表：`ai_draft_jobs`（`status` / `attempts` / `nextRunAt` / `lastError`），用 `FOR UPDATE SKIP LOCKED` 领取，支持多进程与重启恢复
+- 失败重试：1 分钟 / 5 分钟 / 15 分钟，默认最多 3 次
+- 查看队列：`npm run ai:queue`；重试全部失败任务：`npm run ai:queue -- --retry-failed`
+- 关闭自动生成：`AI_DRAFT_AUTO=0`（手动「生成草稿」按钮仍可用）；关闭后台扫描：`AI_DRAFT_WORKER=0`
+- worker 与 Web 同进程，不需要额外 pm2 进程；多实例部署时由数据库锁保证不会重复处理
+
 ## 创建管理员账号
 
 三种方式，任选其一：
@@ -762,6 +772,10 @@ node server/index.js
 | `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
 | `ARK_DRAFT_MODEL_ENDPOINT` | 可选。AI 评估草稿专用接入点；不配则回退 `ARK_MODEL_ENDPOINT` |
 | `ARK_DRAFT_THINKING` | 可选。设为 `default` 开启草稿生成的 thinking（更慢、质量更高）；默认关闭 |
+| `AI_DRAFT_AUTO` | 可选。设为 `0` 关闭“提交后自动生成草稿”（手动按钮仍可用） |
+| `AI_DRAFT_WORKER` | 可选。设为 `0` 关闭进程内的后台队列扫描 |
+| `AI_DRAFT_WORKER_INTERVAL_MS` | 可选。队列扫描间隔，默认 `15000` |
+| `AI_DRAFT_MAX_ATTEMPTS` | 可选。草稿生成最大尝试次数，默认 `3` |
 | `KB_API_KEY` | 可选（推荐）。火山知识库 API Key → 直连检索知识库原文切片，详见 `src/lib/agent/README.md` |
 | `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索知识库（兜底路径，慢），详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |

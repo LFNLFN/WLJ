@@ -8,6 +8,7 @@ import {
   isUniqueViolation,
   normalizeRawReportId,
 } from '@/lib/api/scale-records';
+import { enqueueAiDraftJob } from '@/lib/ai/draft-queue';
 
 // ==================== 量表定义（与小程序一致） ====================
 
@@ -156,7 +157,10 @@ async function saveRecord(record: any) {
   const rawreportid = normalizeRawReportId(record.rawReportId);
   if (rawreportid) {
     const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
-    if (existing) return { id: existing.id, duplicate: true };
+    if (existing) {
+      await enqueueAiDraftJob(existing.id);
+      return { id: existing.id, duplicate: true };
+    }
   }
 
   // 联动：同步学生档案，并把报告挂到该学生（PC 学生管理 → 查看评估）
@@ -202,11 +206,15 @@ async function saveRecord(record: any) {
     // 并发兜底：唯一索引拦下后到的插入，返回已有记录而不是报错
     if (isUniqueViolation(err) && rawreportid) {
       const existing = await findStudentScaleRecordByRawReportId(db, rawreportid);
-      if (existing) return { id: existing.id, duplicate: true };
+      if (existing) {
+        await enqueueAiDraftJob(existing.id);
+        return { id: existing.id, duplicate: true };
+      }
     }
     throw err;
   }
 
+  await enqueueAiDraftJob(id);
   return { id, duplicate: false };
 }
 export async function POST(req: NextRequest) {
