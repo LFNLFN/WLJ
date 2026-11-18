@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 import ChildProfileCard from '@/components/training-plan/ChildProfileCard';
 import TrainingModulesTable from '@/components/training-plan/TrainingModulesTable';
 import AIGenerateDialog from '@/components/training-plan/AIGenerateDialog';
-import { getTrainingPlan, saveTrainingPlan } from '@/lib/api';
+import { getTrainingPlan, getStudent, saveTrainingPlan } from '@/lib/api';
 import type { TrainingPlan } from '@/lib/types';
 
 const emptyPlan: TrainingPlan = {
@@ -43,10 +43,13 @@ function TrainingPlanEditPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planId = searchParams.get('id');
+  const studentIdParam = searchParams.get('studentId') || '';
+  const studentNameParam = searchParams.get('studentName') || '';
 
   const [plan, setPlan] = useState<TrainingPlan>(emptyPlan);
   const [planTitle, setPlanTitle] = useState('');
-  const [childName, setChildName] = useState('');
+  const [childName, setChildName] = useState(studentNameParam);
+  const [studentId, setStudentId] = useState(studentIdParam);
   const [loading, setLoading] = useState(!!planId);
   const [saving, setSaving] = useState(false);
   const [showAIGenerate, setShowAIGenerate] = useState(false);
@@ -57,12 +60,35 @@ function TrainingPlanEditPage() {
         if (data && data.planData) {
           setPlan(data.planData as TrainingPlan);
           setPlanTitle(data.title || '');
-          setChildName(data.childName || '');
+          setChildName(data.childName || studentNameParam);
+          setStudentId(data.studentId || studentIdParam);
         }
         setLoading(false);
       }).catch(() => setLoading(false));
+      return;
     }
-  }, [planId]);
+
+    // 新建：如果是从学生行进入，预填学生信息
+    if (studentIdParam) {
+      setStudentId(studentIdParam);
+      getStudent(studentIdParam)
+        .then((s: any) => {
+          if (!s) return;
+          setChildName(s.name || studentNameParam);
+          setPlan(prev => ({
+            ...prev,
+            child: {
+              ...prev.child,
+              name: s.name || prev.child.name,
+              birthDate: s.birthDate || prev.child.birthDate,
+              age: s.age ? String(s.age) : prev.child.age,
+            },
+          }));
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [planId, studentIdParam, studentNameParam]);
 
   // 从 localStorage 读取 AI 生成的数据
   useEffect(() => {
@@ -270,10 +296,16 @@ function TrainingPlanEditPage() {
         _id: planId || undefined,
         title: plan.planTitle || '训练阶段计划',
         childName: plan.child.name || childName,
+        studentId,
         planData: plan,
       };
       await saveTrainingPlan(payload);
-      router.push('/training-plans');
+      if (studentId) {
+        const name = plan.child.name || childName || '';
+        router.push(`/training-plans?studentId=${encodeURIComponent(studentId)}&studentName=${encodeURIComponent(name)}`);
+      } else {
+        router.push('/training-plans');
+      }
     } catch (err) {
       alert('保存失败');
     } finally {
@@ -305,8 +337,22 @@ function TrainingPlanEditPage() {
             {/* 操作栏 */}
             <div className="flex items-center justify-between mb-6 no-print">
               <div className="flex items-center gap-4">
-                <button onClick={() => router.push('/training-plans')} className="text-gray-400 hover:text-gray-600">← 返回</button>
-                <h2 className="text-xl font-bold text-gray-800">{planId ? '编辑' : '新建'}训练阶段计划</h2>
+                <button
+                  onClick={() => studentId
+                    ? router.push(`/training-plans?studentId=${encodeURIComponent(studentId)}&studentName=${encodeURIComponent(plan.child.name || childName)}`)
+                    : router.push('/training-plans')}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ← 返回
+                </button>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">{planId ? '编辑' : '新建'}训练阶段计划</h2>
+                  {studentId && (
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      学生：{plan.child.name || childName || '—'}（同一学生可创建多份计划）
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowAIGenerate(true)}
@@ -345,6 +391,12 @@ function TrainingPlanEditPage() {
         open={showAIGenerate}
         onClose={() => setShowAIGenerate(false)}
         onApply={handleAIApply}
+        student={{
+          id: studentId,
+          name: plan.child.name || childName,
+          age: plan.child.age,
+          gender: '',
+        }}
       />
     </div>
   );

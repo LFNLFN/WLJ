@@ -345,8 +345,9 @@ export async function uploadVikingFile(file: File): Promise<{
 
 // ==================== 训练阶段计划 ====================
 
-export async function getTrainingPlans() {
-  return request('/training-plans');
+export async function getTrainingPlans(studentId?: string) {
+  const query = studentId ? `?studentId=${encodeURIComponent(studentId)}` : '';
+  return request(`/training-plans${query}`);
 }
 
 export async function getTrainingPlan(id: string) {

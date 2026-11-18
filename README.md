@@ -574,6 +574,19 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
 - 关闭自动生成：`AI_DRAFT_AUTO=0`（手动「生成草稿」按钮仍可用）；关闭后台扫描：`AI_DRAFT_WORKER=0`
 - worker 与 Web 同进程，不需要额外 pm2 进程；多实例部署时由数据库锁保证不会重复处理
 
+## 训练计划（按学生管理 + AI 生成）
+
+训练计划统一从「学生管理 → 学生行内『📋 训练计划』」进入，侧边栏不再提供全局“训练阶段计划”入口。
+
+- 一个学生可以有多份训练计划（不同阶段/不同目标）；新计划写入 `training_plans."studentId"`，历史计划没有 `studentId` 时按儿童姓名兜底展示
+- 列表页支持该学生的计划列表、新建、编辑、删除；返回学生管理
+- 编辑页「🤖 AI 生成」：
+  - 可多选常见问题：语言发育迟缓、社交发育迟缓、动作发育迟缓、认知发育迟缓、注意力/多动、感觉统合失调、自闭症谱系、喂养/吞咽困难、构音/语音障碍
+  - 不知道主要问题时选「不确定 / 综合发展」：AI 会先设计观察、建立配合与基线评估阶段，并注明“需进一步评估后调整”
+  - 选择问题后自动填入提示词模板，可补充年龄、配合程度、家长期望、每周训练次数等
+  - 生成结果会填回编辑表单，**仍需治疗师审核、修改后保存**；不做医学诊断
+- 默认关闭 thinking（单次约 30–60 秒）；可用 `ARK_TRAINING_MODEL_ENDPOINT` 单独指定接入点
+
 ## 创建管理员账号
 
 三种方式，任选其一：
@@ -771,6 +784,8 @@ node server/index.js
 | `REGISTER_CODE` | 可选。配置后注册需要填邀请码（不配置=开放注册） |
 | `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
 | `ARK_DRAFT_MODEL_ENDPOINT` | 可选。AI 评估草稿专用接入点；不配则回退 `ARK_MODEL_ENDPOINT` |
+| `ARK_TRAINING_MODEL_ENDPOINT` | 可选。AI 训练计划专用接入点；不配则回退 `ARK_DRAFT_MODEL_ENDPOINT` / `ARK_MODEL_ENDPOINT` |
+| `ARK_TRAINING_THINKING` | 可选。设为 `default` 开启训练计划生成的 thinking（更慢、质量更高）；默认关闭 |
 | `ARK_DRAFT_THINKING` | 可选。设为 `default` 开启草稿生成的 thinking（更慢、质量更高）；默认关闭 |
 | `AI_DRAFT_AUTO` | 可选。设为 `0` 关闭“提交后自动生成草稿”（手动按钮仍可用） |
 | `AI_DRAFT_WORKER` | 可选。设为 `0` 关闭进程内的后台队列扫描 |

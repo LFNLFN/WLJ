@@ -11,7 +11,6 @@ const navItems = [
   { href: '/courses', label: '课程管理', icon: '📚' },
   { href: '/', label: 'AI 智能助理', icon: '🤖' },
   { href: '/lesson-plans', label: '教案中心', icon: '📖' },
-  { href: '/training-plans', label: '训练阶段计划', icon: '📋' },
   { href: '/scales/records', label: '评估记录', icon: '📏' },
 ];
 

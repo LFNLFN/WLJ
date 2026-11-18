@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Table from '@/components/Table';
-import { getStudents, getCourses, getTrainingPlans, getStudentScaleRecords, deleteStudent } from '@/lib/api';
+import { getStudents, getCourses, getStudentScaleRecords, deleteStudent } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 /**
  * 把「可能失败的接口」变成「永不 reject」：失败时退化为 fallback 值。
  *
- * 这样 Promise.all 里任何一个模块（课程 / 训练计划 / 评估报告）挂掉，
+ * 这样 Promise.all 里任何一个模块（课程 / 评估报告）挂掉，
  * 都不会让 .then 不执行 —— 学生列表照常渲染。
  */
 const safe = <T,>(p: Promise<T>, label: string, fallback: T): Promise<T> =>
@@ -24,7 +24,6 @@ export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
-  const [trainingPlans, setTrainingPlans] = useState<any[]>([]);
   // 小程序提交的评估报告（按 studentId 统计每个学生有几份，便于判断哪条学生档案有数据）
   const [scaleRecords, setScaleRecords] = useState<any[]>([]);
 
@@ -35,12 +34,10 @@ export default function StudentsPage() {
     Promise.all([
       safe(getStudents(), '学生列表', []),
       safe(getCourses(), '课程', []),
-      safe(getTrainingPlans(), '训练计划', []),
       safe(getStudentScaleRecords(), '评估报告', []),
-    ]).then(([studentsData, coursesData, plansData, recordsData]) => {
+    ]).then(([studentsData, coursesData, recordsData]) => {
       setStudents(studentsData || []);
       setCourses(coursesData || []);
-      setTrainingPlans(plansData || []);
       setScaleRecords(recordsData || []);
     });
   };
@@ -63,14 +60,6 @@ export default function StudentsPage() {
   const getStudentCourses = (studentId: string) => {
     return courses.filter((c: any) =>
       c.studentIds && c.studentIds.includes(studentId)
-    );
-  };
-
-  // 查找学生关联的训练计划
-  const getStudentTrainingPlans = (studentName: string) => {
-    if (!studentName) return [];
-    return trainingPlans.filter((p: any) =>
-      p.childName && p.childName.includes(studentName)
     );
   };
 
@@ -172,13 +161,8 @@ export default function StudentsPage() {
               {
                 label: '📋 训练计划',
                 onClick: (row: any) => {
-                  const studentPlans = getStudentTrainingPlans(row.name);
-                  const planIds = studentPlans.map((p: any) => p._id).join(',');
-                  if (planIds) {
-                    router.push(`/training-plans?ids=${planIds}`);
-                  } else {
-                    router.push(`/training-plan`);
-                  }
+                  const id = row._id || row.id;
+                  router.push(`/training-plans?studentId=${encodeURIComponent(id)}&studentName=${encodeURIComponent(row.name || '')}`);
                 },
                 color: 'text-purple-600',
                 hoverColor: 'hover:bg-purple-50',

@@ -1,30 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, generateId, parseRows } from '@/lib/api/crud';
+import { getDb, generateId } from '@/lib/api/crud';
 import { ensureSchema } from '@/lib/api/schema';
 
-export async function GET() {
+function parsePlanRow(row: any) {
+  let planData: any = {};
+  try {
+    planData = JSON.parse(row.planData || '{}');
+  } catch (e) {
+    planData = {};
+  }
+  return {
+    _id: row.id,
+    id: row.id,
+    title: row.title || '',
+    childName: row.childName || '',
+    studentId: row.studentId || '',
+    planData,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+/** 训练计划列表；带 ?studentId= 时只返回该学生的计划 */
+export async function GET(req: NextRequest) {
   try {
     await ensureSchema();
     const db = await getDb();
-    const res = await db.query('SELECT * FROM training_plans ORDER BY "updatedAt" DESC');
-    const rows = res.rows;
+    const { searchParams } = new URL(req.url);
+    const studentId = searchParams.get('studentId') || searchParams.get('studentid') || '';
 
-    // 解析 planData JSON
-    const result = rows.map((row: any) => {
-      let planData = {};
-      try { planData = JSON.parse(row.planData || '{}'); } catch (e) {}
-      return {
-        _id: row.id,
-        id: row.id,
-        title: row.title || '',
-        childName: row.childName || '',
-        planData,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      };
-    });
+    const sql = studentId
+      ? 'SELECT * FROM training_plans WHERE "studentId" = $1 ORDER BY "updatedAt" DESC'
+      : 'SELECT * FROM training_plans ORDER BY "updatedAt" DESC';
 
-    return NextResponse.json(result);
+    const res = await db.query(sql, studentId ? [studentId] : []);
+    return NextResponse.json(res.rows.map(parsePlanRow));
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -37,16 +47,21 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const id = generateId();
     const title = body.title || '';
-    const childName = body.childName || '';
+    const childName = body.childName || (body.planData && body.planData.child && body.planData.child.name) || '';
+    const studentId = body.studentId || '';
     const planData = JSON.stringify(body.planData || body);
     const now = new Date().toISOString();
 
     await db.query(
-      `INSERT INTO training_plans (id, title, "childName", "planData", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6)`,
-      [id, title, childName, planData, now, now]
+      `INSERT INTO training_plans (id, title, "childName", "studentId", "planData", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [id, title, childName, studentId, planData, now, now]
     );
 
-    return NextResponse.json({ _id: id, id, title, childName, createdAt: now, updatedAt: now }, { status: 201 });
+    return NextResponse.json(
+      { _id: id, id, title, childName, studentId, createdAt: now, updatedAt: now },
+      { status: 201 }
+    );
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

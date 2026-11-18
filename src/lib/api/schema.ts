@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v4';
+const SCHEMA_KEY = '__wljSchemaReady_v5';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -39,10 +39,14 @@ async function runMigrations(): Promise<void> {
     id TEXT PRIMARY KEY,
     title TEXT DEFAULT '',
     "childName" TEXT DEFAULT '',
+    "studentId" TEXT DEFAULT '',
     "planData" TEXT DEFAULT '{}',
     "createdAt" TEXT DEFAULT '',
     "updatedAt" TEXT DEFAULT ''
   )`);
+
+  await db.query(`ALTER TABLE training_plans ADD COLUMN IF NOT EXISTS "studentId" TEXT DEFAULT ''`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_training_plans_student ON training_plans ("studentId")`);
 
   // 教案
   await db.query(`CREATE TABLE IF NOT EXISTS lesson_plans (
