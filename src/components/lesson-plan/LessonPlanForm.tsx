@@ -137,16 +137,7 @@ export default function LessonPlanForm() {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">教学内容 *</label>
-                      <button
-                        type="button"
-                        onClick={() => setShowAI(true)}
-                        className="text-xs text-purple-600 hover:text-purple-800"
-                      >
-                        🤖 不会写？用 AI 生成草稿
-                      </button>
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">教学内容 *</label>
                     <textarea
                       value={form.content}
                       onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
@@ -183,11 +174,12 @@ export default function LessonPlanForm() {
         open={showAI}
         onClose={() => setShowAI(false)}
         type={form.type}
-        onApply={({ title, content }) => {
+        onApply={({ title, content, type }) => {
           setForm((prev) => ({
             ...prev,
             title: title || prev.title,
             content: content || prev.content,
+            type: type || prev.type,
           }));
         }}
       />

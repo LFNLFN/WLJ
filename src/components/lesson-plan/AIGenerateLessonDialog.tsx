@@ -6,7 +6,7 @@ interface AIGenerateLessonDialogProps {
   open: boolean;
   onClose: () => void;
   type: 'personal' | 'group';
-  onApply: (data: { title: string; content: string }) => void;
+  onApply: (data: { title: string; content: string; type: 'personal' | 'group' }) => void;
 }
 
 const FOCUS_OPTIONS: { id: string; label: string; template: string }[] = [
@@ -27,6 +27,7 @@ export default function AIGenerateLessonDialog({
   onApply,
 }: AIGenerateLessonDialogProps) {
   const [topic, setTopic] = useState('');
+  const [planType, setPlanType] = useState<'personal' | 'group'>(type);
   const [ageGroup, setAgeGroup] = useState('');
   const [duration, setDuration] = useState('30分钟');
   const [groupSize, setGroupSize] = useState('');
@@ -38,12 +39,19 @@ export default function AIGenerateLessonDialog({
   useEffect(() => {
     if (open) {
       setError('');
-      if (type === 'group' && !groupSize) setGroupSize('4-6人');
-      if (type === 'personal' && !groupSize) setGroupSize('1对1');
+      setPlanType(type);
+      if (type === 'group') setGroupSize('4-6人');
+      if (type === 'personal') setGroupSize('1对1');
     }
-  }, [open, type, groupSize]);
+  }, [open, type]);
 
   if (!open) return null;
+
+  const changePlanType = (next: 'personal' | 'group') => {
+    setPlanType(next);
+    setGroupSize(next === 'group' ? '4-6人' : '1对1');
+    setError('');
+  };
 
   const toggleFocus = (id: string) => {
     setFocus((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -68,7 +76,7 @@ export default function AIGenerateLessonDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type,
+          type: planType,
           topic: topic.trim(),
           ageGroup: ageGroup.trim(),
           duration: duration.trim(),
@@ -81,7 +89,7 @@ export default function AIGenerateLessonDialog({
       if (!res.ok || !data.content) {
         throw new Error(data.error || '生成失败，请稍后重试');
       }
-      onApply({ title: data.title || topic.trim(), content: data.content });
+      onApply({ title: data.title || topic.trim(), content: data.content, type: planType });
       onClose();
     } catch (err: any) {
       setError(err?.message || '生成失败，请稍后重试');
@@ -100,13 +108,44 @@ export default function AIGenerateLessonDialog({
           <div>
             <h3 className="text-lg font-semibold text-gray-800">🤖 AI 生成教案</h3>
             <p className="text-xs text-gray-400 mt-0.5">
-              类型：{type === 'group' ? '集体教案' : '个人教案'} · 生成后请审核修改再保存
+              类型：{planType === 'group' ? '集体教案' : '个人教案'} · 生成后请审核修改再保存
             </p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">教案类型 *</label>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => changePlanType('personal')}
+                className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
+                  planType === 'personal'
+                    ? 'border-primary-500 bg-primary-50 text-primary-700 font-medium'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                个人教案（1 对 1 / 个别化）
+              </button>
+              <button
+                type="button"
+                onClick={() => changePlanType('group')}
+                className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
+                  planType === 'group'
+                    ? 'border-green-500 bg-green-50 text-green-700 font-medium'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                集体教案（小组 / 班级）
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              这里选择的类型会同步到保存后的教案类型。
+            </p>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">教案主题 / 训练目标 *</label>
             <textarea
