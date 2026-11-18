@@ -554,6 +554,16 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
 `/api/chat` 的 `SYSTEM_PROMPT` 也加了同义的第 4 条。
 回归测试：`npm run test:agent-tools` 的「6b. 工具失败时的 tool 消息」两条断言（成功时不加提示）。
 
+## AI 评估结果草稿（评估记录）
+
+评估记录编辑页提供「✨ 生成草稿」：由方舟模型根据本条记录的结构化答案、分数与备注，起草**可编辑**的综合结论、优势/困难、分维度建议、红旗与资料不足项。
+
+- 只写 `aiDraft*` 字段，**不会自动修改**评估员填写的结论/建议；点「填入下方表单」并保存后才进入正式记录
+- 状态：`generated`（已生成）/ `accepted`（原样采纳）/ `edited`（采纳后修改）/ `discarded`（忽略）；采纳人与时间由服务端会话写入
+- 安全约束：prompt 禁止诊断、用药与编造分数；生成后校验“X 分”是否出现在记录中，异常会重试并写入「待核对」；红旗只复述记录原文
+- 默认关闭 thinking（单条约 15–22 秒）；设 `ARK_DRAFT_THINKING=default` 可开启（更慢）
+- 不是自动诊断，不替代 FEES/VFSS 等仪器评估，必须由专业人员确认
+
 ## 创建管理员账号
 
 三种方式，任选其一：
@@ -750,6 +760,8 @@ node server/index.js
 | `AUTH_SECRET` | **线上必填**，登录会话签名密钥（≥16 位随机字符串） |
 | `REGISTER_CODE` | 可选。配置后注册需要填邀请码（不配置=开放注册） |
 | `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
+| `ARK_DRAFT_MODEL_ENDPOINT` | 可选。AI 评估草稿专用接入点；不配则回退 `ARK_MODEL_ENDPOINT` |
+| `ARK_DRAFT_THINKING` | 可选。设为 `default` 开启草稿生成的 thinking（更慢、质量更高）；默认关闭 |
 | `KB_API_KEY` | 可选（推荐）。火山知识库 API Key → 直连检索知识库原文切片，详见 `src/lib/agent/README.md` |
 | `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索知识库（兜底路径，慢），详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |

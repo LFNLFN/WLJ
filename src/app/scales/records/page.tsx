@@ -26,6 +26,11 @@ type StudentScaleRecord = {
   reviewerId?: string;
   reviewerName?: string;
   reviewedAt?: string;
+  // AI 评估草稿
+  aiDraftSummary?: string;
+  aiDraftRecommendations?: string;
+  aiDraftStatus?: string;
+  aiDraftAt?: string;
 };
 
 const categoryColors: Record<string, string> = {
@@ -117,6 +122,21 @@ export default function ScaleRecordsPage() {
             ⏳ 待批阅
           </span>
         ),
+    },
+    {
+      key: 'aiDraftStatus',
+      label: 'AI 草稿',
+      render: (_val: string, row: StudentScaleRecord) => {
+        if (!row.aiDraftSummary) return <span className="text-gray-400">—</span>;
+        const map: Record<string, { label: string; cls: string }> = {
+          generated: { label: '草稿', cls: 'bg-blue-100 text-blue-700' },
+          accepted: { label: '已采纳', cls: 'bg-green-100 text-green-700' },
+          edited: { label: '已修改', cls: 'bg-purple-100 text-purple-700' },
+          discarded: { label: '已忽略', cls: 'bg-gray-100 text-gray-500' },
+        };
+        const item = map[row.aiDraftStatus || 'generated'] || map.generated;
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${item.cls}`}>{item.label}</span>;
+      },
     },
     {
       key: 'reviewerName',

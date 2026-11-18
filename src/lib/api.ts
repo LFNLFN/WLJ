@@ -150,6 +150,10 @@ export async function getStudentScaleRecord(id: string) {
   return request(`/student-scale-records/${id}`);
 }
 
+export async function generateAssessmentDraft(id: string) {
+  return request(`/student-scale-records/${id}/draft`, { method: 'POST' });
+}
+
 export async function saveStudentScaleRecord(record: any) {
   if (record.id || record._id) {
     return request(`/student-scale-records/${record.id || record._id}`, {

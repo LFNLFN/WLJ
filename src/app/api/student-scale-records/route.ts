@@ -39,7 +39,15 @@ async function ensureTable() {
       + "\"reviewComment\" TEXT DEFAULT '',"
       + "\"reviewerId\" TEXT DEFAULT '',"
       + "\"reviewerName\" TEXT DEFAULT '',"
-      + "\"reviewedAt\" TEXT DEFAULT ''"
+      + "\"reviewedAt\" TEXT DEFAULT '',"
+      + "\"aiDraftSummary\" TEXT DEFAULT '',"
+      + "\"aiDraftRecommendations\" TEXT DEFAULT '',"
+      + "\"aiDraftDetail\" TEXT DEFAULT '',"
+      + "\"aiDraftStatus\" TEXT DEFAULT '',"
+      + "\"aiDraftMeta\" TEXT DEFAULT '',"
+      + "\"aiDraftAt\" TEXT DEFAULT '',"
+      + "\"aiDraftAcceptedAt\" TEXT DEFAULT '',"
+      + "\"aiDraftAcceptedBy\" TEXT DEFAULT ''"
       + ")");
     // 2. 迁移：补充可能缺失的列（兼容旧表）
     const migrations = [
@@ -62,6 +70,15 @@ async function ensureTable() {
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "reviewerId" TEXT DEFAULT ''`,
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "reviewerName" TEXT DEFAULT ''`,
       `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "reviewedAt" TEXT DEFAULT ''`,
+      // AI 评估草稿（文书辅助，需人工确认）
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftSummary" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftRecommendations" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftDetail" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftStatus" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftMeta" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAt" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAcceptedAt" TEXT DEFAULT ''`,
+      `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAcceptedBy" TEXT DEFAULT ''`,
     ];
     for (const sql of migrations) {
       try { await db.query(sql); } catch(e: any) {

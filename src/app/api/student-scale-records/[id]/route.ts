@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, parseRow } from '@/lib/api/crud';
+import { ensureSchema } from '@/lib/api/schema';
 import { getSessionFromRequest } from '@/lib/auth/current';
 
 const TABLE = 'student_scale_records';
@@ -23,6 +24,7 @@ async function loadRecord(id: string) {
  */
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSchema();
     const row = await loadRecord(params.id);
     if (!row) return NextResponse.json({ error: '未找到' }, { status: 404 });
 
@@ -43,6 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /** 修改记录：必须登录（平台/教师账号），且不允许通过这里改批阅字段 */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    await ensureSchema();
     const session = await getSessionFromRequest(req);
     if (!session) return NextResponse.json({ error: '未登录' }, { status: 401 });
 
@@ -51,6 +54,22 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     for (const key of REVIEW_FIELDS) delete body[key];
     delete body.id;
     delete body._id;
+
+    // AI 草稿正文只能由 /draft 接口生成，这里只允许更新状态；
+    // 采纳/修改时间与操作人由服务端会话写入，客户端不可伪造。
+    ['aiDraftSummary', 'aiDraftRecommendations', 'aiDraftDetail', 'aiDraftMeta', 'aiDraftAt',
+      'aiDraftAcceptedAt', 'aiDraftAcceptedBy'].forEach((key) => delete body[key]);
+
+    if (body.aiDraftStatus !== undefined) {
+      const allowed = ['', 'generated', 'accepted', 'edited', 'discarded'];
+      if (!allowed.includes(body.aiDraftStatus)) {
+        delete body.aiDraftStatus;
+      } else if (body.aiDraftStatus === 'accepted' || body.aiDraftStatus === 'edited') {
+        const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        body.aiDraftAcceptedAt = now;
+        body.aiDraftAcceptedBy = session.name || session.id;
+      }
+    }
 
     const columns = Object.keys(body);
     if (columns.length === 0) {

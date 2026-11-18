@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v3';
+const SCHEMA_KEY = '__wljSchemaReady_v4';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -88,4 +88,24 @@ async function runMigrations(): Promise<void> {
   }
 
   console.log('[schema] training_plans / lesson_plans / class_records / courses 结构已就绪');
+
+  // 评估记录的 AI 草稿字段（文书辅助，需人工确认）
+  const draftColumns = [
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftSummary" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftRecommendations" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftDetail" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftStatus" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftMeta" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAt" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAcceptedAt" TEXT DEFAULT ''`,
+    `ALTER TABLE student_scale_records ADD COLUMN IF NOT EXISTS "aiDraftAcceptedBy" TEXT DEFAULT ''`,
+  ];
+  for (const sql of draftColumns) {
+    try {
+      await db.query(sql);
+    } catch (err: any) {
+      console.warn('[schema] student_scale_records AI 草稿补列失败（忽略）:', err?.message);
+    }
+  }
+  console.log('[schema] 评估记录 AI 草稿字段已就绪');
 }

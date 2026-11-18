@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudentScaleRecord, saveStudentScaleRecord } from '@/lib/api';
+import { getStudentScaleRecord, saveStudentScaleRecord, generateAssessmentDraft } from '@/lib/api';
 import { buildReviewRows, formatAnswer, formatOption } from '@/lib/scale-question-bank';
 
 type ScoreValue = {
@@ -13,6 +13,24 @@ type ScoreValue = {
   value: string | number;
   remark?: string;
 };
+
+type AiDraft = {
+  summary: string;
+  recommendations: string;
+  detail: any;
+  meta: any;
+  status: string;
+};
+
+function parseJsonSafe(value: any) {
+  if (!value) return null;
+  if (typeof value === 'object') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
 
 function EditForm() {
   const router = useRouter();
@@ -35,6 +53,11 @@ function EditForm() {
 
   const [scores, setScores] = useState<ScoreValue[]>([]);
   const [rawData, setRawData] = useState<any>(null);
+  const [aiDraft, setAiDraft] = useState<AiDraft | null>(null);
+  const [aiStatus, setAiStatus] = useState('');
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [draftError, setDraftError] = useState('');
+  const [draftApplied, setDraftApplied] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -60,6 +83,17 @@ function EditForm() {
           if (record.rawdata) {
             const raw = typeof record.rawdata === 'string' ? JSON.parse(record.rawdata) : record.rawdata;
             setRawData(raw);
+          }
+          // 已有的 AI 草稿
+          if (record.aiDraftSummary) {
+            setAiDraft({
+              summary: record.aiDraftSummary || '',
+              recommendations: record.aiDraftRecommendations || '',
+              detail: parseJsonSafe(record.aiDraftDetail),
+              meta: parseJsonSafe(record.aiDraftMeta),
+              status: record.aiDraftStatus || '',
+            });
+            setAiStatus(record.aiDraftStatus || '');
           }
         }
       } catch (err) {
@@ -168,15 +202,67 @@ function EditForm() {
     );
   };
 
+  const handleGenerateDraft = async () => {
+    if (!id || draftLoading) return;
+    setDraftLoading(true);
+    setDraftError('');
+    try {
+      const updated = await generateAssessmentDraft(id);
+      setAiDraft({
+        summary: updated.aiDraftSummary || '',
+        recommendations: updated.aiDraftRecommendations || '',
+        detail: parseJsonSafe(updated.aiDraftDetail),
+        meta: parseJsonSafe(updated.aiDraftMeta),
+        status: updated.aiDraftStatus || 'generated',
+      });
+      setAiStatus(updated.aiDraftStatus || 'generated');
+      setDraftApplied(false);
+    } catch (err: any) {
+      setDraftError(err?.message || 'AI 草稿生成失败，请稍后重试');
+    } finally {
+      setDraftLoading(false);
+    }
+  };
+
+  const handleApplyDraft = () => {
+    if (!aiDraft) return;
+    setForm(prev => ({
+      ...prev,
+      summary: aiDraft.summary || prev.summary,
+      recommendations: aiDraft.recommendations || prev.recommendations,
+    }));
+    setAiStatus('accepted');
+    setDraftApplied(true);
+  };
+
+  const handleIgnoreDraft = () => {
+    setAiDraft(null);
+    setAiStatus('discarded');
+    setDraftApplied(false);
+    setDraftError('');
+    // 持久化“已忽略”状态，避免下次打开又出现
+    if (id) {
+      saveStudentScaleRecord({ id, aiDraftStatus: 'discarded' }).catch(() => {});
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
+    let finalAiStatus = aiStatus;
+    if (draftApplied && aiDraft) {
+      const unchanged =
+        form.summary === aiDraft.summary && form.recommendations === aiDraft.recommendations;
+      finalAiStatus = unchanged ? 'accepted' : 'edited';
+    }
 
     try {
       await saveStudentScaleRecord({
         id,
         ...form,
         scores,
+        aiDraftStatus: finalAiStatus,
       });
       router.push('/scales/records');
     } catch (err) {
@@ -187,6 +273,10 @@ function EditForm() {
   if (loading) {
     return <div className="text-center py-8">加载中...</div>;
   }
+
+  const draftDetail = (aiDraft && aiDraft.detail) || {};
+  const draftMeta = (aiDraft && aiDraft.meta) || {};
+  const asList = (value: any) => (Array.isArray(value) ? value : []);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -261,6 +351,139 @@ function EditForm() {
           </div>
         </div>
       )}
+
+      {/* AI 评估结果草稿 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 border-l-4 border-l-[#F08020]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700">
+              ✨ AI 评估结果草稿
+              <span className="ml-2 align-middle text-[11px] font-normal text-orange-600 bg-orange-50 px-2 py-0.5 rounded">
+                需专业人员确认
+              </span>
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              {aiDraft
+                ? `生成于 ${draftMeta.generatedAt ? new Date(draftMeta.generatedAt).toLocaleString('zh-CN') : '—'} · ${draftMeta.model || '—'}`
+                : '根据本条记录的结构化答案与分数生成结论和建议草稿，不会自动写入正式结论'}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleGenerateDraft}
+              disabled={draftLoading}
+              className="px-3 py-1.5 text-sm rounded-lg bg-[#FFF0E0] text-[#C05010] hover:bg-[#FFE3C8] disabled:opacity-60 transition-colors"
+            >
+              {draftLoading ? '生成中…' : aiDraft ? '🔄 重新生成' : '✨ 生成草稿'}
+            </button>
+            {aiDraft && !draftApplied && (
+              <button
+                type="button"
+                onClick={handleApplyDraft}
+                className="px-3 py-1.5 text-sm rounded-lg bg-[#F08020] text-white hover:bg-[#D06010] transition-colors"
+              >
+                填入下方表单
+              </button>
+            )}
+            {aiDraft && (
+              <button
+                type="button"
+                onClick={handleIgnoreDraft}
+                className="px-3 py-1.5 text-sm rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+              >
+                忽略
+              </button>
+            )}
+          </div>
+        </div>
+
+        {draftError && (
+          <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-lg p-3">{draftError}</p>
+        )}
+
+        {aiDraft && (
+          <div className="mt-4 space-y-4 text-sm">
+            <div>
+              <p className="text-xs font-medium text-gray-400 mb-1">综合结论</p>
+              <p className="text-gray-700 leading-6">{aiDraft.summary || '—'}</p>
+            </div>
+
+            {asList(draftDetail.strengths).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-1">主要优势</p>
+                <ul className="list-disc pl-5 text-gray-700 space-y-0.5">
+                  {asList(draftDetail.strengths).map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {asList(draftDetail.difficulties).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-1">主要困难</p>
+                <ul className="list-disc pl-5 text-gray-700 space-y-0.5">
+                  {asList(draftDetail.difficulties).map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {asList(draftDetail.recommendations).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-1">分维度建议</p>
+                <div className="space-y-2">
+                  {asList(draftDetail.recommendations).map((item: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                      {item.domain && (
+                        <span className="text-xs text-[#C05010] bg-[#FFF3E8] px-2 py-0.5 rounded">
+                          {item.domain}
+                        </span>
+                      )}
+                      <p className="text-gray-700 mt-1 leading-6">{item.advice}</p>
+                      {asList(item.evidence).length > 0 && (
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          依据：{asList(item.evidence).join('、')}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {asList(draftDetail.redFlags).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-red-500 mb-1">需关注（记录中的红旗）</p>
+                <ul className="list-disc pl-5 text-red-600 space-y-0.5">
+                  {asList(draftDetail.redFlags).map((item: any, idx: number) => (
+                    <li key={idx}>{item.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {asList(draftDetail.uncertainties).length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-400 mb-1">资料不足 / 待核对</p>
+                <ul className="list-disc pl-5 text-gray-500 space-y-0.5">
+                  {asList(draftDetail.uncertainties).map((item: string, idx: number) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {draftApplied && (
+          <p className="mt-3 text-xs text-orange-600">
+            已填入下方表单，请确认或修改后点击「保存修改」。
+          </p>
+        )}
+      </div>
 
       {/* 评估结论 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
