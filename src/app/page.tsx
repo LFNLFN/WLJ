@@ -13,7 +13,6 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import KnowledgePanel from '@/components/KnowledgePanel';
@@ -103,7 +102,6 @@ const WELCOME: Message = {
 1. 📚 **查知识库** — 课程体系、评估量表、教案、训练计划、机构制度
 2. 📊 **查业务数据** — 学生 / 教师 / 课程 / 评估记录（如"统计各表数据量""查一下张老师的信息"）
 3. 📄 **生成文件** — 导出 Excel / Word 并给你下载地址
-4. 📝 **写教案** — 生成教案草稿后可以直接「保存为教案」进教案库
 
 直接把需求说清楚就行，例如：「我们机构的课程体系包括哪些课程？」`,
 };
@@ -113,7 +111,6 @@ const QUICK_PROMPTS = [
   { label: '🧾 量表评分标准', prompt: '感觉统合评估的评分标准是怎么记的？' },
   { label: '📊 统计业务数据', prompt: '帮我统计一下系统里各业务表的数据量' },
   { label: '📄 导出学生名单', prompt: '把学生名单导出成一个 Excel 文件给我' },
-  { label: '📝 生成教案', prompt: '帮我生成一份关于「认知能力训练」的教案草稿' },
   { label: '📚 知识库里有啥', prompt: '知识库里现在上传了哪些资料？分别讲了什么？' },
 ];
 
@@ -129,30 +126,6 @@ ARK_VAULT_ID=vlt-xxxx           # 凭证库里放 Viking 知识库 API Key
 
 # 业务数据库
 DATABASE_URL=postgresql://...`;
-
-/** 清理 AI 回复里不适合直接搬运到教案库的修饰（沿用原来「保存为教案」的清洗逻辑） */
-function extractCoreContent(content: string): string {
-  const patterns = [
-    /^(好的|好|好的，|没问题|当然可以|我来|我为您|我帮你|我这就|以下|这是)[^。]*[。：:]\s*/,
-    /^[^。]*?为你[^。]*?[。：:]\s*/,
-    /^[^。]*?如下[：:]\s*/,
-  ];
-  let cleaned = content;
-  for (const p of patterns) cleaned = cleaned.replace(p, '');
-  cleaned = cleaned.replace(/^[#*\s>]+/gm, '').replace(/\*\*/g, '').replace(/`/g, '');
-  cleaned = cleaned.replace(/^-\s+/gm, '  • ').replace(/^\d+\.\s+/gm, '  ');
-  return cleaned.replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function extractTitle(text: string): string {
-  const patterns = [/(?:主题|课题|课程名称|教案名称|活动名称)[：:]\s*([^\n]+)/, /^#+\s*(.+)$/m, /^(?:【|《)(.+?)(?:】|》)/];
-  for (const p of patterns) {
-    const m = text.match(p);
-    if (m) return m[1].trim();
-  }
-  const lines = text.split('\n').filter((l) => l.trim() && !l.match(/^[#*\s]*$/));
-  return lines[0]?.trim().slice(0, 30).replace(/^[#*\s]+/, '').trim() || 'AI 生成教案';
-}
 
 /** 行内解析：**加粗**、`代码`、/generated/xxx 下载地址 */
 function renderInline(text: string, keyPrefix: string) {
@@ -291,7 +264,6 @@ function renderRich(content: string) {
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -352,13 +324,6 @@ export default function HomePage() {
     } catch (err) {
       setConfigStatus('error');
     }
-  };
-
-  const addToLessonPlan = (content: string) => {
-    const core = extractCoreContent(content);
-    localStorage.setItem('ai_generated_content', core);
-    localStorage.setItem('ai_generated_title', extractTitle(core));
-    router.push('/lesson-plans/new?from=ai');
   };
 
   const readAsDataUrl = (file: File) =>
@@ -649,16 +614,6 @@ export default function HomePage() {
                         </div>
                       )}
 
-                      {msg.role === 'assistant' && idx > 0 && msg.content.length > 50 && (
-                        <div className="flex gap-3 mt-3 pt-3 border-t border-gray-200">
-                          <button
-                            onClick={() => addToLessonPlan(msg.content)}
-                            className="text-xs text-primary-600 hover:text-primary-800"
-                          >
-                            📥 保存为教案
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}

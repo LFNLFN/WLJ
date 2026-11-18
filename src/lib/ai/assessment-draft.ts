@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { buildReviewRows, formatAnswer, formatOption } from '@/lib/scale-question-bank';
+import { parseLooseJson } from './parse-json';
 
 /**
  * 评估结果草稿生成（文书辅助）
@@ -179,15 +180,10 @@ const SYSTEM_PROMPT = [
 ].join('\n');
 
 function parseModelJson(text: string): any {
-  let body = String(text || '').trim();
-  body = body.replace(/^```(?:json)?\s*/i, '').replace(/```$/i, '').trim();
-  const start = body.indexOf('{');
-  const end = body.lastIndexOf('}');
-  if (start < 0 || end <= start) throw new DraftGenerationError('模型没有返回有效 JSON，请重试', 502);
   try {
-    return JSON.parse(body.slice(start, end + 1));
+    return parseLooseJson(text);
   } catch {
-    throw new DraftGenerationError('模型返回的 JSON 无法解析，请重试', 502);
+    throw new DraftGenerationError('模型没有返回有效 JSON，请重试', 502);
   }
 }
 

@@ -587,6 +587,16 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
   - 生成结果会填回编辑表单，**仍需治疗师审核、修改后保存**；不做医学诊断
 - 默认关闭 thinking（单次约 30–60 秒）；可用 `ARK_TRAINING_MODEL_ENDPOINT` 单独指定接入点
 
+## 教案中心（AI 生成）
+
+- 教案分为「个人教案（1对1/个别化）」和「集体教案（小组/班级）」两种类型，**不关联学生**
+- 新建/编辑教案页提供「🤖 AI 生成」：
+  - 填写主题/训练目标、适用年龄、时长、人数、训练重点（语言/社交/认知/动作/感统/注意力/生活自理/情绪行为）和补充说明
+  - AI 返回标题 + Markdown 正文（活动目标、适用对象、材料、流程、家庭延伸），可修改后保存
+  - 默认关闭 thinking；`ARK_LESSON_MODEL_ENDPOINT` / `ARK_LESSON_THINKING` 可单独配置
+- 训练计划 AI 生成时可勾选最多 5 份已保存教案作为参考（只参考活动设计，不照搬）
+- 智能助理首页已移除「生成教案」快捷入口与「保存为教案」按钮；需要完整教案时请到教案中心生成
+
 ## 创建管理员账号
 
 三种方式，任选其一：
@@ -786,6 +796,8 @@ node server/index.js
 | `ARK_DRAFT_MODEL_ENDPOINT` | 可选。AI 评估草稿专用接入点；不配则回退 `ARK_MODEL_ENDPOINT` |
 | `ARK_TRAINING_MODEL_ENDPOINT` | 可选。AI 训练计划专用接入点；不配则回退 `ARK_DRAFT_MODEL_ENDPOINT` / `ARK_MODEL_ENDPOINT` |
 | `ARK_TRAINING_THINKING` | 可选。设为 `default` 开启训练计划生成的 thinking（更慢、质量更高）；默认关闭 |
+| `ARK_LESSON_MODEL_ENDPOINT` | 可选。AI 教案生成专用接入点；不配则回退训练计划/草稿/默认接入点 |
+| `ARK_LESSON_THINKING` | 可选。设为 `default` 开启教案生成的 thinking；默认关闭 |
 | `ARK_DRAFT_THINKING` | 可选。设为 `default` 开启草稿生成的 thinking（更慢、质量更高）；默认关闭 |
 | `AI_DRAFT_AUTO` | 可选。设为 `0` 关闭“提交后自动生成草稿”（手动按钮仍可用） |
 | `AI_DRAFT_WORKER` | 可选。设为 `0` 关闭进程内的后台队列扫描 |

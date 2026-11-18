@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { TrainingPlan } from '@/lib/types';
+import { getLessonPlans } from '@/lib/api';
 
 interface StudentInfo {
   id?: string;
@@ -74,13 +75,17 @@ const PROBLEM_TEMPLATES: { id: string; label: string; template: string }[] = [
 export default function AIGenerateDialog({ open, onClose, onApply, student }: AIGenerateDialogProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
+  const [lessonPlans, setLessonPlans] = useState<any[]>([]);
+  const [lessonPlanIds, setLessonPlanIds] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (open) {
-      setError('');
-    }
+    if (!open) return;
+    setError('');
+    getLessonPlans()
+      .then((data) => setLessonPlans(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, [open]);
 
   if (!open) return null;
@@ -101,6 +106,14 @@ export default function AIGenerateDialog({ open, onClose, onApply, student }: AI
     .map((t) => `【${t.label}】${t.template}`)
     .join('\n');
 
+  const toggleLesson = (id: string) => {
+    setLessonPlanIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 5) return prev;
+      return [...prev, id];
+    });
+  };
+
   const handleGenerate = async () => {
     if (generating) return;
     setGenerating(true);
@@ -116,6 +129,7 @@ export default function AIGenerateDialog({ open, onClose, onApply, student }: AI
           studentAge: student?.age || '',
           studentGender: student?.gender || '',
           problems,
+          lessonPlanIds,
           notes: [templateText, notes].filter(Boolean).join('\n'),
         }),
       });
@@ -171,6 +185,40 @@ export default function AIGenerateDialog({ open, onClose, onApply, student }: AI
             </div>
             <p className="text-xs text-gray-400 mt-2">
               如果录入学生时还不清楚问题，选「不确定 / 综合发展」：AI 会先设计观察与基线评估阶段，并注明需后续调整。
+            </p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              参考教案（可选，最多 5 份）
+            </label>
+            {lessonPlans.length === 0 ? (
+              <p className="text-xs text-gray-400">教案中心还没有教案；可先在「教案中心」用 AI 生成并保存。</p>
+            ) : (
+              <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-50">
+                {lessonPlans.map((plan: any) => {
+                  const checked = lessonPlanIds.includes(plan._id);
+                  return (
+                    <button
+                      key={plan._id}
+                      type="button"
+                      onClick={() => toggleLesson(plan._id)}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                        checked ? 'bg-purple-50 text-purple-800' : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <span className={`px-1.5 py-0.5 rounded text-[11px] ${plan.type === 'group' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+                        {plan.type === 'group' ? '集体' : '个人'}
+                      </span>
+                      <span className="flex-1 truncate">{plan.title}</span>
+                      <span className="text-purple-600">{checked ? '✓' : ''}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs text-gray-400 mt-1">
+              选中的教案会作为训练内容与活动设计的参考，不会照搬；不选则不参考。
             </p>
           </div>
 

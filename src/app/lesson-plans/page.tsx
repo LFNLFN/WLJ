@@ -26,7 +26,6 @@ const TYPE_OPTIONS = [
 function LessonPlansContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const idsParam = searchParams.get('ids');
   const keywordParam = searchParams.get('keyword') || '';
 
   const [plans, setPlans] = useState<any[]>([]);
@@ -34,15 +33,10 @@ function LessonPlansContent() {
   const [typeFilter, setTypeFilter] = useState('');
 
   const loadData = useCallback((kw?: string, tp?: string) => {
-    getLessonPlans(kw, tp).then(allPlans => {
-      if (idsParam) {
-        const ids = idsParam.split(',').filter(Boolean);
-        setPlans(allPlans.filter((p: any) => ids.includes(p._id)));
-      } else {
-        setPlans(allPlans);
-      }
-    }).catch(err => console.error('加载失败:', err));
-  }, [idsParam]);
+    getLessonPlans(kw, tp)
+      .then(allPlans => setPlans(allPlans || []))
+      .catch(err => console.error('加载失败:', err));
+  }, []);
 
   useEffect(() => {
     loadData(keywordParam, '');
@@ -67,8 +61,6 @@ function LessonPlansContent() {
     loadData(keyword, tp);
   };
 
-  const goBack = idsParam ? () => router.push('/students') : null;
-
   const columns = [
     { key: 'title', label: '标题' },
     {
@@ -86,11 +78,6 @@ function LessonPlansContent() {
         </div>
       )
     },
-    { key: 'studentName', label: '关联学生',
-      render: (val: string) => val ? (
-        <span className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">{val}</span>
-      ) : <span className="text-gray-400">-</span>
-    },
     { key: 'createdAt', label: '创建时间',
       render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-'
     },
@@ -107,9 +94,6 @@ function LessonPlansContent() {
         <main className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              {goBack && (
-                <button onClick={goBack} className="text-gray-400 hover:text-gray-600 text-sm mr-2">← 返回学生管理</button>
-              )}
               <div className="flex items-center gap-2">
                 <input
                   type="text"

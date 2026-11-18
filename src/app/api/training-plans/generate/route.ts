@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { getDb } from '@/lib/api/crud';
 import { getSessionFromRequest } from '@/lib/auth/current';
 import { requireStaff } from '@/lib/auth/service';
+import { parseLooseJson } from '@/lib/ai/parse-json';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,12 +40,7 @@ const SYSTEM_PROMPT = [
 ].join('\n');
 
 function parseJson(text: string): any {
-  let body = String(text || '').trim();
-  body = body.replace(/^```(?:json)?\s*/i, '').replace(/```$/i, '').trim();
-  const start = body.indexOf('{');
-  const end = body.lastIndexOf('}');
-  if (start < 0 || end <= start) throw new Error('模型没有返回有效 JSON');
-  return JSON.parse(body.slice(start, end + 1));
+  return parseLooseJson(text);
 }
 
 function asStringArray(value: any): string[] {
@@ -135,12 +131,33 @@ export async function POST(req: NextRequest) {
     const problemLabels = problemIds.map((id) => PROBLEM_LABELS[id] || id);
     const notes = String(body?.notes || '').slice(0, 2000);
 
+    // 参考教案（最多 5 份，只取标题/类型/正文摘要）
+    const lessonPlanIds: string[] = Array.isArray(body?.lessonPlanIds)
+      ? body.lessonPlanIds.map((x: any) => String(x)).slice(0, 5)
+      : [];
+    let lessonRefs = '';
+    if (lessonPlanIds.length > 0) {
+      const found = await db.query(
+        'SELECT id, title, type, content FROM lesson_plans WHERE id = ANY($1::text[])',
+        [lessonPlanIds]
+      );
+      lessonRefs = found.rows
+        .map((r: any, idx: number) => {
+          const typeLabel = r.type === 'group' ? '集体' : '个人';
+          return `${idx + 1}. [${typeLabel}] ${r.title}\n${String(r.content || '').slice(0, 800)}`;
+        })
+        .join('\n\n');
+    }
+
     const userContent = [
       `学生：${studentName || '未提供姓名'}`,
       `年龄：${studentAge || (body?.studentAge || '未提供')}`,
       `性别：${body?.studentGender || '未提供'}`,
       `主要问题：${problemLabels.join('、')}`,
       notes ? `补充说明/提示词：\n${notes}` : '补充说明：无',
+      lessonRefs
+        ? `参考教案（仅参考活动设计与训练内容，不要照搬，不适用可忽略）：\n${lessonRefs}`
+        : '参考教案：未选择',
       '',
       '请输出训练阶段计划 JSON。',
     ].join('\n');
@@ -194,7 +211,8 @@ export async function POST(req: NextRequest) {
 
     console.log(
       `[training-plan-ai] 学生=${studentName || studentId || '-'} 问题=${problemLabels.join('/')} ` +
-        `生成人=${staff.value.name || staff.value.id} 耗时=${Date.now() - startedAt}ms 模块=${plan.trainingModules.length}`
+        `参考教案=${lessonPlanIds.length} 生成人=${staff.value.name || staff.value.id} ` +
+        `耗时=${Date.now() - startedAt}ms 模块=${plan.trainingModules.length}`
     );
 
     return NextResponse.json({
