@@ -99,8 +99,8 @@ export default function CoursesPage() {
             onDelete={handleDelete}
             actions={[
               {
-                label: '📝 上课记录',
-                onClick: (row) => router.push(`/records?courseId=${row._id}`),
+                label: '📝 课后记录',
+                onClick: (row) => router.push(`/courses/edit?id=${row._id}&records=1`),
                 color: 'text-blue-600',
                 hoverColor: 'hover:bg-blue-50',
               }

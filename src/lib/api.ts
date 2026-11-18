@@ -99,6 +99,29 @@ export async function deleteCourse(id: string) {
   return request(`/courses/${id}`, { method: 'DELETE' });
 }
 
+// ==================== 课程逐节课后记录 ====================
+
+export async function getCourseLessons(courseId: string) {
+  return request(`/course-lessons?courseId=${encodeURIComponent(courseId)}`);
+}
+
+export async function saveCourseLesson(data: any) {
+  if (data.id || data._id) {
+    return request(`/course-lessons/${data.id || data._id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+  return request('/course-lessons', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCourseLesson(id: string) {
+  return request(`/course-lessons/${id}`, { method: 'DELETE' });
+}
+
 // ==================== 上课记录 ====================
 
 export async function getClassRecords() {

@@ -23,23 +23,6 @@ export interface Student {
 
 // 课程
 
-// ==================== 阶段计划 ====================
-
-export type StagePlanType = 'lesson' | 'week' | 'month';
-
-export interface CourseStage {
-  id: string;
-  label: string;      // 阶段名称
-  start: number;      // 起始
-  end: number;        // 结束
-  content: string;    // 教学内容
-  objectives: string; // 教学目标/效果
-  completed: boolean; // 是否完成
-  lessonPlanIds: string[];
-  lessonPlanTitles: string[];
-}
-
-
 export interface Course {
   id: string;
   name: string;
@@ -54,8 +37,6 @@ export interface Course {
   price: number;
   classHour: number;
   totalClasses: number;
-  stagePlanType: StagePlanType;
-  stages: CourseStage[];
   createdAt: string;
 }
 
