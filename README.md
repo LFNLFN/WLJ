@@ -586,17 +586,21 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
   - 选择问题后自动填入提示词模板，可补充年龄、配合程度、家长期望、每周训练次数等
   - 生成结果会填回编辑表单，**仍需治疗师审核、修改后保存**；不做医学诊断
 - 默认关闭 thinking（单次约 30–60 秒）；可用 `ARK_TRAINING_MODEL_ENDPOINT` 单独指定接入点
+- 模型偶发返回不合法 JSON 时会自动重试一次；解析器同时兼容未转义换行、尾逗号与截断输出，仍失败会提示重试
 
 ## 教案中心（AI 生成）
 
-- 教案分为「个人教案（1对1/个别化）」和「集体教案（小组/班级）」两种类型，**不关联学生**
+- 教案分为「个人教案（1对1/个别化）」和「集体教案（小组/班级）」两种类型
+  - **个人教案必须关联 1 名学生；集体教案必须关联至少 2 名学生**
+  - 教案与学生是多对多：一个学生可以关联多份教案；关联关系存 `lesson_plan_students`
+  - 学生管理 → 行内「📄 教案」可直接查看该学生已关联的教案；教案列表也显示关联学生
 - 新建/编辑教案页提供「🤖 AI 生成」：
   - 弹窗内可直接切换「个人教案 / 集体教案」，生成后同步保存类型
   - 填写主题/训练目标、适用年龄、时长、人数、训练重点（语言/社交/认知/动作/感统/注意力/生活自理/情绪行为）和补充说明
   - AI 返回标题 + Markdown 正文（活动目标、适用对象、材料、流程、家庭延伸），可修改后保存
   - 默认关闭 thinking；`ARK_LESSON_MODEL_ENDPOINT` / `ARK_LESSON_THINKING` 可单独配置
 - 训练计划 AI 生成时可勾选最多 5 份已保存教案作为参考（只参考活动设计，不照搬）
-- 智能助理首页已移除「生成教案」快捷入口与「保存为教案」按钮；需要完整教案时请到教案中心生成
+- 智能助理首页不再提供生成/保存教案的入口；完整教案请统一在教案中心创建
 
 ## 课程与逐节课后记录
 
@@ -805,7 +809,7 @@ node server/index.js
 | `DATABASE_URL` | **必填**，线上 PostgreSQL 连接串（唯一数据源；不配置接口直接报错）。也可用 `POSTGRES_URL` |
 | `AUTH_SECRET` | **线上必填**，登录会话签名密钥（≥16 位随机字符串） |
 | `REGISTER_CODE` | 可选。配置后注册需要填邀请码（不配置=开放注册） |
-| `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟，唯一入口；已移除 DeepSeek 等外部服务） |
+| `ARK_API_KEY` / `ARK_BASE_URL` / `ARK_MODEL_ENDPOINT` | 大模型（火山方舟） |
 | `ARK_DRAFT_MODEL_ENDPOINT` | 可选。AI 评估草稿专用接入点；不配则回退 `ARK_MODEL_ENDPOINT` |
 | `ARK_TRAINING_MODEL_ENDPOINT` | 可选。AI 训练计划专用接入点；不配则回退 `ARK_DRAFT_MODEL_ENDPOINT` / `ARK_MODEL_ENDPOINT` |
 | `ARK_TRAINING_THINKING` | 可选。设为 `default` 开启训练计划生成的 thinking（更慢、质量更高）；默认关闭 |

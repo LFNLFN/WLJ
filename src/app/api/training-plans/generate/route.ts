@@ -175,33 +175,59 @@ export async function POST(req: NextRequest) {
     });
 
     const startedAt = Date.now();
-    const payload: any = {
-      model,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-      temperature: 0.4,
-      max_tokens: 3500,
-    };
-    if (thinking) payload.thinking = thinking;
 
-    let response;
-    try {
-      response = await client.chat.completions.create(payload);
-    } catch (err: any) {
-      const raw = String(err?.message || err);
-      if (payload.thinking || /temperature|max_tokens|thinking/i.test(raw)) {
-        delete payload.thinking;
-        delete payload.temperature;
-        response = await client.chat.completions.create(payload);
-      } else {
+    const callModel = async (extraInstruction: string | undefined, maxTokens: number) => {
+      const payload: any = {
+        model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userContent + (extraInstruction ? `\n\n${extraInstruction}` : '') },
+        ],
+        temperature: 0.3,
+        max_tokens: maxTokens,
+      };
+      if (thinking) payload.thinking = thinking;
+      try {
+        return await client.chat.completions.create(payload);
+      } catch (err: any) {
+        const raw = String(err?.message || err);
+        if (payload.thinking || /temperature|max_tokens|thinking/i.test(raw)) {
+          delete payload.thinking;
+          delete payload.temperature;
+          return await client.chat.completions.create(payload);
+        }
         throw err;
+      }
+    };
+
+    let response = await callModel(undefined, 5000);
+    if (response.choices?.[0]?.finish_reason === 'length') {
+      console.warn('[training-plan-ai] 输出被截断，使用更长限制重试');
+      response = await callModel(
+        '上一次输出因长度被截断。请保留 2-4 个模块、每模块 2-3 个阶段、每阶段 3-5 条内容，输出完整 JSON。',
+        6000
+      );
+    }
+
+    let content = response.choices?.[0]?.message?.content || '';
+    let parsed: any;
+    try {
+      parsed = parseJson(content);
+    } catch (firstErr: any) {
+      console.warn('[training-plan-ai] JSON 解析失败，重试一次:', firstErr?.message || firstErr);
+      response = await callModel(
+        '上一次输出不是合法 JSON。请重新输出完整、合法的 JSON：字符串必须使用双引号并转义内部双引号，数组元素之间必须有逗号，不要输出 markdown 代码块。',
+        5000
+      );
+      content = response.choices?.[0]?.message?.content || '';
+      try {
+        parsed = parseJson(content);
+      } catch (secondErr: any) {
+        console.error('[training-plan-ai] JSON 解析失败 raw=', String(content).slice(0, 1500));
+        throw new Error('模型返回的 JSON 格式不正确（可能被截断或字符串未转义），请重试');
       }
     }
 
-    const content = response.choices?.[0]?.message?.content || '';
-    const parsed = parseJson(content);
     const plan = normalizePlan(parsed, {
       name: studentName,
       birthDate,
