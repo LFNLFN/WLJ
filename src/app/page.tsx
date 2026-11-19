@@ -8,7 +8,7 @@
  *   - query_database         查业务库（学生 / 教师 / 课程 / 评估记录 …）
  *   - generate_file          生成 Excel / Word 并给出下载地址
  *
- * 不再依赖 DeepSeek 等外部大模型服务：模型走 ARK_MODEL_ENDPOINT，
+ * 模型走火山方舟 ARK_MODEL_ENDPOINT，
  * 工具在服务端 /api/ai/tools 执行，对话入口是 /api/chat。
  */
 
@@ -106,6 +106,18 @@ const WELCOME: Message = {
 直接把需求说清楚就行，例如：「我们机构的课程体系包括哪些课程？」`,
 };
 
+/** 旧版欢迎语里有过「保存为教案」入口；升级后把已缓存的旧欢迎语替换掉 */
+function sanitizeSavedWelcome(list: Message[]): Message[] {
+  if (!Array.isArray(list) || list.length === 0) return list;
+  const legacyHints = ['保存为教案', '写教案'];
+  return list.map((msg) => {
+    const isWelcome = msg.role === 'assistant' &&
+      msg.content.includes('我是未来家的 AI 智能助理') &&
+      legacyHints.some((hint) => msg.content.includes(hint));
+    return isWelcome ? WELCOME : msg;
+  });
+}
+
 const QUICK_PROMPTS = [
   { label: '📚 课程体系有哪些', prompt: '我们机构的课程体系包括哪些课程？' },
   { label: '🧾 量表评分标准', prompt: '感觉统合评估的评分标准是怎么记的？' },
@@ -114,7 +126,7 @@ const QUICK_PROMPTS = [
   { label: '📚 知识库里有啥', prompt: '知识库里现在上传了哪些资料？分别讲了什么？' },
 ];
 
-const ENV_HELP = `# 火山方舟（唯一的大模型服务，不再需要 DeepSeek）
+const ENV_HELP = `# 火山方舟（唯一的大模型服务）
 ARK_API_KEY=ark-xxxx            # 必填
 ARK_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
 ARK_MODEL_ENDPOINT=ep-m-xxxx    # 推理接入点
@@ -291,7 +303,8 @@ export default function HomePage() {
       ]);
       if (cancelled) return;
       const { messages: saved } = loadChat<Message>(sessionStorage, uid);
-      if (saved.length > 0) setMessages(saved);
+      const restored = sanitizeSavedWelcome(saved);
+      if (restored.length > 0) setMessages(restored);
       setChatOwnerId(uid);
       setChatReady(true);
     })();
@@ -451,7 +464,7 @@ export default function HomePage() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">🤖 AI 智能助理</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  火山方舟大模型 + 知识库检索 / 业务数据查询 / 文件生成（无需 DeepSeek）
+                  火山方舟大模型 + 知识库检索 / 业务数据查询 / 文件生成
                 </p>
               </div>
               <div className="flex items-center gap-3">
