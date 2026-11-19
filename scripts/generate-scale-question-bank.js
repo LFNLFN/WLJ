@@ -151,7 +151,18 @@ function opts(arr) {
   });
 }
 
-// 8) TML 量表（题库在 assessment.js 内）
+// 8) 感觉统合现场测评（3-4岁 / 4-5.5岁）
+{
+  const m = require(path.join(appDir, 'utils', 'sensory-performance-data'));
+  Object.values(m.scales || {}).forEach((scale) => {
+    init(scale.id, scale.title);
+    (scale.items || []).forEach((it) => {
+      add(scale.id, it.id, { text: it.text, section: '', options: opts(it.options) });
+    });
+  });
+}
+
+// 9) TML 量表（题库在 assessment.js 内）
 {
   const a = require(path.join(appDir, 'utils', 'assessment'));
   Object.keys(a.TML_SCALES || {}).forEach((scale) => {

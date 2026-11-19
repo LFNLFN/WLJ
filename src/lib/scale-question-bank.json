@@ -5413,6 +5413,344 @@
       }
     }
   },
+  "sensory-performance-3-4": {
+    "title": "感觉统合测评题目（3-4岁）",
+    "items": {
+      "ball_chest": {
+        "text": "平传抛接球",
+        "section": "",
+        "options": []
+      },
+      "ball_bounce": {
+        "text": "击地传球",
+        "section": "",
+        "options": []
+      },
+      "jump_two_feet": {
+        "text": "沿既定路线双脚连续前跳",
+        "section": "",
+        "options": []
+      },
+      "jump_one_foot": {
+        "text": "沿既定路线单脚连续前跳",
+        "section": "",
+        "options": []
+      },
+      "bike_front_two": {
+        "text": "脚踏车双手抓把手前骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "bike_back_two": {
+        "text": "脚踏车双手抓把手倒骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "bike_front_one": {
+        "text": "脚踏车单手抓把手前骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "scooter_down": {
+        "text": "滑板车滑梯俯冲",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "流畅滑行，动作标准表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能坚持滑行，身体僵硬，表情紧张，动作不标准"
+          },
+          {
+            "value": "C",
+            "label": "不能坚持滑行，中途暂停。身体僵硬，表情紧张，动作不标准"
+          }
+        ]
+      },
+      "spin_barrel": {
+        "text": "竖抱桶中速旋转（2秒转动1圈）",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "能坚持20圈以上，眼球震颤4--6秒"
+          },
+          {
+            "value": "B",
+            "label": "能坚持15圈以上，眼球震颤10秒左右"
+          },
+          {
+            "value": "C",
+            "label": "能坚持15圈以下，眼球震颤10秒左右"
+          }
+        ]
+      },
+      "balance_squat": {
+        "text": "平衡台独自蹲起",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "顺利，平稳"
+          },
+          {
+            "value": "B",
+            "label": "腿稍抖，身体有点摇晃"
+          },
+          {
+            "value": "C",
+            "label": "腿很抖，身体摇晃厉害"
+          }
+        ]
+      },
+      "ball_massage": {
+        "text": "小按摩球全身按摩",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "身体自然，表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能忍住，身体僵硬，表情夸张"
+          },
+          {
+            "value": "C",
+            "label": "忍不住，哈哈笑，身体躲避"
+          }
+        ]
+      },
+      "big_ball_press": {
+        "text": "大笼球全身按压",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "身体自然，表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能忍住，身体僵硬，表情夸张"
+          },
+          {
+            "value": "C",
+            "label": "忍不住，哈哈笑，身体躲避"
+          }
+        ]
+      }
+    }
+  },
+  "sensory-performance-4-5": {
+    "title": "感觉统合测评题目（4-5.5岁）",
+    "items": {
+      "ball_right": {
+        "text": "右手连续拍球",
+        "section": "",
+        "options": []
+      },
+      "ball_left": {
+        "text": "左手连续拍球",
+        "section": "",
+        "options": []
+      },
+      "jump_two_feet": {
+        "text": "沿既定路线，双脚连续前跳",
+        "section": "",
+        "options": []
+      },
+      "jump_one_foot": {
+        "text": "沿既定路线，单脚连续前跳",
+        "section": "",
+        "options": []
+      },
+      "bike_front_two": {
+        "text": "脚踏车双手抓把手正骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "bike_front_one": {
+        "text": "脚踏车单手抓把手正骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "bike_back_one": {
+        "text": "脚踏车单手抓把手倒骑",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "快速、平稳"
+          },
+          {
+            "value": "B",
+            "label": "中速、平稳"
+          },
+          {
+            "value": "C",
+            "label": "左右脚用力不均衡，卡顿"
+          }
+        ]
+      },
+      "scooter_down": {
+        "text": "滑板车滑梯俯冲",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "流畅滑行，动作标准表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能坚持滑行，身体僵硬，表情紧张，动作不标准"
+          },
+          {
+            "value": "C",
+            "label": "不能坚持滑行，中途暂停。身体僵硬，表情紧张，动作不标准"
+          }
+        ]
+      },
+      "spin_barrel": {
+        "text": "竖抱桶中速旋转（2秒转动1圈）",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "能坚持23圈以上，眼球震颤4-6秒"
+          },
+          {
+            "value": "B",
+            "label": "能坚持17圈以上，眼球震颤10秒左右"
+          },
+          {
+            "value": "C",
+            "label": "能坚持17圈以下，眼球震颤10秒左右"
+          }
+        ]
+      },
+      "balance_squat": {
+        "text": "平衡台独自蹲起",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "顺利，平稳"
+          },
+          {
+            "value": "B",
+            "label": "腿稍抖，身体有点摇晃"
+          },
+          {
+            "value": "C",
+            "label": "腿很抖，身体摇晃厉害"
+          }
+        ]
+      },
+      "ball_massage": {
+        "text": "小按摩球全身按摩",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "身体自然，表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能忍住，身体僵硬，表情夸张"
+          },
+          {
+            "value": "C",
+            "label": "忍不住，哈哈笑，身体躲避"
+          }
+        ]
+      },
+      "big_ball_press": {
+        "text": "大笼球全身按压",
+        "section": "",
+        "options": [
+          {
+            "value": "A",
+            "label": "身体自然，表情自然"
+          },
+          {
+            "value": "B",
+            "label": "能忍住，身体僵硬，表情夸张"
+          },
+          {
+            "value": "C",
+            "label": "忍不住，哈哈笑，身体躲避"
+          }
+        ]
+      }
+    }
+  },
   "tml1": {
     "title": "症状与学习成绩评估表",
     "items": {

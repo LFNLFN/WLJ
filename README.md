@@ -128,6 +128,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 小程序端：家长提交 / 教师批阅
 
+### 感觉统合现场操作测评（新增）
+
+- 量表：`sensory-performance-3-4`（3-4岁）、`sensory-performance-4-5`（4-5.5岁）
+- 12 项现场操作记录：第 1-4 项为抛接球/拍球/连续跳的计数（记录最高值），第 5-12 项为脚踏车、滑板车、竖抱桶旋转、平衡台、按摩球/大笼球按压的 A/B/C 现场表现
+- 页面：`pages/sensory-performance/`；只记录现场结果，不自造总分或严重程度分级
+- 结果会同步到 PC 评估记录，PC 端「答题详情」可看到题目与全部 A/B/C 选项
+
 微信小程序（`~/Desktop/sensory-integration-app`）首页有「教师入口」，把用户分成两种身份：
 
 | 身份 | 登录 | 能做什么 |

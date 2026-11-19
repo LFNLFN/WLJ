@@ -23,6 +23,8 @@ const scaleMap: Record<string, { name: string; category: string }> = {
   'tml2': { name: '注意力缺陷-多动障碍(ADHD)评估量表', category: '注意力' },
   'tml3': { name: '社交反应量表 (SRS)', category: '社交' },
   'oral-motor': { name: '中文口腔运动功能评估表', category: '口腔运动' },
+  'sensory-performance-3-4': { name: '感觉统合测评题目（3-4岁）', category: '感统' },
+  'sensory-performance-4-5': { name: '感觉统合测评题目（4-5.5岁）', category: '感统' },
 };
 
 // 8维度感统评估（与小程序完全一致）
@@ -76,7 +78,7 @@ function convertReport(report: any) {
       summary = `综合评分：${report.overallScore ?? '未知'}`;
     }
     recommendations = report.overallAdvice || report.suggestions || '';
-  } else if (['sensory-4-5', 'attention', 'attention-4-6', 'attention-eval', 'autism', 'oral-motor'].includes(scaleId)) {
+  } else if (['sensory-4-5', 'attention', 'attention-4-6', 'attention-eval', 'autism', 'oral-motor', 'sensory-performance-3-4', 'sensory-performance-4-5'].includes(scaleId)) {
     // 其他评估量表：使用 results 数组
     const results = report.results || [];
     if (results.length > 0) {
