@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v7';
+const SCHEMA_KEY = '__wljSchemaReady_v9';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -27,6 +27,11 @@ export function ensureSchema(): Promise<void> {
     void import('../ai/draft-queue')
       .then((mod) => mod.startDraftWorker())
       .catch((err) => console.warn('[schema] AI 草稿 worker 启动失败（忽略）:', err?.message || err));
+
+    // 启动小程序 AI 生成任务队列（教案 / 训练计划）
+    void import('../ai/generation-queue')
+      .then((mod) => mod.startGenerationWorker())
+      .catch((err) => console.warn('[schema] AI 生成 worker 启动失败（忽略）:', err?.message || err));
   }
   return g[SCHEMA_KEY] as Promise<void>;
 }
@@ -110,9 +115,11 @@ async function runMigrations(): Promise<void> {
     content TEXT DEFAULT '',
     performance TEXT DEFAULT '',
     homework TEXT DEFAULT '',
+    summary TEXT DEFAULT '',
     "createdAt" TEXT DEFAULT '',
     "updatedAt" TEXT DEFAULT ''
   )`);
+  await db.query(`ALTER TABLE course_lessons ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_course_lessons_course ON course_lessons ("courseId", "lessonNo")`);
   console.log('[schema] course_lessons 已就绪');
 
@@ -131,6 +138,23 @@ async function runMigrations(): Promise<void> {
      WHERE "studentId" IS NOT NULL AND "studentId" <> ''
     ON CONFLICT DO NOTHING`);
   console.log('[schema] lesson_plan_students 已就绪');
+
+  // 小程序 AI 生成任务队列（教案 / 训练计划）
+  await db.query(`CREATE TABLE IF NOT EXISTS ai_generation_jobs (
+    id TEXT PRIMARY KEY,
+    type TEXT DEFAULT '',
+    payload TEXT DEFAULT '{}',
+    status TEXT DEFAULT 'pending',
+    result TEXT DEFAULT '',
+    error TEXT DEFAULT '',
+    attempts INTEGER DEFAULT 0,
+    "lockedAt" TEXT DEFAULT '',
+    "createdBy" TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT '',
+    "updatedAt" TEXT DEFAULT ''
+  )`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_ai_generation_jobs_status ON ai_generation_jobs (status, "createdAt")`);
+  console.log('[schema] ai_generation_jobs 已就绪');
 
   // 评估记录的 AI 草稿字段（文书辅助，需人工确认）
   const draftColumns = [

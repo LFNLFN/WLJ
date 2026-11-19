@@ -226,6 +226,26 @@ npm run records:link-students -- --apply # 真正写入（建学生 + 关联报�
 - **小程序家长端**「历史评估记录」页：每条记录显示 `⏳ 待批阅` / `✅ 已批阅`（含批阅人与批阅时间），
   有批阅意见时一并显示；统计条新增「待批阅」计数。
 
+## 小程序教师端：AI 生成教案 / 训练计划
+
+教师登录小程序后，在「教师端」页面新增两个入口：
+
+- **AI 生成教案**：选择个人/集体类型、填写主题/年龄/时长/训练重点/补充说明，可关联学生（个人 1 名、集体≥2 名），生成后可编辑/复制并保存到教案库
+- **AI 生成训练计划**：选择学生、主要问题（语言/社交/动作/认知/注意力/感统/自闭症/喂养/构音/不确定）、参考教案（最多 5 份）和补充说明，生成后可保存到该学生的训练计划
+
+由于 `wx.request` 默认 60 秒会超时，生成不直接在小程序里等待：
+
+1. 小程序 `POST /api/ai-jobs` 创建任务
+2. 服务端 `ai_generation_jobs` 队列在后台生成
+3. 小程序每 2.5 秒轮询 `GET /api/ai-jobs/:id`，最长等待 180 秒
+4. `done` 后展示结果；`failed` 显示错误
+
+队列与 Web 同进程，无需额外 pm2 进程；相关变量：
+
+- `AI_GENERATION_WORKER=0` 关闭后台扫描
+- `AI_GENERATION_INTERVAL_MS` 扫描间隔（默认 5000）
+- `AI_GENERATION_MAX_ATTEMPTS` 最大尝试次数（默认 2）
+
 ## AI 智能助理（首页）：提问附带图片/文件 + 页面内知识库上传
 
 首页 `/` 是 AI 智能助理，由火山方舟模型 + 服务端工具层驱动（工具细节见 `src/lib/agent/README.md`）。
@@ -608,7 +628,7 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
 - 课程不再包含「阶段性计划」（stages / stagePlanType 已从表单和类型中移除；旧数据库列保留但不再使用）
 - 课程编辑页新增「📝 课后记录（逐节课）」：
   - 按第 1 节、第 2 节…自动编号
-  - 每节记录：上课日期、开始/结束时间（自动算时长）、教学内容、课堂表现、课后作业
+  - 每节记录：上课日期、开始/结束时间（自动算时长）、教学内容、课堂表现、课堂总结、课后作业
   - 支持逐节添加、编辑、删除
 - 新建课程保存后自动进入编辑页并展开课后记录表单，可以立即逐节补录
 - 课程列表的行操作改为「📝 课后记录」，直接进入该课程的课后记录区
@@ -820,6 +840,9 @@ node server/index.js
 | `AI_DRAFT_WORKER` | 可选。设为 `0` 关闭进程内的后台队列扫描 |
 | `AI_DRAFT_WORKER_INTERVAL_MS` | 可选。队列扫描间隔，默认 `15000` |
 | `AI_DRAFT_MAX_ATTEMPTS` | 可选。草稿生成最大尝试次数，默认 `3` |
+| `AI_GENERATION_WORKER` | 可选。设为 `0` 关闭小程序 AI 生成任务队列扫描 |
+| `AI_GENERATION_INTERVAL_MS` | 可选。小程序 AI 生成任务扫描间隔，默认 `5000` |
+| `AI_GENERATION_MAX_ATTEMPTS` | 可选。小程序 AI 生成任务最大尝试次数，默认 `2` |
 | `KB_API_KEY` | 可选（推荐）。火山知识库 API Key → 直连检索知识库原文切片，详见 `src/lib/agent/README.md` |
 | `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索知识库（兜底路径，慢），详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |
