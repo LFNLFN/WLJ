@@ -167,6 +167,15 @@ export default function StudentsPage() {
                 color: 'text-purple-600',
                 hoverColor: 'hover:bg-purple-50',
               },
+              {
+                label: '📄 教案',
+                onClick: (row: any) => {
+                  const id = row._id || row.id;
+                  router.push(`/lesson-plans?studentId=${encodeURIComponent(id)}&studentName=${encodeURIComponent(row.name || '')}`);
+                },
+                color: 'text-orange-600',
+                hoverColor: 'hover:bg-orange-50',
+              },
             ]}
           />
         </main>

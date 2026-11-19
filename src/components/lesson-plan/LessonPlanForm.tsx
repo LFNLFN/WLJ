@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import AIGenerateLessonDialog from '@/components/lesson-plan/AIGenerateLessonDialog';
-import { getLessonPlan, saveLessonPlan } from '@/lib/api';
+import { getLessonPlan, getStudents, saveLessonPlan } from '@/lib/api';
 
 export default function LessonPlanForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id') || '';
+  const studentIdParam = searchParams.get('studentId') || '';
+  const studentNameParam = searchParams.get('studentName') || '';
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
   const [showAI, setShowAI] = useState(false);
@@ -19,6 +21,18 @@ export default function LessonPlanForm() {
     type: 'personal' as 'personal' | 'group',
     content: '',
   });
+  const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<{ id: string; name: string }[]>(
+    studentIdParam ? [{ id: studentIdParam, name: studentNameParam }] : []
+  );
+  const [studentKeyword, setStudentKeyword] = useState('');
+  const [showStudentSearch, setShowStudentSearch] = useState(false);
+
+  useEffect(() => {
+    getStudents()
+      .then((data: any[]) => setAllStudents(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -30,11 +44,50 @@ export default function LessonPlanForm() {
             type: plan.type === 'group' ? 'group' : 'personal',
             content: plan.content || '',
           });
+          const ids: string[] = Array.isArray(plan.studentIds) && plan.studentIds.length > 0
+            ? plan.studentIds
+            : (plan.studentId ? [plan.studentId] : []);
+          const names: string[] = Array.isArray(plan.studentNames) && plan.studentNames.length > 0
+            ? plan.studentNames
+            : (plan.studentName ? [plan.studentName] : []);
+          setSelectedStudents(ids.map((sid, idx) => ({ id: sid, name: names[idx] || '' })));
         }
       })
       .catch(() => alert('加载教案失败'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const studentResults = (() => {
+    const kw = studentKeyword.trim().toLowerCase();
+    if (!kw) return allStudents.slice(0, 20);
+    return allStudents.filter((s: any) =>
+      (s.name || '').toLowerCase().includes(kw) ||
+      (s.parentName || '').toLowerCase().includes(kw) ||
+      (s.parentPhone || '').includes(kw)
+    );
+  })();
+
+  const selectStudent = (student: any) => {
+    const item = { id: student._id || student.id, name: student.name || '' };
+    if (form.type === 'personal') {
+      setSelectedStudents([item]);
+    } else if (!selectedStudents.some((s) => s.id === item.id)) {
+      setSelectedStudents((prev) => [...prev, item]);
+    }
+    setStudentKeyword('');
+    setShowStudentSearch(false);
+  };
+
+  const removeStudent = (studentId: string) => {
+    setSelectedStudents((prev) => prev.filter((s) => s.id !== studentId));
+  };
+
+  const changeType = (type: 'personal' | 'group') => {
+    setForm((prev) => ({ ...prev, type }));
+    if (type === 'personal') {
+      setSelectedStudents((prev) => prev.slice(0, 1));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +99,14 @@ export default function LessonPlanForm() {
       alert('请输入教学内容');
       return;
     }
+    if (form.type === 'personal' && selectedStudents.length !== 1) {
+      alert('个人教案必须关联 1 名学生');
+      return;
+    }
+    if (form.type === 'group' && selectedStudents.length < 2) {
+      alert('集体教案必须关联至少 2 名学生');
+      return;
+    }
     setSaving(true);
     try {
       await saveLessonPlan({
@@ -53,8 +114,13 @@ export default function LessonPlanForm() {
         title: form.title.trim(),
         type: form.type,
         content: form.content.trim(),
+        studentIds: selectedStudents.map((s) => s.id),
       });
-      router.push('/lesson-plans');
+      if (studentIdParam) {
+        router.push(`/lesson-plans?studentId=${encodeURIComponent(studentIdParam)}&studentName=${encodeURIComponent(studentNameParam)}`);
+      } else {
+        router.push('/lesson-plans');
+      }
     } catch (err) {
       alert('保存失败');
     } finally {
@@ -114,7 +180,7 @@ export default function LessonPlanForm() {
                           name="type"
                           value="personal"
                           checked={form.type === 'personal'}
-                          onChange={() => setForm((prev) => ({ ...prev, type: 'personal' }))}
+                          onChange={() => changeType('personal')}
                           className="w-4 h-4 text-primary-600"
                         />
                         <span className="text-sm text-gray-700">个人教案（1 对 1 / 个别化）</span>
@@ -125,15 +191,85 @@ export default function LessonPlanForm() {
                           name="type"
                           value="group"
                           checked={form.type === 'group'}
-                          onChange={() => setForm((prev) => ({ ...prev, type: 'group' }))}
+                          onChange={() => changeType('group')}
                           className="w-4 h-4 text-primary-600"
                         />
                         <span className="text-sm text-gray-700">集体教案（小组 / 班级）</span>
                       </label>
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                      教案不关联具体学生；个人/集体只表示教学组织形式，训练计划可引用教案作为参考。
+                      个人教案关联 1 名学生；集体教案至少关联 2 名学生。一个学生可以关联多份教案。
                     </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      关联学生 *
+                      <span className="text-xs text-gray-400 font-normal ml-1">
+                        （个人 1 名 / 集体至少 2 名）
+                      </span>
+                    </label>
+
+                    {selectedStudents.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {selectedStudents.map((s) => {
+                          const displayName = s.name || allStudents.find((x) => (x._id || x.id) === s.id)?.name || s.id;
+                          return (
+                            <span key={s.id} className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-50 text-primary-700 text-sm rounded-lg border border-primary-200">
+                              {displayName}
+                              <button type="button" onClick={() => removeStudent(s.id)} className="ml-1 text-primary-400 hover:text-red-500">×</button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={studentKeyword}
+                        onChange={(e) => { setStudentKeyword(e.target.value); setShowStudentSearch(true); }}
+                        onFocus={() => setShowStudentSearch(true)}
+                        placeholder="搜索学生姓名 / 家长姓名 / 电话..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
+                      />
+                      {showStudentSearch && (
+                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {studentResults.length === 0 ? (
+                            <p className="px-4 py-3 text-sm text-gray-400">未找到匹配的学生</p>
+                          ) : (
+                            studentResults.map((s: any) => {
+                              const sid = s._id || s.id;
+                              const selected = selectedStudents.some((x) => x.id === sid);
+                              const disabled = selected || (form.type === 'personal' && selectedStudents.length > 0 && !selected);
+                              return (
+                                <button
+                                  key={sid}
+                                  type="button"
+                                  disabled={disabled}
+                                  onClick={() => selectStudent(s)}
+                                  className={`w-full text-left px-4 py-2.5 text-sm border-b border-gray-50 last:border-0 transition-colors ${
+                                    disabled ? 'bg-gray-50 text-gray-300 cursor-not-allowed' : 'hover:bg-primary-50 text-gray-700'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <span className="font-medium">{s.name}</span>
+                                      {s.age ? <span className="text-gray-400 ml-1">（{s.age}岁）</span> : null}
+                                      <span className="text-gray-400 ml-2 text-xs">{s.parentName || ''}</span>
+                                    </div>
+                                    <span className="text-xs text-gray-400">
+                                      {selected ? '已选择' : form.type === 'personal' && selectedStudents.length > 0 ? '个人教案限 1 人' : '选择'}
+                                    </span>
+                                  </div>
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                      )}
+                      {allStudents.length === 0 && <p className="text-xs text-red-500 mt-1">请先在“学生管理”中添加学生</p>}
+                    </div>
                   </div>
 
                   <div>

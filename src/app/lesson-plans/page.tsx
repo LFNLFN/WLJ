@@ -27,16 +27,18 @@ function LessonPlansContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const keywordParam = searchParams.get('keyword') || '';
+  const studentId = searchParams.get('studentId') || '';
+  const studentName = searchParams.get('studentName') || '';
 
   const [plans, setPlans] = useState<any[]>([]);
   const [keyword, setKeyword] = useState(keywordParam);
   const [typeFilter, setTypeFilter] = useState('');
 
   const loadData = useCallback((kw?: string, tp?: string) => {
-    getLessonPlans(kw, tp)
+    getLessonPlans(kw, tp, studentId || undefined)
       .then(allPlans => setPlans(allPlans || []))
       .catch(err => console.error('加载失败:', err));
-  }, []);
+  }, [studentId]);
 
   useEffect(() => {
     loadData(keywordParam, '');
@@ -78,6 +80,22 @@ function LessonPlansContent() {
         </div>
       )
     },
+    {
+      key: 'studentNames', label: '关联学生',
+      render: (_: any, row: any) => {
+        const names: string[] = Array.isArray(row.studentNames) && row.studentNames.length > 0
+          ? row.studentNames
+          : (row.studentName ? [row.studentName] : []);
+        if (names.length === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <div className="flex gap-1 flex-wrap max-w-xs">
+            {names.map((name, i) => (
+              <span key={i} className="px-2 py-0.5 bg-primary-50 text-primary-700 text-xs rounded-full">{name}</span>
+            ))}
+          </div>
+        );
+      },
+    },
     { key: 'createdAt', label: '创建时间',
       render: (val: string) => val ? new Date(val).toLocaleDateString('zh-CN') : '-'
     },
@@ -94,6 +112,17 @@ function LessonPlansContent() {
         <main className="flex-1 overflow-y-auto p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
+              {studentId && (
+                <button onClick={() => router.push('/students')} className="text-gray-400 hover:text-gray-600 text-sm mr-1">
+                  ← 返回学生管理
+                </button>
+              )}
+              <div className="mr-2">
+                <p className="text-sm font-medium text-gray-700">
+                  {studentName ? `${studentName}的教案` : '全部教案'}
+                </p>
+                <p className="text-xs text-gray-400">一个学生可以关联多份教案</p>
+              </div>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -138,7 +167,13 @@ function LessonPlansContent() {
               <p className="text-gray-500 text-sm ml-2">共 {plans.length} 个教案</p>
             </div>
             <button
-              onClick={() => router.push('/lesson-plans/new')}
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (studentId) params.set('studentId', studentId);
+                if (studentName) params.set('studentName', studentName);
+                const query = params.toString();
+                router.push(`/lesson-plans/new${query ? '?' + query : ''}`);
+              }}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               ➕ 新建教案

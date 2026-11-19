@@ -201,10 +201,11 @@ export async function getStudentScaleRecordsByStudent(studentId: string) {
 
 // ==================== 教案 ====================
 
-export async function getLessonPlans(keyword?: string, type?: string) {
+export async function getLessonPlans(keyword?: string, type?: string, studentId?: string) {
   const searchParams = new URLSearchParams();
   if (keyword) searchParams.set('keyword', keyword);
   if (type) searchParams.set('type', type);
+  if (studentId) searchParams.set('studentId', studentId);
   const query = searchParams.toString();
   return request(`/lesson-plans${query ? '?' + query : ''}`);
 }

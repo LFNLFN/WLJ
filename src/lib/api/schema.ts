@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v6';
+const SCHEMA_KEY = '__wljSchemaReady_v7';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -115,6 +115,22 @@ async function runMigrations(): Promise<void> {
   )`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_course_lessons_course ON course_lessons ("courseId", "lessonNo")`);
   console.log('[schema] course_lessons 已就绪');
+
+  // 教案 ↔ 学生 多对多（个人教案 1 人，集体教案 ≥2 人）
+  await db.query(`CREATE TABLE IF NOT EXISTS lesson_plan_students (
+    "planId" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "createdAt" TEXT DEFAULT '',
+    PRIMARY KEY ("planId", "studentId")
+  )`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_lesson_plan_students_student ON lesson_plan_students ("studentId")`);
+  // 历史单学生数据回填（幂等）
+  await db.query(`INSERT INTO lesson_plan_students ("planId", "studentId", "createdAt")
+    SELECT id, "studentId", COALESCE("createdAt", '')
+      FROM lesson_plans
+     WHERE "studentId" IS NOT NULL AND "studentId" <> ''
+    ON CONFLICT DO NOTHING`);
+  console.log('[schema] lesson_plan_students 已就绪');
 
   // 评估记录的 AI 草稿字段（文书辅助，需人工确认）
   const draftColumns = [
