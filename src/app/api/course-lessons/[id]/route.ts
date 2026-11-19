@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const TABLE = 'course_lessons';
-const FIELDS = ['lessonNo', 'date', 'startTime', 'endTime', 'duration', 'content', 'performance', 'homework'];
+const FIELDS = ['lessonNo', 'date', 'startTime', 'endTime', 'duration', 'content', 'performance', 'homework', 'summary'];
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

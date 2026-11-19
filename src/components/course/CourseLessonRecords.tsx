@@ -37,6 +37,7 @@ const emptyForm = (durationMinutes: number) => ({
   content: '',
   performance: '',
   homework: '',
+  summary: '',
 });
 
 export default function CourseLessonRecords({
@@ -94,6 +95,7 @@ export default function CourseLessonRecords({
       content: record.content || '',
       performance: record.performance || '',
       homework: record.homework || '',
+      summary: record.summary || '',
     });
     setError('');
     setShowForm(true);
@@ -134,6 +136,7 @@ export default function CourseLessonRecords({
         content: form.content.trim(),
         performance: form.performance.trim(),
         homework: form.homework.trim(),
+        summary: form.summary.trim(),
       };
       if (editingId) payload.id = editingId;
       await saveCourseLesson(payload);
@@ -255,6 +258,16 @@ export default function CourseLessonRecords({
                     />
                   </div>
                   <div>
+                    <label className="block text-xs text-gray-500 mb-1">课堂总结（可选）</label>
+                    <textarea
+                      value={form.summary}
+                      onChange={(e) => setForm((prev) => ({ ...prev, summary: e.target.value }))}
+                      rows={2}
+                      placeholder="本节课的整体总结：目标完成情况、下一步重点、需要家长配合的事项等"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none resize-y"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-xs text-gray-500 mb-1">课后作业 / 家庭练习（可选）</label>
                     <textarea
                       value={form.homework}
@@ -319,6 +332,7 @@ export default function CourseLessonRecords({
                       <p><span className="text-gray-400">教学内容：</span>{record.content || '—'}</p>
                       {record.performance && <p><span className="text-gray-400">课堂表现：</span>{record.performance}</p>}
                       {record.homework && <p><span className="text-gray-400">课后作业：</span>{record.homework}</p>}
+                      {record.summary && <p><span className="text-gray-400">课堂总结：</span>{record.summary}</p>}
                     </div>
                   </div>
                 ))}

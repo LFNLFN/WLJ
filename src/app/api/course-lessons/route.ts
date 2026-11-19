@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const TABLE = 'course_lessons';
-const FIELDS = ['date', 'startTime', 'endTime', 'duration', 'content', 'performance', 'homework'];
+const FIELDS = ['date', 'startTime', 'endTime', 'duration', 'content', 'performance', 'homework', 'summary'];
 
 function calcDuration(start: string, end: string): number {
   if (!start || !end) return 0;
@@ -64,8 +64,8 @@ export async function POST(req: NextRequest) {
 
     const result = await db.query(
       `INSERT INTO ${TABLE}
-        (id, "courseId", "lessonNo", date, "startTime", "endTime", duration, content, performance, homework, "createdAt", "updatedAt")
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+        (id, "courseId", "lessonNo", date, "startTime", "endTime", duration, content, performance, homework, summary, "createdAt", "updatedAt")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
        RETURNING *`,
       [
         generateId(),
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
         String(body.content || ''),
         String(body.performance || ''),
         String(body.homework || ''),
+        String(body.summary || ''),
         now,
         now,
       ]
