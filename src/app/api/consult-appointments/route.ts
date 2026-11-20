@@ -3,6 +3,7 @@ import { getDb, generateId } from '@/lib/api/crud';
 import { ensureSchema } from '@/lib/api/schema';
 import { getSessionFromRequest } from '@/lib/auth/current';
 import { requireStaff } from '@/lib/auth/service';
+import { notifyConsultAppointment } from '@/lib/wechat/notify-consult';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -51,6 +52,11 @@ export async function POST(req: NextRequest) {
         String(body?.notes || '').slice(0, 1000),
         now,
       ]
+    );
+
+    // 订阅消息发送失败不影响预约保存
+    void notifyConsultAppointment(db, result.rows[0]).catch((err) =>
+      console.warn('[wechat] 预约通知任务失败:', err?.message || err)
     );
 
     return NextResponse.json(result.rows[0], { status: 201 });

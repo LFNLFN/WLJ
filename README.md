@@ -261,7 +261,21 @@ npm run records:link-students -- --apply # 真正写入（建学生 + 关联报�
 - 家长首页的教师入口也会显示「N 条新预约」提示（教师登录后可见）
 - 提交需要勾选《用户服务协议》《隐私政策》，并触发微信官方隐私授权
 
-> 当前是**小程序内消息提示**（角标 + 待处理列表），不是微信服务通知推送。如需给教师发微信订阅消息，需要在小程序后台配置模板 ID，并提供 AppID/AppSecret 由服务端调用微信接口，可后续单独接入。
+> 当前预约会同时写入数据库并尝试发送微信订阅消息；发送失败不影响预约保存。
+
+### 微信订阅消息（专家预约通知）
+
+- 模板：`专家预约通知`（模板 ID `YpfZDw3xEgJRcQ_YYvNDYLyWclZvEGuFPp0ynqkSHwY`）
+- 模板字段：`name2` 客户姓名、`phone_number3` 手机号码、`date4` 预约时间、`name5` 咨询项目、`thing6` 备注
+- 模板类型：**一次性订阅**（教师授权一次可发送一条，发送后需续订）
+- 家长预约时**不需要选择教师**；通知对象由服务端固定名单决定：
+  - `CONSULT_NOTIFY_TEACHER_IDS=userId1,userId2`，或
+  - `CONSULT_NOTIFY_TEACHER_PHONES=13800000000,13900000000`
+- 只有名单内的教师会在教师端看到「开启预约通知」卡片并弹出 `wx.requestSubscribeMessage` 授权；名单外教师不显示、不弹窗、不发送
+- 教师授权流程：`wx.requestSubscribeMessage` → `wx.login` 换 OpenID → 绑定 → 记录剩余次数
+- 发送成功后服务端扣减一次；剩余 0 时教师端显示「续订通知」
+- 服务端环境变量：`WECHAT_APPSECRET` 必填；AppID 与模板 ID 已内置，可用 `WECHAT_APPID` / `WECHAT_CONSULT_TEMPLATE_ID` 覆盖
+- 若以后换成长期订阅模板，设置 `WECHAT_CONSULT_LONG_TERM=1`
 
 ## AI 智能助理（首页）：提问附带图片/文件 + 页面内知识库上传
 
@@ -860,6 +874,13 @@ node server/index.js
 | `AI_GENERATION_WORKER` | 可选。设为 `0` 关闭小程序 AI 生成任务队列扫描 |
 | `AI_GENERATION_INTERVAL_MS` | 可选。小程序 AI 生成任务扫描间隔，默认 `5000` |
 | `AI_GENERATION_MAX_ATTEMPTS` | 可选。小程序 AI 生成任务最大尝试次数，默认 `2` |
+| `WECHAT_APPID` | 可选。小程序 AppID，默认 `wx12e2c2c561b0055f` |
+| `WECHAT_APPSECRET` | **微信订阅消息必填**。小程序 AppSecret，只放服务端 |
+| `WECHAT_CONSULT_TEMPLATE_ID` | 可选。预约通知模板 ID，默认已内置 |
+| `WECHAT_CONSULT_LONG_TERM` | 可选。设为 `1` 表示长期订阅模板；默认为一次性订阅 |
+| `CONSULT_NOTIFY_TEACHER_IDS` | 可选。接收预约通知的教师用户 ID，逗号分隔 |
+| `CONSULT_NOTIFY_TEACHER_PHONES` | 可选。接收预约通知的教师手机号，逗号分隔（与 ID 二选一） |
+| `WECHAT_MINIPROGRAM_STATE` | 可选。消息点击打开的小程序版本，默认 `formal` |
 | `KB_API_KEY` | 可选（推荐）。火山知识库 API Key → 直连检索知识库原文切片，详见 `src/lib/agent/README.md` |
 | `ARK_AGENT_ID` / `ARK_ENVIRONMENT_ID` / `ARK_VAULT_ID` | 可选。方舟托管智能体 → 检索知识库（兜底路径，慢），详见 `src/lib/agent/README.md` |
 | `PORT` | Express 版后端端口（默认 3001）；Next.js 端口由 `npm run dev` / `npm run start` 决定 |
