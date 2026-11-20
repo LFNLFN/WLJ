@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { runAiJob } from '@/lib/ai/job-client';
 import type { TrainingPlan } from '@/lib/types';
 import { getLessonPlans } from '@/lib/api';
 
@@ -120,24 +121,20 @@ export default function AIGenerateDialog({ open, onClose, onApply, student }: AI
     setError('');
     try {
       const problems = selected.length > 0 ? selected : ['unknown'];
-      const res = await fetch('/api/training-plans/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: student?.id || '',
-          studentName: student?.name || '',
-          studentAge: student?.age || '',
-          studentGender: student?.gender || '',
-          problems,
-          lessonPlanIds,
-          notes: [templateText, notes].filter(Boolean).join('\n'),
-        }),
+      const result = await runAiJob('training-plan', {
+        studentId: student?.id || '',
+        studentName: student?.name || '',
+        studentAge: student?.age || '',
+        studentGender: student?.gender || '',
+        problems,
+        lessonPlanIds,
+        notes: [templateText, notes].filter(Boolean).join('\n'),
       });
-      const data = await res.json();
-      if (!res.ok || !data.plan) {
-        throw new Error(data.error || '生成失败，请稍后重试');
+      const plan = result?.plan;
+      if (!plan) {
+        throw new Error('生成结果为空，请稍后重试');
       }
-      onApply(data.plan as Partial<TrainingPlan>);
+      onApply(plan as Partial<TrainingPlan>);
       onClose();
     } catch (err: any) {
       setError(err?.message || '生成失败，请稍后重试');

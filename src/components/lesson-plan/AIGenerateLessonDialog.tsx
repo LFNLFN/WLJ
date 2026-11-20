@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { runAiJob } from '@/lib/ai/job-client';
 
 interface AIGenerateLessonDialogProps {
   open: boolean;
@@ -72,24 +73,19 @@ export default function AIGenerateLessonDialog({
     setGenerating(true);
     setError('');
     try {
-      const res = await fetch('/api/lesson-plans/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: planType,
-          topic: topic.trim(),
-          ageGroup: ageGroup.trim(),
-          duration: duration.trim(),
-          groupSize: groupSize.trim(),
-          focus,
-          notes: [focusPreview, notes].filter(Boolean).join('\n'),
-        }),
+      const result = await runAiJob('lesson-plan', {
+        type: planType,
+        topic: topic.trim(),
+        ageGroup: ageGroup.trim(),
+        duration: duration.trim(),
+        groupSize: groupSize.trim(),
+        focus,
+        notes: [focusPreview, notes].filter(Boolean).join('\n'),
       });
-      const data = await res.json();
-      if (!res.ok || !data.content) {
-        throw new Error(data.error || '生成失败，请稍后重试');
+      if (!result?.content) {
+        throw new Error('生成结果为空，请稍后重试');
       }
-      onApply({ title: data.title || topic.trim(), content: data.content, type: planType });
+      onApply({ title: result.title || topic.trim(), content: result.content, type: planType });
       onClose();
     } catch (err: any) {
       setError(err?.message || '生成失败，请稍后重试');
