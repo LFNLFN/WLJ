@@ -68,6 +68,11 @@ export async function saveStudent(student: any) {
   });
 }
 
+/** 解绑学生的小程序设备号（家长可用姓名+手机号后4位重新绑定） */
+export async function unbindStudentDevice(id: string) {
+  return request(`/students/${id}/unbind-device`, { method: 'POST' });
+}
+
 export async function deleteStudent(id: string) {
   return request(`/students/${id}`, { method: 'DELETE' });
 }

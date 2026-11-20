@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudent, saveStudent } from '@/lib/api';
+import { getStudent, saveStudent, unbindStudentDevice } from '@/lib/api';
 import type { Student } from '@/lib/types';
 
 function EditForm() {
@@ -12,14 +12,34 @@ function EditForm() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [form, setForm] = useState({ name: '', parentName: '', parentPhone: '', birthDate: '', age: 0 });
+  const [userid, setUserid] = useState('');
+  const [unbinding, setUnbinding] = useState(false);
 
   useEffect(() => {
     if (id) {
       getStudent(id).then(student => {
-        if (student) setForm({ name: student.name, parentName: student.parentName, parentPhone: student.parentPhone, birthDate: student.birthDate || '', age: student.age || 0 });
+        if (student) {
+          setForm({ name: student.name, parentName: student.parentName, parentPhone: student.parentPhone, birthDate: student.birthDate || '', age: student.age || 0 });
+          setUserid(String((student as any).userid || ''));
+        }
       });
     }
   }, [id]);
+
+  const handleUnbind = async () => {
+    if (!id || unbinding) return;
+    if (!confirm('确定解绑该学生的小程序设备吗？解绑后家长可以用「姓名 + 手机号后 4 位」重新绑定。')) return;
+    setUnbinding(true);
+    try {
+      await unbindStudentDevice(id);
+      setUserid('');
+      alert('已解绑，家长可以重新绑定');
+    } catch (err: any) {
+      alert('解绑失败: ' + (err?.message || ''));
+    } finally {
+      setUnbinding(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +85,31 @@ function EditForm() {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none" />
         </div>
       </div>
+
+      <div className="mt-2 mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-gray-700">小程序家长端</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {userid ? '已绑定家长设备，可查看该学生的课堂总结' : '未绑定家长设备'}
+            </div>
+          </div>
+          {userid && (
+            <button
+              type="button"
+              onClick={handleUnbind}
+              disabled={unbinding}
+              className="px-3 py-1.5 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+            >
+              {unbinding ? '解绑中…' : '解绑设备'}
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 mt-2">
+          解绑后，家长可在小程序「课堂总结 → 绑定孩子」用孩子姓名 + 家长手机号后 4 位重新绑定。
+        </p>
+      </div>
+
       <div className="flex items-center gap-3 mt-4">
         <button type="submit" className="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">💾 保存修改</button>
         <button type="button" onClick={() => router.back()} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">取消</button>

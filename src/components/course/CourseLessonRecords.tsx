@@ -166,7 +166,8 @@ export default function CourseLessonRecords({
         <div>
           <h3 className="text-sm font-semibold text-gray-700">📝 课后记录（逐节课）</h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            记录每节课的教学内容、课堂表现与课后作业；一个课程可以有多节记录
+            记录每节课的教学内容、课堂表现与课后作业；一个课程可以有多节记录。
+            <span className="text-primary-600">「课堂总结」与「课后作业」会同步展示在家长端小程序。</span>
           </p>
         </div>
         {courseId && (

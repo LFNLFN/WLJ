@@ -28,6 +28,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/weapp-sync', // 小程序同步（服务端到服务端）
   '/api/student-scale-records', // ⚠️ 小程序直连写入评估记录
   '/api/consult-appointments', // 家长免登录提交咨询预约（GET/PATCH 由路由内部校验教师身份）
+  '/api/parent/', // 家长端免登录查询自家孩子的数据（路由内按设备号 userid 过滤）
 ];
 
 /**

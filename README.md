@@ -277,6 +277,24 @@ npm run records:link-students -- --apply # 真正写入（建学生 + 关联报�
 - 服务端环境变量：`WECHAT_APPSECRET` 必填；AppID 与模板 ID 已内置，可用 `WECHAT_APPID` / `WECHAT_CONSULT_TEMPLATE_ID` 覆盖
 - 若以后换成长期订阅模板，设置 `WECHAT_CONSULT_LONG_TERM=1`
 
+### 家长端：课堂总结
+
+- 家长首页新增「📖 课堂总结」入口 → `pages/class-summaries`
+- 展示老师在该孩子课程「课后记录」里填写的**课堂总结**与**课后作业/家庭练习**；课堂表现、教学内容等内部记录不展示
+- 数据链路：小程序本地 `deviceUserId` → `students.userid` → `courses.studentIds` → `course_lessons.summary/homework`
+- 免登录接口：`GET /api/parent/course-summaries?userid=<deviceUserId>`
+  - 必须带 `userid`，只返回该设备号绑定的学生数据；不接收姓名/手机号查询
+  - 同一设备有多个孩子时，小程序端显示孩子切换标签
+  - 只返回有课堂总结或课后作业的课节，按日期倒序，最多 300 条
+- 家长端未绑定设备号时显示引导：先完成一次评估，或联系老师绑定档案
+- **绑定孩子**：家长端课堂总结页 →「绑定孩子」→ 输入孩子姓名 + 家长手机号后 4 位
+  - 接口：`POST /api/parent/bind-child`，body `{ userid, name, phoneLast4 }`
+  - 匹配 `students.name`（忽略大小写/首尾空格）+ `students.parentPhone` 去掉非数字后的后 4 位
+  - 已绑定其他设备的孩子不允许抢占（`409`），需老师处理
+  - 同设备/IP 10 分钟最多 10 次尝试，防止枚举手机号后 4 位
+  - 老师需要在 PC「学生管理」里填写家长电话，绑定才能匹配
+  - 老师可在 PC「学生管理 → 编辑」查看绑定状态并「解绑设备」：`POST /api/students/[id]/unbind-device`；解绑后家长可重新绑定
+
 ## AI 智能助理（首页）：提问附带图片/文件 + 页面内知识库上传
 
 首页 `/` 是 AI 智能助理，由火山方舟模型 + 服务端工具层驱动（工具细节见 `src/lib/agent/README.md`）。
