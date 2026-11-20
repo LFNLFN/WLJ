@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v9';
+const SCHEMA_KEY = '__wljSchemaReady_v11';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -155,6 +155,43 @@ async function runMigrations(): Promise<void> {
   )`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_ai_generation_jobs_status ON ai_generation_jobs (status, "createdAt")`);
   console.log('[schema] ai_generation_jobs 已就绪');
+
+  // 家长咨询预约（小程序提交，教师端查看/处理）
+  await db.query(`CREATE TABLE IF NOT EXISTS consult_appointments (
+    id TEXT PRIMARY KEY,
+    "userId" TEXT DEFAULT '',
+    "parentName" TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    "childName" TEXT DEFAULT '',
+    "preferredDate" TEXT DEFAULT '',
+    "preferredTime" TEXT DEFAULT '',
+    topic TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    "teacherId" TEXT DEFAULT '',
+    "teacherName" TEXT DEFAULT '',
+    status TEXT DEFAULT 'pending',
+    "handledBy" TEXT DEFAULT '',
+    "handledAt" TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT '',
+    "updatedAt" TEXT DEFAULT ''
+  )`);
+  await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "teacherId" TEXT DEFAULT ''`);
+  await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "teacherName" TEXT DEFAULT ''`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_consult_appointments_status ON consult_appointments (status, "createdAt")`);
+  console.log('[schema] consult_appointments 已就绪');
+
+  // 教师微信订阅消息绑定（AppID/AppSecret 只在服务端环境变量）
+  await db.query(`CREATE TABLE IF NOT EXISTS wechat_bindings (
+    "userId" TEXT PRIMARY KEY,
+    openid TEXT DEFAULT '',
+    unionid TEXT DEFAULT '',
+    "templateId" TEXT DEFAULT '',
+    remaining INTEGER DEFAULT 0,
+    "lastSubscribeAt" TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT '',
+    "updatedAt" TEXT DEFAULT ''
+  )`);
+  console.log('[schema] wechat_bindings 已就绪');
 
   // 评估记录的 AI 草稿字段（文书辅助，需人工确认）
   const draftColumns = [

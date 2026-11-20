@@ -27,6 +27,7 @@ const PUBLIC_API_PREFIXES = [
   '/api/health', // 部署健康检查（README/脚本里用 curl 调用）
   '/api/weapp-sync', // 小程序同步（服务端到服务端）
   '/api/student-scale-records', // ⚠️ 小程序直连写入评估记录
+  '/api/consult-appointments', // 家长免登录提交咨询预约（GET/PATCH 由路由内部校验教师身份）
 ];
 
 /**
