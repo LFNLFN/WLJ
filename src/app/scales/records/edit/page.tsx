@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudentScaleRecord, saveStudentScaleRecord, generateAssessmentDraft, reviewStudentScaleRecord } from '@/lib/api';
+import { getStudentScaleRecord, saveStudentScaleRecord, generateAssessmentDraft } from '@/lib/api';
+import { reviewStudentScaleRecord } from '@/lib/api/review-record';
 import { buildReviewRows, formatAnswer, formatOption } from '@/lib/scale-question-bank';
 
 type ScoreValue = {
