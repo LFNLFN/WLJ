@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v11';
+const SCHEMA_KEY = '__wljSchemaReady_v12';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -163,6 +163,8 @@ async function runMigrations(): Promise<void> {
     "parentName" TEXT DEFAULT '',
     phone TEXT DEFAULT '',
     "childName" TEXT DEFAULT '',
+    "childAge" TEXT DEFAULT '',
+    "childGender" TEXT DEFAULT '',
     "preferredDate" TEXT DEFAULT '',
     "preferredTime" TEXT DEFAULT '',
     topic TEXT DEFAULT '',
@@ -177,6 +179,8 @@ async function runMigrations(): Promise<void> {
   )`);
   await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "teacherId" TEXT DEFAULT ''`);
   await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "teacherName" TEXT DEFAULT ''`);
+  await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "childAge" TEXT DEFAULT ''`);
+  await db.query(`ALTER TABLE consult_appointments ADD COLUMN IF NOT EXISTS "childGender" TEXT DEFAULT ''`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_consult_appointments_status ON consult_appointments (status, "createdAt")`);
   console.log('[schema] consult_appointments 已就绪');
 

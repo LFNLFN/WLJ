@@ -96,9 +96,12 @@ export function buildConsultTemplateData(appointment: any) {
   const date = String(appointment.preferredDate || '');
   const time = String(appointment.preferredTime || '00:00');
   const phone = String(appointment.phone || '').replace(/[^\d+]/g, '');
-  const notes = appointment.notes || appointment.childName
-    ? `孩子：${appointment.childName || '未填写'}；${appointment.notes || ''}`
-    : '家长提交了咨询预约';
+  const child = [
+    appointment.childName ? `孩子：${appointment.childName}` : '',
+    appointment.childAge ? `${appointment.childAge}岁` : '',
+    appointment.childGender || '',
+  ].filter(Boolean).join(' ');
+  const notes = [child, appointment.notes].filter(Boolean).join('；') || '家长提交了咨询预约';
 
   return {
     name2: { value: clip(appointment.parentName || '家长', 10) },

@@ -16,7 +16,7 @@ function nowText() {
 
 /**
  * 家长提交咨询预约（免登录）
- * body: { userId?, parentName, phone, childName?, preferredDate, preferredTime?, topic?, notes? }
+ * body: { userId?, parentName?, phone, childName?, childAge?, childGender?, preferredDate, preferredTime?, topic?, notes? }
  */
 export async function POST(req: NextRequest) {
   try {
@@ -27,18 +27,30 @@ export async function POST(req: NextRequest) {
     const parentName = String(body?.parentName || '').trim();
     const phone = String(body?.phone || '').trim();
     const preferredDate = String(body?.preferredDate || '').trim();
-    if (!parentName) return NextResponse.json({ error: '请填写家长姓名' }, { status: 400 });
+    const preferredTime = String(body?.preferredTime || '').trim();
+    const childAgeRaw = String(body?.childAge || '').replace(/\D/g, '');
+    const childAge = childAgeRaw.slice(0, 2);
+    const childGender = String(body?.childGender || '').trim().slice(0, 4);
     if (!phone || phone.replace(/\D/g, '').length < 6) {
       return NextResponse.json({ error: '请填写正确的联系电话' }, { status: 400 });
     }
     if (!preferredDate) return NextResponse.json({ error: '请选择期望日期' }, { status: 400 });
+    if (preferredTime && (!/^\d{2}:\d{2}$/.test(preferredTime) || preferredTime < '13:00' || preferredTime > '20:00')) {
+      return NextResponse.json({ error: '请选择 13:00-20:00 之间的时间' }, { status: 400 });
+    }
+    if (childAgeRaw && (childAgeRaw.length > 2 || Number(childAgeRaw) > 18)) {
+      return NextResponse.json({ error: '孩子年龄需在 0-18 岁之间' }, { status: 400 });
+    }
+    if (childGender && !['男', '女'].includes(childGender)) {
+      return NextResponse.json({ error: '孩子性别不正确' }, { status: 400 });
+    }
 
     const id = generateId();
     const now = nowText();
     const result = await db.query(
       `INSERT INTO ${TABLE}
-        (id, "userId", "parentName", phone, "childName", "preferredDate", "preferredTime", topic, notes, status, "createdAt", "updatedAt")
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending',$10,$10)
+        (id, "userId", "parentName", phone, "childName", "childAge", "childGender", "preferredDate", "preferredTime", topic, notes, status, "createdAt", "updatedAt")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'pending',$12,$12)
        RETURNING *`,
       [
         id,
@@ -46,8 +58,10 @@ export async function POST(req: NextRequest) {
         parentName,
         phone,
         String(body?.childName || '').trim(),
+        childAge,
+        childGender,
         preferredDate,
-        String(body?.preferredTime || '').trim(),
+        preferredTime,
         String(body?.topic || '').trim(),
         String(body?.notes || '').slice(0, 1000),
         now,
