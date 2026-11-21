@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { getStudentScaleRecord, saveStudentScaleRecord, generateAssessmentDraft } from '@/lib/api';
+import { getStudentScaleRecord, saveStudentScaleRecord, generateAssessmentDraft, reviewStudentScaleRecord } from '@/lib/api';
 import { buildReviewRows, formatAnswer, formatOption } from '@/lib/scale-question-bank';
 
 type ScoreValue = {
@@ -59,6 +59,14 @@ function EditForm() {
   const [draftError, setDraftError] = useState('');
   const [draftApplied, setDraftApplied] = useState(false);
 
+  // 教师批阅
+  const [reviewStatus, setReviewStatus] = useState<'pending' | 'reviewed'>('pending');
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewedAt, setReviewedAt] = useState('');
+  const [markReviewed, setMarkReviewed] = useState(true);
+  const [originalReviewComment, setOriginalReviewComment] = useState('');
+
   useEffect(() => {
     const loadData = async () => {
       if (!id) { setLoading(false); return; }
@@ -79,6 +87,16 @@ function EditForm() {
             status: record.status,
           });
           setScores(record.scores || []);
+          // 教师批阅状态
+          const status: 'pending' | 'reviewed' =
+            (record.reviewStatus || record.reviewstatus) === 'reviewed' ? 'reviewed' : 'pending';
+          const comment = record.reviewComment || record.reviewcomment || '';
+          setReviewStatus(status);
+          setReviewComment(comment);
+          setOriginalReviewComment(comment);
+          setReviewerName(record.reviewerName || record.reviewername || '');
+          setReviewedAt(record.reviewedAt || record.reviewedat || '');
+          setMarkReviewed(true);
           // 解析 rawData 中的题目详情
           if (record.rawdata) {
             const raw = typeof record.rawdata === 'string' ? JSON.parse(record.rawdata) : record.rawdata;
@@ -264,9 +282,50 @@ function EditForm() {
         scores,
         aiDraftStatus: finalAiStatus,
       });
-      router.push('/scales/records');
     } catch (err) {
       alert('保存失败');
+      return;
+    }
+
+    // 批阅状态：待批阅记录勾选「保存后标记为已批阅」时写入；
+    // 已批阅记录修改了批阅意见时同步更新（批阅人由服务端按当前登录账号记录）。
+    const commentChanged = reviewComment.trim() !== originalReviewComment.trim();
+    const reviewPayload =
+      reviewStatus === 'reviewed'
+        ? commentChanged
+          ? { status: 'reviewed' as const, comment: reviewComment.trim() }
+          : null
+        : markReviewed
+          ? { status: 'reviewed' as const, comment: reviewComment.trim() }
+          : commentChanged
+            ? { status: 'pending' as const, comment: reviewComment.trim() }
+            : null;
+
+    if (reviewPayload) {
+      try {
+        await reviewStudentScaleRecord(id, reviewPayload);
+      } catch (err: any) {
+        alert('评估内容已保存，但批阅状态更新失败：' + (err?.message || '请稍后重试'));
+        return;
+      }
+    }
+
+    router.push('/scales/records');
+  };
+
+  const handleRevertReview = async () => {
+    if (!id) return;
+    if (!confirm('撤回后该记录回到「待批阅」，批阅人信息会被清空。确定撤回吗？')) return;
+    try {
+      await reviewStudentScaleRecord(id, { status: 'pending', comment: reviewComment.trim() });
+      setReviewStatus('pending');
+      setReviewerName('');
+      setReviewedAt('');
+      setMarkReviewed(true);
+      setOriginalReviewComment(reviewComment.trim());
+      alert('已撤回批阅');
+    } catch (err: any) {
+      alert('撤回失败：' + (err?.message || '请稍后重试'));
     }
   };
 
@@ -312,7 +371,7 @@ function EditForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">状态</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">记录状态</label>
             <select value={form.status}
               onChange={e => setForm(prev => ({ ...prev, status: e.target.value as any }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent">
@@ -504,6 +563,62 @@ function EditForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent" />
           </div>
         </div>
+      </div>
+
+      {/* 教师批阅 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <h3 className="text-lg font-semibold text-gray-700">教师批阅</h3>
+          <span
+            className={`px-2 py-0.5 rounded text-xs font-medium ${
+              reviewStatus === 'reviewed'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-orange-100 text-orange-700'
+            }`}
+          >
+            {reviewStatus === 'reviewed' ? '✅ 已批阅' : '⏳ 待批阅'}
+          </span>
+        </div>
+
+        {reviewStatus === 'reviewed' ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <p className="text-xs text-gray-400">
+              批阅人：{reviewerName || '—'} · {reviewedAt || '—'}
+            </p>
+            <button
+              type="button"
+              onClick={handleRevertReview}
+              className="px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              撤回批阅
+            </button>
+          </div>
+        ) : (
+          <label className="flex items-start gap-2 text-sm text-gray-600 mb-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={markReviewed}
+              onChange={e => setMarkReviewed(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              保存后标记为已批阅
+              <span className="text-gray-400">（批阅人自动记录为当前登录账号）</span>
+            </span>
+          </label>
+        )}
+
+        <label className="block text-sm font-medium text-gray-700 mb-2">批阅意见</label>
+        <textarea
+          value={reviewComment}
+          onChange={e => setReviewComment(e.target.value)}
+          rows={3}
+          placeholder="填写批阅意见（选填）；保存后家长可在小程序查看"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F08020] focus:border-transparent"
+        />
+        <p className="text-xs text-gray-400 mt-1">
+          批阅意见会展示给家长端；批阅人和批阅时间由系统按当前登录账号记录。
+        </p>
       </div>
 
       <div className="flex items-center gap-3">

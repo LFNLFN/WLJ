@@ -182,6 +182,17 @@ export async function generateAssessmentDraft(id: string) {
   return request(`/student-scale-records/${id}/draft`, { method: 'POST' });
 }
 
+/** 教师批阅：批阅人/时间由服务端按登录态记录 */
+export async function reviewStudentScaleRecord(
+  id: string,
+  payload: { comment?: string; status?: 'reviewed' | 'pending' }
+) {
+  return request(`/student-scale-records/${id}/review`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function saveStudentScaleRecord(record: any) {
   if (record.id || record._id) {
     return request(`/student-scale-records/${record.id || record._id}`, {
