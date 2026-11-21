@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { getCourse, getTeachers, getStudents, getLessonPlans, saveCourse } from '@/lib/api';
 import CourseLessonRecords from '@/components/course/CourseLessonRecords';
+import CourseWeekSummaries from '@/components/course/CourseWeekSummaries';
 
 function EditForm() {
   const router = useRouter();
@@ -28,6 +29,7 @@ function EditForm() {
   const [studentKeyword, setStudentKeyword] = useState('');
   const [studentResults, setStudentResults] = useState<any[]>([]);
   const [showStudentSearch, setShowStudentSearch] = useState(false);
+  const [lessonRefresh, setLessonRefresh] = useState(0);
 
   useEffect(() => {
     getTeachers().then(data => setTeachers(data));
@@ -302,6 +304,17 @@ function EditForm() {
         courseId={id || undefined}
         defaultDuration={Number(form.classHour) || 45}
         autoOpen={searchParams.get('records') === '1'}
+        onChanged={() => setLessonRefresh((v) => v + 1)}
+      />
+
+      <CourseWeekSummaries
+        courseId={id || undefined}
+        courseName={form.name}
+        teacherName={teachers.find((t) => (t._id || t.id) === form.teacherId)?.name || ''}
+        students={students
+          .filter((s) => form.studentIds.includes(s._id || s.id))
+          .map((s) => ({ id: s._id || s.id, name: s.name }))}
+        refreshToken={lessonRefresh}
       />
 
       <div className="flex items-center gap-3">

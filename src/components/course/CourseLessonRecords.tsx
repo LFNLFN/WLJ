@@ -7,6 +7,8 @@ interface CourseLessonRecordsProps {
   courseId?: string;
   defaultDuration?: number;
   autoOpen?: boolean;
+  /** 课节记录新增/删除后通知外层刷新周总结 */
+  onChanged?: () => void;
 }
 
 function today() {
@@ -44,6 +46,7 @@ export default function CourseLessonRecords({
   courseId,
   defaultDuration = 45,
   autoOpen = false,
+  onChanged,
 }: CourseLessonRecordsProps) {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -143,6 +146,7 @@ export default function CourseLessonRecords({
       setShowForm(false);
       setEditingId('');
       load();
+      onChanged?.();
     } catch (err: any) {
       setError(err?.message || '保存失败');
     } finally {
@@ -155,6 +159,7 @@ export default function CourseLessonRecords({
     try {
       await deleteCourseLesson(record.id || record._id);
       load();
+      onChanged?.();
     } catch (err: any) {
       alert('删除失败: ' + (err?.message || ''));
     }

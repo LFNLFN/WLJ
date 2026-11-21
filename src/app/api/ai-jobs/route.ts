@@ -7,7 +7,7 @@ import { enqueueGenerationJob, type GenerationType } from '@/lib/ai/generation-q
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const ALLOWED: GenerationType[] = ['lesson-plan', 'training-plan'];
+const ALLOWED: GenerationType[] = ['lesson-plan', 'training-plan', 'course-week-summary'];
 
 /** 小程序创建 AI 生成任务（立即返回 jobId，前端轮询结果） */
 export async function POST(req: NextRequest) {

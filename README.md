@@ -241,6 +241,7 @@ PC 教案页、训练计划页与小程序教师端都使用同一套后台任�
 
 - **AI 生成教案**：选择个人/集体类型、填写主题/年龄/时长/训练重点/补充说明，可关联学生（个人 1 名、集体≥2 名），生成后可编辑/复制并保存到教案库
 - **AI 生成训练计划**：选择学生、主要问题（语言/社交/动作/认知/注意力/感统/自闭症/喂养/构音/不确定）、参考教案（最多 5 份）和补充说明，生成后可保存到该学生的训练计划
+- **AI 生成课程周总结**：PC 课程编辑页 / 小程序教师端「课程周总结」，把一周内每节课的课后记录整理成家长可读的周总结与家庭练习建议，教师确认后提交
 
 由于 `wx.request` 默认 60 秒会超时，且站点反向代理约 60 秒会返回 HTML 错误页（前端表现为 `Unexpected token '<' ... is not valid JSON`），生成不直接同步等待：
 
@@ -284,15 +285,17 @@ Web 端统一使用 `src/lib/ai/job-client.ts` 的 `runAiJob()`；原同步接�
 - 服务端环境变量：`WECHAT_APPSECRET` 必填；AppID 与模板 ID 已内置，可用 `WECHAT_APPID` / `WECHAT_CONSULT_TEMPLATE_ID` 覆盖
 - 若以后换成长期订阅模板，设置 `WECHAT_CONSULT_LONG_TERM=1`
 
-### 家长端：课堂总结
+### 家长端：每周课堂总结
 
 - 家长首页新增「📖 课堂总结」入口 → `pages/class-summaries`
-- 展示老师在该孩子课程「课后记录」里填写的**课堂总结**与**课后作业/家庭练习**；课堂表现、教学内容等内部记录不展示
-- 数据链路：小程序本地 `deviceUserId` → `students.userid` → `courses.studentIds` → `course_lessons.summary/homework`
+- 家长看到的是**每周课堂总结**：老师把一周内每节课的课后记录整理后，确认提交的版本；集体课每个孩子各有一份
+- 只展示教师已提交（`submitted`）的周总结；教师草稿不会展示
+- 数据链路：小程序本地 `deviceUserId` → `students.userid` → `course_week_summaries."studentId"`
 - 免登录接口：`GET /api/parent/course-summaries?userid=<deviceUserId>`
   - 必须带 `userid`，只返回该设备号绑定的学生数据；不接收姓名/手机号查询
   - 同一设备有多个孩子时，小程序端显示孩子切换标签
-  - 只返回有课堂总结或课后作业的课节，按日期倒序，最多 300 条
+  - 按周倒序返回，最多 300 条
+- 教师端仍有逐节课「课后记录」（`course_lessons`），家长端不再展示逐节课内容
 - 家长端未绑定设备号时显示引导：先完成一次评估，或联系老师绑定档案
 - **绑定孩子**：家长端课堂总结页 →「绑定孩子」→ 输入孩子姓名 + 家长手机号后 4 位
   - 接口：`POST /api/parent/bind-child`，body `{ userid, name, phoneLast4 }`
@@ -689,6 +692,17 @@ select count(*) from student_scale_records where studentname    ilike '%小米%'
 - 新建课程保存后自动进入编辑页并展开课后记录表单，可以立即逐节补录
 - 课程列表的行操作改为「📝 课后记录」，直接进入该课程的课后记录区
 - 旧的 `/records` 上课记录页面保留用于历史数据，但课程入口已改为课后记录
+
+### 每周课堂总结（家长端可见）
+
+- 课程编辑页在逐节课后记录下方新增「📅 每周课堂总结」
+- 按周一至周日分组本周课节；每周按孩子分别生成/编辑：
+  - 「✨ AI 生成周总结」：调用 `course-week-summary` 任务队列，把本周每节课的教学内容/课堂表现/课堂总结/课后作业，结合学生姓名整理成该孩子的周总结和家庭练习建议
+  - 「保存草稿」：仅教师可见
+  - 「确认并提交给家长」：家长端小程序才会展示该孩子的周总结
+- 表 `course_week_summaries`（schema v14）：`courseId + studentId + weekStart` 唯一；`status` 为 `draft`/`submitted`；记录提交人/提交时间
+- API：`GET/POST /api/course-week-summaries`（教师账号）
+- 教师端小程序新增「课程周总结」入口（`pages/teacher-week-summaries`），可选择课程、查看本周课节记录、AI 生成、保存草稿/确认提交
 
 ## 创建管理员账号
 

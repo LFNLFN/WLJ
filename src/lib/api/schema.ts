@@ -13,7 +13,7 @@ import { getDb } from './db';
  * 这里只做「建表 / 加列」这类非破坏性 DDL（IF NOT EXISTS），不删数据、不改类型。
  * 结果挂在 globalThis 上，一个进程只跑一次；失败则清掉缓存，下一个请求会重试。
  */
-const SCHEMA_KEY = '__wljSchemaReady_v12';
+const SCHEMA_KEY = '__wljSchemaReady_v14';
 
 export function ensureSchema(): Promise<void> {
   const g = globalThis as unknown as Record<string, Promise<void> | undefined>;
@@ -122,6 +122,37 @@ async function runMigrations(): Promise<void> {
   await db.query(`ALTER TABLE course_lessons ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT ''`);
   await db.query(`CREATE INDEX IF NOT EXISTS idx_course_lessons_course ON course_lessons ("courseId", "lessonNo")`);
   console.log('[schema] course_lessons 已就绪');
+
+  // 课程周总结：教师根据一周内每节课的课后记录，确认后提交给家长查看
+  await db.query(`CREATE TABLE IF NOT EXISTS course_week_summaries (
+    id TEXT PRIMARY KEY,
+    "courseId" TEXT DEFAULT '',
+    "studentId" TEXT DEFAULT '',
+    "studentName" TEXT DEFAULT '',
+    "weekStart" TEXT DEFAULT '',
+    "weekEnd" TEXT DEFAULT '',
+    "lessonIds" TEXT DEFAULT '[]',
+    "lessonCount" INTEGER DEFAULT 0,
+    summary TEXT DEFAULT '',
+    homework TEXT DEFAULT '',
+    status TEXT DEFAULT 'draft',
+    "createdBy" TEXT DEFAULT '',
+    "createdByName" TEXT DEFAULT '',
+    "submittedBy" TEXT DEFAULT '',
+    "submittedByName" TEXT DEFAULT '',
+    "submittedAt" TEXT DEFAULT '',
+    "createdAt" TEXT DEFAULT '',
+    "updatedAt" TEXT DEFAULT ''
+  )`);
+  // 周总结按「课程 + 学生 + 周」唯一（集体课每个孩子一份）
+  await db.query(`ALTER TABLE course_week_summaries ADD COLUMN IF NOT EXISTS "studentId" TEXT DEFAULT ''`);
+  await db.query(`ALTER TABLE course_week_summaries ADD COLUMN IF NOT EXISTS "studentName" TEXT DEFAULT ''`);
+  await db.query(`DROP INDEX IF EXISTS idx_course_week_summaries_course_week`);
+  await db.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_course_week_summaries_course_student_week
+    ON course_week_summaries ("courseId", "studentId", "weekStart")`);
+  await db.query(`CREATE INDEX IF NOT EXISTS idx_course_week_summaries_status
+    ON course_week_summaries (status, "weekStart")`);
+  console.log('[schema] course_week_summaries 已就绪（课程 + 学生 + 周）');
 
   // 教案 ↔ 学生 多对多（个人教案 1 人，集体教案 ≥2 人）
   await db.query(`CREATE TABLE IF NOT EXISTS lesson_plan_students (

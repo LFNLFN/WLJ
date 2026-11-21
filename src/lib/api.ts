@@ -127,6 +127,19 @@ export async function deleteCourseLesson(id: string) {
   return request(`/course-lessons/${id}`, { method: 'DELETE' });
 }
 
+// ==================== 课程周总结 ====================
+
+export async function getCourseWeekSummaries(courseId: string) {
+  return request(`/course-week-summaries?courseId=${encodeURIComponent(courseId)}`);
+}
+
+export async function saveCourseWeekSummary(data: any) {
+  return request('/course-week-summaries', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 // ==================== 上课记录 ====================
 
 export async function getClassRecords() {

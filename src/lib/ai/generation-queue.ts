@@ -1,15 +1,17 @@
 import { getDb, generateId } from '../api/db';
 import { generateLessonPlanContent } from './lesson-plan-generator';
 import { generateTrainingPlanContent } from './training-plan-generator';
+import { generateWeekSummaryContent } from './week-summary-generator';
 
 /**
- * 小程序 AI 生成任务队列（教案 / 训练计划）
+ * AI 生成任务队列（PC + 小程序共用）
  *
- * 为什么需要队列：小程序 wx.request 默认 60 秒超时，而教案/训练计划生成
- * 可能需要 40–90 秒。因此小程序只负责“创建任务 + 轮询”，生成在服务端后台完成。
+ * 为什么需要队列：教案/训练计划/课程周总结生成可能需要 40–90 秒，
+ * 而小程序 wx.request 默认 60 秒超时、站点反向代理约 60 秒会返回 HTML 错误页。
+ * 因此前端只负责“创建任务 + 轮询”，生成在服务端后台完成。
  */
 
-export type GenerationType = 'lesson-plan' | 'training-plan';
+export type GenerationType = 'lesson-plan' | 'training-plan' | 'course-week-summary';
 
 const TABLE_KEY = '__wljAiGenerationTableReady';
 const WORKER_KEY = '__wljGenerationWorkerStarted';
@@ -128,6 +130,8 @@ async function processJob(db: any, job: any) {
       result = await generateLessonPlanContent(payload);
     } else if (job.type === 'training-plan') {
       result = await generateTrainingPlanContent(db, payload);
+    } else if (job.type === 'course-week-summary') {
+      result = await generateWeekSummaryContent(payload);
     } else {
       throw new Error(`未知的任务类型: ${job.type}`);
     }

@@ -7,14 +7,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * 家长端：查看自家孩子的课堂总结（免登录）
+ * 家长端：查看自家孩子的「每周课堂总结」（免登录）
  *
  * 小程序家长没有账号体系，沿用「设备号」识别：
- *   小程序本地 deviceUserId → students.userid → courses.studentIds → course_lessons.summary
+ *   小程序本地 deviceUserId → students.userid → courses.studentIds → course_week_summaries
+ *
+ * 只返回教师已确认提交（status=submitted）的周总结；草稿不展示。
  *
  * 安全边界：
  *   - 必须带 userid，且只返回该设备号绑定的学生；
- *   - 只返回「课堂总结 / 课后作业」等内容，不返回教师内部批注；
  *   - 不接收学生姓名/手机号查询，避免枚举其他孩子的数据。
  *
  * GET /api/parent/course-summaries?userid=<deviceUserId>
@@ -56,93 +57,69 @@ export async function GET(req: NextRequest) {
       students.push(student);
     }
     if (allStudents.length === 0) {
-      return NextResponse.json({ students: [], summaries: [] });
+      return NextResponse.json({ students: [], weeks: [], summaries: [] });
     }
 
-    // 课程可能是一对一或集体课：studentIds 是 JSON 数组字符串
-    const lessonRes = await db.query(
-      `SELECT l.id,
-              l."courseId",
-              l."lessonNo",
-              l.date,
-              l."startTime",
-              l."endTime",
-              l.duration,
-              l.summary,
-              l.homework,
+    // 只取教师已提交的周总结；course_week_summaries 按 courseId + studentId + weekStart 唯一
+    const studentIds = allStudents.map((s) => s.id);
+    const weekRes = await db.query(
+      `SELECT w.id,
+              w."courseId",
+              w."studentId",
+              w."studentName",
+              w."weekStart",
+              w."weekEnd",
+              w."lessonCount",
+              w.summary,
+              w.homework,
+              w."submittedAt",
               c.name AS "courseName",
               c."teacherName",
-              c.type AS "courseType",
-              c."studentIds" AS "courseStudentIds"
-         FROM course_lessons l
-         JOIN courses c ON c.id = l."courseId"
-        WHERE (btrim(coalesce(l.summary, '')) <> '' OR btrim(coalesce(l.homework, '')) <> '')
-          AND EXISTS (
-                SELECT 1
-                  FROM students s
-                 WHERE s.userid = $1
-                   AND s.id IN (
-                         SELECT jsonb_array_elements_text(
-                                  CASE
-                                    WHEN btrim(coalesce(c."studentIds", '')) ~ '^\\['
-                                      THEN c."studentIds"::jsonb
-                                    ELSE '[]'::jsonb
-                                  END
-                                )
-                       )
-              )
-        ORDER BY l.date DESC NULLS LAST, l."lessonNo" DESC
+              c.type AS "courseType"
+         FROM course_week_summaries w
+         JOIN courses c ON c.id = w."courseId"
+        WHERE w.status = 'submitted'
+          AND btrim(coalesce(w.summary, '')) <> ''
+          AND w."studentId" = ANY($1::text[])
+        ORDER BY w."weekStart" DESC, w."updatedAt" DESC
         LIMIT 300`,
-      [userid]
+      [studentIds]
     );
 
     const studentById = new Map(allStudents.map((s: any) => [s.id, s]));
-    const summaries: any[] = [];
-    const seenSummaries = new Set<string>();
+    const weeks: any[] = [];
+    const seenWeeks = new Set<string>();
 
-    for (const row of lessonRes.rows) {
-      let courseStudentIds: string[] = [];
-      try {
-        const parsed = typeof row.courseStudentIds === 'string'
-          ? JSON.parse(row.courseStudentIds)
-          : row.courseStudentIds;
-        if (Array.isArray(parsed)) courseStudentIds = parsed.map((x) => String(x));
-      } catch {
-        courseStudentIds = [];
-      }
+    for (const row of weekRes.rows) {
+      const student = studentById.get(String(row.studentId));
+      if (!student) continue;
+      const studentName = student.name || row.studentName;
 
-      // 一节课可能属于多个孩子（集体课），按孩子各生成一条，便于家长端按孩子筛选
-      const matched = courseStudentIds
-        .map((id) => studentById.get(id))
-        .filter(Boolean);
+      // 同名重复档案只展示一次
+      const uniqueKey = `${row.weekStart}|${row.courseId}|${studentName}`;
+      if (seenWeeks.has(uniqueKey)) continue;
+      seenWeeks.add(uniqueKey);
 
-      for (const student of matched) {
-        // 同名重复档案只展示一次
-        const uniqueKey = `${row.id}|${student!.name}`;
-        if (seenSummaries.has(uniqueKey)) continue;
-        seenSummaries.add(uniqueKey);
-
-        summaries.push({
-          id: `${row.id}-${student!.id}`,
-          lessonId: row.id,
-          studentId: student!.id,
-          studentName: student!.name,
-          courseId: row.courseId || '',
-          courseName: row.courseName || '课程',
-          courseType: row.courseType || 'personal',
-          teacherName: row.teacherName || '',
-          lessonNo: Number(row.lessonNo) || 0,
-          date: row.date || '',
-          startTime: row.startTime || '',
-          endTime: row.endTime || '',
-          duration: Number(row.duration) || 0,
-          summary: row.summary || '',
-          homework: row.homework || '',
-        });
-      }
+      weeks.push({
+        id: row.id,
+        weekId: row.id,
+        studentId: student.id,
+        studentName,
+        courseId: row.courseId || '',
+        courseName: row.courseName || '课程',
+        courseType: row.courseType || 'personal',
+        teacherName: row.teacherName || '',
+        weekStart: row.weekStart || '',
+        weekEnd: row.weekEnd || '',
+        lessonCount: Number(row.lessonCount) || 0,
+        summary: row.summary || '',
+        homework: row.homework || '',
+        submittedAt: row.submittedAt || '',
+      });
     }
 
-    return NextResponse.json({ students, summaries });
+    // summaries 保留空数组，兼容旧版小程序（旧版展示逐节课总结，升级后为空）
+    return NextResponse.json({ students, weeks, summaries: [] });
   } catch (err: any) {
     console.error('[parent/course-summaries] 查询失败:', err?.message || err);
     return NextResponse.json({ error: '加载课堂总结失败' }, { status: 500 });

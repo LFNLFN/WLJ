@@ -14,7 +14,7 @@
  *   3. done 拿结果 / failed 显示错误
  */
 
-export type AiJobType = 'lesson-plan' | 'training-plan';
+export type AiJobType = 'lesson-plan' | 'training-plan' | 'course-week-summary';
 
 export interface AiJob {
   id: string;
